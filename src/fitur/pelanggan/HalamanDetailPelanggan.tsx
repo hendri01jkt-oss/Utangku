@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Pencil, Plus, Send, Wallet } from 'lucide-react';
-import { Kartu, StatusBadge, Tombol, type Status } from '@/komponen/ui';
+import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
 import { daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
 import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
@@ -105,19 +105,19 @@ export function HalamanDetailPelanggan() {
             Tagih via WhatsApp
           </Tombol>
           <div className="grid grid-cols-2 gap-2">
-            <Link
+            <TombolTautan
               to={`/utang/baru?pelanggan=${id}`}
-              className="permukaan flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] px-4 text-sm transition-colors hover:bg-permukaan-2"
+              varian="sekunder"
+              ikon={<Plus size={16} />}
             >
-              <Plus size={16} aria-hidden />
               Catat Utang
-            </Link>
+            </TombolTautan>
             {belumLunas.length === 0 ? (
               <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
                 Terima Bayar
               </Tombol>
             ) : (
-              <Link
+              <TombolTautan
                 // Satu utang belum lunas: langsung ke panel bayarnya, tidak
                 // perlu memilih. Lebih dari satu: pemiliknya yang memilih.
                 to={
@@ -125,11 +125,11 @@ export function HalamanDetailPelanggan() {
                     ? `/utang/${belumLunas[0].id}/bayar`
                     : `/pelanggan/${id}/bayar`
                 }
-                className="permukaan flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] px-4 text-sm transition-colors hover:bg-permukaan-2"
+                varian="sekunder"
+                ikon={<Wallet size={16} />}
               >
-                <Wallet size={16} aria-hidden />
                 Terima Bayar
-              </Link>
+              </TombolTautan>
             )}
           </div>
           <p className="text-center text-xs text-teks-samar">

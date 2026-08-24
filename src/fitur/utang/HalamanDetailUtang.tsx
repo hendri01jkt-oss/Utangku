@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Pencil, Trash2, Wallet, X } from 'lucide-react';
-import { Kartu, StatusBadge, Tombol, type Status } from '@/komponen/ui';
+import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
 import { hapusUtang, sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
 import { hapusPembayaran, riwayatPembayaran } from '@/data/repo/pembayaran';
@@ -186,13 +186,15 @@ export function HalamanDetailUtang() {
         </dl>
 
         {sisa > 0 ? (
-          <Link
+          <TombolTautan
             to={`/utang/${id}/bayar`}
-            className="flex min-h-13 items-center justify-center gap-2.5 rounded-[var(--radius-kontrol)] bg-merah-600 px-5 text-base font-semibold text-putih transition-colors hover:bg-merah-700"
+            varian="utama"
+            ukuran="besar"
+            penuh
+            ikon={<Wallet size={17} />}
           >
-            <Wallet size={17} aria-hidden />
             Terima Pembayaran
-          </Link>
+          </TombolTautan>
         ) : (
           <p className="rounded-[var(--radius-kontrol)] bg-[var(--tint-sukses)] px-3 py-2.5 text-center text-sm text-sukses">
             Utang ini sudah lunas.

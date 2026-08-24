@@ -1,4 +1,4 @@
-export { Tombol } from './Tombol';
+export { Tombol, TombolTautan } from './Tombol';
 export { Kartu, KartuStatistik } from './Kartu';
 export { Input, kelasKotakInput } from './Input';
 export { InputRupiah } from './InputRupiah';

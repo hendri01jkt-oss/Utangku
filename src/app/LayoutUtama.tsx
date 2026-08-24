@@ -1,9 +1,11 @@
 import { Outlet } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { LogOut } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { IndikatorSync } from './IndikatorSync';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { useMesinSync } from '@/data/sync/useMesinSync';
+import { perluDitagih } from '@/fitur/beranda/ringkasanWarung';
 
 /**
  * Kerangka aplikasi: header permukaan yang menempel di atas, konten yang bisa
@@ -18,6 +20,12 @@ export function LayoutUtama() {
 
   // Mesin sync hidup selama pengguna berada di dalam aplikasi.
   useMesinSync(warung?.id);
+
+  const jumlahTagihan = useLiveQuery(
+    async () => (warung ? (await perluDitagih(warung.id)).length : 0),
+    [warung?.id],
+    0,
+  );
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
@@ -61,8 +69,7 @@ export function LayoutUtama() {
         <Outlet />
       </main>
 
-      {/* Angka badge masih contoh; disambungkan ke data di Tahap 9. */}
-      <BottomNav jumlahTagihan={3} />
+      <BottomNav jumlahTagihan={jumlahTagihan} />
     </div>
   );
 }
