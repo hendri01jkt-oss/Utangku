@@ -5,6 +5,10 @@
   html {
     /* Cegah iOS memperbesar font saat orientasi berubah. */
     -webkit-text-size-adjust: 100%;
+    /* Membuat kontrol bawaan browser (spinner angka, pemilih tanggal,
+       scrollbar) ikut bertema gelap. Tanpa ini kontrol native tampil
+       terang dan merusak tampilan kaca. */
+    color-scheme: dark;
   }
 
   body {

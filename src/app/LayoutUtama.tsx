@@ -1,6 +1,8 @@
 import { Outlet } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { IndikatorSync } from './IndikatorSync';
+import { useSesi } from '@/fitur/auth/useSesi';
 
 /**
  * Kerangka aplikasi: header kaca yang menempel di atas, konten yang bisa
@@ -10,6 +12,9 @@ import { IndikatorSync } from './IndikatorSync';
  * di layar lebar isinya tetap satu kolom di tengah, bukan melar.
  */
 export function LayoutUtama() {
+  const warung = useSesi((s) => s.warung);
+  const keluar = useSesi((s) => s.keluar);
+
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
       <header
@@ -17,10 +22,31 @@ export function LayoutUtama() {
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
       >
         <div className="flex items-center justify-between gap-3">
-          <p className="text-base font-semibold tracking-tight">
-            Utang<span className="text-gold-400">Ku</span>
-          </p>
-          <IndikatorSync />
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold tracking-tight">
+              {warung?.nama_warung ?? (
+                <>
+                  Utang<span className="text-gold-400">Ku</span>
+                </>
+              )}
+            </p>
+            {warung ? (
+              <p className="text-[11px] text-teks-samar">UtangKu</p>
+            ) : null}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3">
+            <IndikatorSync />
+            <button
+              type="button"
+              onClick={() => void keluar()}
+              aria-label="Keluar"
+              title="Keluar"
+              className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-white/10 hover:text-teks-utama"
+            >
+              <LogOut size={18} aria-hidden />
+            </button>
+          </div>
         </div>
       </header>
 

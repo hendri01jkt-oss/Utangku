@@ -12,6 +12,7 @@
     "cek:kontras": "node scripts/cek-kontras.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/vite": "^4.3.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.33.0",
@@ -19,7 +20,8 @@
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
