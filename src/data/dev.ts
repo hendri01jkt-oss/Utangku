@@ -3,6 +3,8 @@ import * as pelanggan from './repo/pelanggan';
 import * as transaksi from './repo/transaksi';
 import * as pembayaran from './repo/pembayaran';
 import { sinkronSekarang } from './sync/mesin';
+import * as laporan from '@/fitur/laporan/dataLaporan';
+import * as ekspor from '@/fitur/laporan/ekspor';
 
 /**
  * Jalan masuk ke lapisan data dari konsol browser — HANYA saat mode
@@ -17,6 +19,14 @@ import { sinkronSekarang } from './sync/mesin';
  */
 export function pasangSeamDev() {
   Object.assign(window, {
-    utangku: { db, ...pelanggan, ...transaksi, ...pembayaran, sinkronSekarang },
+    utangku: {
+      db,
+      ...pelanggan,
+      ...transaksi,
+      ...pembayaran,
+      ...laporan,
+      ...ekspor,
+      sinkronSekarang,
+    },
   });
 }
