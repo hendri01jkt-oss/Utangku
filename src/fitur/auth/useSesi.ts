@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { kosongkanDataLokal } from '@/data/db';
 import type { Tables } from '@/data/database.types';
 
 export type Warung = Tables<'warung'>;
@@ -85,6 +86,10 @@ export const useSesi = create<StoreSesi>((set) => ({
 
   keluar: async () => {
     await supabase.auth.signOut();
+    // Data warung sebelumnya harus hilang dari perangkat: satu HP bisa
+    // dipakai bergantian, dan catatan utang orang lain tidak boleh tertinggal
+    // di IndexedDB.
+    await kosongkanDataLokal();
     set({ status: 'tamu', sesi: null, warung: null });
   },
 }));

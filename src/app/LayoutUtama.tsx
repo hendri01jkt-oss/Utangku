@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { IndikatorSync } from './IndikatorSync';
 import { useSesi } from '@/fitur/auth/useSesi';
+import { useMesinSync } from '@/data/sync/useMesinSync';
 
 /**
  * Kerangka aplikasi: header kaca yang menempel di atas, konten yang bisa
@@ -14,6 +15,9 @@ import { useSesi } from '@/fitur/auth/useSesi';
 export function LayoutUtama() {
   const warung = useSesi((s) => s.warung);
   const keluar = useSesi((s) => s.keluar);
+
+  // Mesin sync hidup selama pengguna berada di dalam aplikasi.
+  useMesinSync(warung?.id);
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">

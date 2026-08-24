@@ -1,41 +1,53 @@
-import { Check, CloudOff, RefreshCw } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { Check, CloudOff, RefreshCw, TriangleAlert } from 'lucide-react';
+import { db } from '@/data/db';
+import { sinkronSekarang } from '@/data/sync/mesin';
+import { useSync } from '@/data/sync/useSync';
 import { cn } from '@/lib/cn';
 
-export type StatusSync = 'offline' | 'menyinkronkan' | 'tersinkron';
-
-const konfigurasi = {
-  offline: { label: 'Offline', Ikon: CloudOff, kelas: 'text-peringatan' },
-  menyinkronkan: { label: 'Menyinkronkan', Ikon: RefreshCw, kelas: 'text-teks-redup' },
-  tersinkron: { label: 'Tersinkron', Ikon: Check, kelas: 'text-sukses' },
-} as const;
-
 /**
- * Status sinkronisasi selalu terlihat: pemilik warung berhak tahu apakah
- * catatannya sudah aman.
+ * Status sinkronisasi selalu terlihat, dan bisa ditekan untuk memaksa sync.
+ * Pemilik warung berhak tahu apakah catatannya sudah aman.
  *
- * Tahap 0 masih statis. Disambungkan ke sync engine di Tahap 3.
+ * Jumlah tertunda dibaca langsung dari outbox lewat useLiveQuery, bukan
+ * disalin ke store — supaya angkanya tidak pernah bisa melenceng dari isi
+ * antrean yang sebenarnya.
  */
-export function IndikatorSync({
-  status = 'tersinkron',
-  tertunda = 0,
-}: {
-  status?: StatusSync;
-  tertunda?: number;
-}) {
-  const { label, Ikon, kelas } = konfigurasi[status];
+export function IndikatorSync() {
+  const status = useSync((s) => s.status);
+  const tertunda = useLiveQuery(() => db.outbox.filter((e) => e.galat === null).count(), [], 0);
+  const bermasalah = useLiveQuery(() => db.outbox.filter((e) => e.galat !== null).count(), [], 0);
+
+  const tampilan =
+    bermasalah > 0
+      ? { label: 'Perlu diperiksa', Ikon: TriangleAlert, kelas: 'text-bahaya' }
+      : status === 'offline'
+        ? { label: 'Offline', Ikon: CloudOff, kelas: 'text-peringatan' }
+        : status === 'menyinkronkan'
+          ? { label: 'Menyinkronkan', Ikon: RefreshCw, kelas: 'text-teks-redup' }
+          : { label: 'Tersinkron', Ikon: Check, kelas: 'text-sukses' };
+
+  const { label, Ikon, kelas } = tampilan;
+  const jumlah = bermasalah > 0 ? bermasalah : tertunda;
+
   return (
-    <span
-      className={cn('flex items-center gap-1.5 text-xs', kelas)}
-      role="status"
+    <button
+      type="button"
+      onClick={() => void sinkronSekarang('manual')}
+      title="Sinkronkan sekarang"
+      className={cn(
+        'flex items-center gap-1.5 rounded-full px-2 py-1 text-xs transition-colors hover:bg-white/10',
+        kelas,
+      )}
       aria-live="polite"
     >
       <Ikon
         size={14}
         aria-hidden
-        className={status === 'menyinkronkan' ? 'animate-spin' : undefined}
+        className={status === 'menyinkronkan' && bermasalah === 0 ? 'animate-spin' : undefined}
       />
-      {label}
-      {tertunda > 0 ? <span className="angka">({tertunda})</span> : null}
-    </span>
+      <span>{label}</span>
+      {jumlah > 0 ? <span className="angka">({jumlah})</span> : null}
+    </button>
   );
 }
