@@ -11,9 +11,17 @@ export interface RingkasanWarung {
 export interface BarisPerluDitagih {
   transaksi: BarisTransaksi;
   namaPelanggan: string;
+  noWa: string | null;
   sisa: number;
   /** Selisih hari menuju jatuh tempo; negatif berarti sudah lewat. */
   hariKeTempo: number;
+  /**
+   * SELURUH utang pelanggan ini yang belum lunas, bukan hanya baris ini.
+   * Saat menagih, yang dikirim adalah rincian semua utangnya — menagih satu
+   * catatan lalu menyusul lagi untuk catatan lain terasa tidak enak bagi
+   * kedua pihak.
+   */
+  utangPelanggan: BarisTransaksi[];
 }
 
 /** Tanggal 1 bulan ini menurut Waktu Indonesia Barat. */
@@ -79,33 +87,41 @@ export async function ringkasanWarung(warungId: string): Promise<RingkasanWarung
 export async function perluDitagih(warungId: string): Promise<BarisPerluDitagih[]> {
   const hariIni = tanggalHariIni();
 
-  const transaksi = await db.transaksi_utang
+  const belumLunas = await db.transaksi_utang
     .where('warung_id')
     .equals(warungId)
-    .filter(
-      (t) => t.deleted_at === null && t.status !== 'lunas' && t.jatuh_tempo !== null,
-    )
+    .filter((t) => t.deleted_at === null && t.status !== 'lunas')
     .toArray();
 
-  const mendesak = transaksi
+  const mendesak = belumLunas
+    .filter((t) => t.jatuh_tempo !== null)
     .map((t) => ({ t, hariKeTempo: selisihHari(hariIni, t.jatuh_tempo as string) }))
     .filter(({ t, hariKeTempo }) => hariKeTempo <= t.reminder_hari_sebelum);
 
   if (mendesak.length === 0) return [];
 
+  const perPelanggan = new Map<string, BarisTransaksi[]>();
+  for (const t of belumLunas) {
+    const daftar = perPelanggan.get(t.pelanggan_id);
+    if (daftar) daftar.push(t);
+    else perPelanggan.set(t.pelanggan_id, [t]);
+  }
+
   const pelanggan = await db.pelanggan
     .where('warung_id')
     .equals(warungId)
     .toArray();
-  const namaPer = new Map<string, BarisPelanggan>(pelanggan.map((p) => [p.id, p]));
+  const dataPelanggan = new Map<string, BarisPelanggan>(pelanggan.map((p) => [p.id, p]));
 
   return (
     mendesak
       .map(({ t, hariKeTempo }) => ({
         transaksi: t,
-        namaPelanggan: namaPer.get(t.pelanggan_id)?.nama ?? 'Pelanggan terhapus',
+        namaPelanggan: dataPelanggan.get(t.pelanggan_id)?.nama ?? 'Pelanggan terhapus',
+        noWa: dataPelanggan.get(t.pelanggan_id)?.no_wa ?? null,
         sisa: sisaUtang(t),
         hariKeTempo,
+        utangPelanggan: perPelanggan.get(t.pelanggan_id) ?? [t],
       }))
       // Satu kunci urut sudah cukup: yang paling lama lewat tempo bernilai
       // paling negatif, sehingga otomatis berada di paling atas.

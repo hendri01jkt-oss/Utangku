@@ -3,7 +3,12 @@ import { supabase } from '@/lib/supabase';
 import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
 import { useSync } from './useSync';
 
-const ENTITAS: readonly NamaEntitas[] = ['pelanggan', 'transaksi_utang', 'pembayaran'];
+const ENTITAS: readonly NamaEntitas[] = [
+  'warung',
+  'pelanggan',
+  'transaksi_utang',
+  'pembayaran',
+];
 
 /** Batas baris per permintaan saat menarik data. */
 const BATAS_TARIK = 500;
@@ -89,6 +94,33 @@ async function dorong(): Promise<HasilDorong> {
 }
 
 /**
+ * Satu halaman perubahan untuk satu tabel.
+ *
+ * Tabel warung menyimpan identitasnya di kolom `id`, sedangkan tabel data
+ * lain memakai `warung_id` — jadi penyaringnya dipisah, bukan dipaksakan
+ * jadi satu ekspresi.
+ */
+function ambilHalaman(entitas: NamaEntitas, warungId: string, kursor: string) {
+  if (entitas === 'warung') {
+    return supabase
+      .from('warung')
+      .select('*')
+      .eq('id', warungId)
+      .gte('updated_at', kursor)
+      .order('updated_at', { ascending: true })
+      .limit(BATAS_TARIK);
+  }
+
+  return supabase
+    .from(entitas)
+    .select('*')
+    .eq('warung_id', warungId)
+    .gte('updated_at', kursor)
+    .order('updated_at', { ascending: true })
+    .limit(BATAS_TARIK);
+}
+
+/**
  * Menarik perubahan server sejak penanda terakhir, per tabel.
  *
  * Memakai gte (bukan gt) supaya baris yang stempel waktunya persis sama
@@ -102,13 +134,7 @@ async function tarik(warungId: string): Promise<number> {
     let kursor = await bacaKursor(entitas);
 
     for (;;) {
-      const { data, error } = await supabase
-        .from(entitas)
-        .select('*')
-        .eq('warung_id', warungId)
-        .gte('updated_at', kursor)
-        .order('updated_at', { ascending: true })
-        .limit(BATAS_TARIK);
+      const { data, error } = await ambilHalaman(entitas, warungId, kursor);
 
       if (error) throw error;
       if (!data || data.length === 0) break;

@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Pencil, Plus, Send, Wallet } from 'lucide-react';
+import { ArrowLeft, Pencil, Plus, Wallet } from 'lucide-react';
 import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
 import { daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
@@ -8,6 +8,8 @@ import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
 import { SheetPilihUtang } from '@/fitur/pembayaran/SheetPilihUtang';
+import { TombolTagihWa } from '@/fitur/tagihan/TombolTagihWa';
+import { useSesi } from '@/fitur/auth/useSesi';
 
 /** Tanggal ISO -> "24 Agu 2026". */
 const formatTanggal = (iso: string) =>
@@ -30,6 +32,7 @@ export function HalamanDetailPelanggan() {
   const navigate = useNavigate();
   const lokasi = useLocation();
   const pilihUtangTerbuka = lokasi.pathname.endsWith('/bayar');
+  const warung = useSesi((s) => s.warung);
 
   const pelanggan = useLiveQuery(async () => await db.pelanggan.get(id), [id]);
   const utang = useLiveQuery(async () => await daftarUtangPelanggan(id), [id], []);
@@ -101,9 +104,16 @@ export function HalamanDetailPelanggan() {
         ) : null}
 
         <div className="flex flex-col gap-2">
-          <Tombol varian="utama" ukuran="besar" penuh ikon={<Send size={17} />} disabled>
-            Tagih via WhatsApp
-          </Tombol>
+          <TombolTagihWa
+            idPelanggan={pelanggan.id}
+            namaPelanggan={pelanggan.nama}
+            noWa={pelanggan.no_wa}
+            namaWarung={warung?.nama_warung ?? 'Warung'}
+            template={warung?.template_pesan_tagihan ?? null}
+            utangBelumLunas={belumLunas}
+            ukuran="besar"
+            penuh
+          />
           <div className="grid grid-cols-2 gap-2">
             <TombolTautan
               to={`/utang/baru?pelanggan=${id}`}
@@ -132,9 +142,7 @@ export function HalamanDetailPelanggan() {
               </TombolTautan>
             )}
           </div>
-          <p className="text-center text-xs text-teks-samar">
-            Tagih via WhatsApp aktif pada Tahap 8.
-          </p>
+
         </div>
       </Kartu>
 

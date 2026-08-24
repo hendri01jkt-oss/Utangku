@@ -1,6 +1,6 @@
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { LogOut } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { IndikatorSync } from './IndikatorSync';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -49,6 +49,14 @@ export function LayoutUtama() {
 
           <div className="flex shrink-0 items-center gap-3">
             <IndikatorSync />
+            <Link
+              to="/pengaturan"
+              aria-label="Pengaturan"
+              title="Pengaturan"
+              className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-permukaan-2 hover:text-teks-utama"
+            >
+              <Settings size={18} aria-hidden />
+            </Link>
             <button
               type="button"
               onClick={() => void keluar()}

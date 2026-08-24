@@ -10,6 +10,9 @@ import { jadwalkanSync } from '@/data/sync/mesin';
  * dengan "permission denied", bukan mengabaikannya diam-diam.
  */
 const KOLOM_MILIK_SERVER: Record<NamaEntitas, readonly string[]> = {
+  // pemilik_id ikut dibuang: kepemilikan warung bukan sesuatu yang boleh
+  // berpindah lewat sinkronisasi biasa.
+  warung: ['created_at', 'updated_at', 'pemilik_id'],
   pelanggan: ['created_at', 'updated_at'],
   transaksi_utang: ['created_at', 'updated_at', 'status', 'total_dibayar'],
   pembayaran: ['created_at', 'updated_at'],
@@ -30,7 +33,11 @@ export const sekarang = () => new Date().toISOString();
 
 export const idBaru = () => crypto.randomUUID();
 
-type TabelDexie = typeof db.pelanggan | typeof db.transaksi_utang | typeof db.pembayaran;
+type TabelDexie =
+  | typeof db.warung
+  | typeof db.pelanggan
+  | typeof db.transaksi_utang
+  | typeof db.pembayaran;
 
 /**
  * Mengantrekan satu baris ke outbox.

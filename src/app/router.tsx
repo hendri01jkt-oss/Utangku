@@ -14,6 +14,7 @@ import { FormUtang } from '@/fitur/utang/FormUtang';
 import { HalamanDetailUtang } from '@/fitur/utang/HalamanDetailUtang';
 import { HalamanTagihan } from '@/fitur/tagihan/HalamanTagihan';
 import { HalamanLaporan } from '@/fitur/laporan/HalamanLaporan';
+import { HalamanPengaturan } from '@/fitur/pengaturan/HalamanPengaturan';
 
 /**
  * Rute detail (pelanggan/:id, utang/:id, laporan, pengaturan) ditambahkan
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
           { path: 'utang/:id/ubah', element: <FormUtang mode="ubah" /> },
           { path: 'tagihan', element: <HalamanTagihan /> },
           { path: 'laporan', element: <HalamanLaporan /> },
+          { path: 'pengaturan', element: <HalamanPengaturan /> },
         ],
       },
     ],

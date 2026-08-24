@@ -7,7 +7,7 @@ export type BarisTransaksi = Tables<'transaksi_utang'>;
 export type BarisPembayaran = Tables<'pembayaran'>;
 
 /** Tabel yang ikut disinkronkan dua arah. */
-export type NamaEntitas = 'pelanggan' | 'transaksi_utang' | 'pembayaran';
+export type NamaEntitas = 'warung' | 'pelanggan' | 'transaksi_utang' | 'pembayaran';
 
 /**
  * Satu perubahan yang menunggu dikirim ke server.
