@@ -47,9 +47,12 @@ export const router = createBrowserRouter([
           { path: 'pelanggan', element: <HalamanPelanggan /> },
           { path: 'pelanggan/baru', element: <FormPelanggan mode="baru" /> },
           { path: 'pelanggan/:id', element: <HalamanDetailPelanggan /> },
+          // Panel digambar di atas halaman induknya, jadi elemennya sama.
+          { path: 'pelanggan/:id/bayar', element: <HalamanDetailPelanggan /> },
           { path: 'pelanggan/:id/ubah', element: <FormPelanggan mode="ubah" /> },
           { path: 'utang/baru', element: <FormUtang mode="baru" /> },
           { path: 'utang/:id', element: <HalamanDetailUtang /> },
+          { path: 'utang/:id/bayar', element: <HalamanDetailUtang /> },
           { path: 'utang/:id/ubah', element: <FormUtang mode="ubah" /> },
           { path: 'tagihan', element: <HalamanTagihan /> },
           { path: 'laporan', element: <HalamanLaporan /> },

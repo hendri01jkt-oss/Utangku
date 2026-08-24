@@ -1,5 +1,6 @@
 import { db, type BarisPembayaran } from '@/data/db';
-import { idBaru, sekarang, simpanDanAntre } from './dasar';
+import { antreKeOutbox, idBaru, sekarang } from './dasar';
+import { jadwalkanSync } from '@/data/sync/mesin';
 import { tanggalHariIni } from './transaksi';
 import type { Enums } from '@/data/database.types';
 
@@ -22,6 +23,8 @@ export interface DataPembayaranBaru {
  * menghasilkan permintaan yang isinya dibuang. Nilai lokal ini cuma supaya
  * angka di layar benar saat offline, dan akan ditimpa nilai resmi server
  * pada penarikan data berikutnya.
+ *
+ * Dipanggil dari dalam transaksi yang sama dengan penulisan pembayarannya.
  */
 async function hitungUlangUtangLokal(transaksiId: string) {
   const transaksi = await db.transaksi_utang.get(transaksiId);
@@ -44,6 +47,29 @@ async function hitungUlangUtangLokal(transaksiId: string) {
   });
 }
 
+/**
+ * Menulis pembayaran, mengantrekannya, dan menghitung ulang utangnya dalam
+ * SATU transaksi Dexie.
+ *
+ * Ketiganya harus atomik. Kalau baris pembayaran tersimpan lebih dulu dan
+ * perhitungan ulangnya menyusul belakangan, sempat ada keadaan di mana
+ * cicilan sudah hilang dari riwayat tapi sisa utangnya belum berubah — dan
+ * pada aplikasi yang mencatat uang orang, keadaan setengah jadi seperti itu
+ * tidak boleh pernah terlihat.
+ */
+async function tulisPembayaran(baris: BarisPembayaran) {
+  await db.transaction(
+    'rw',
+    [db.pembayaran, db.transaksi_utang, db.outbox],
+    async () => {
+      await db.pembayaran.put(baris);
+      await antreKeOutbox('pembayaran', baris as unknown as { id: string } & Record<string, unknown>);
+      await hitungUlangUtangLokal(baris.transaksi_id);
+    },
+  );
+  jadwalkanSync('mutasi');
+}
+
 export async function catatPembayaran(data: DataPembayaranBaru) {
   const waktu = sekarang();
   const baris: BarisPembayaran = {
@@ -61,8 +87,7 @@ export async function catatPembayaran(data: DataPembayaranBaru) {
     deleted_at: null,
   };
 
-  await simpanDanAntre('pembayaran', db.pembayaran, baris);
-  await hitungUlangUtangLokal(baris.transaksi_id);
+  await tulisPembayaran(baris);
   return baris;
 }
 
@@ -74,12 +99,8 @@ export async function catatPembayaran(data: DataPembayaranBaru) {
 export async function hapusPembayaran(id: string) {
   const lama = await db.pembayaran.get(id);
   if (!lama) throw new Error('Pembayaran tidak ditemukan.');
-  await simpanDanAntre('pembayaran', db.pembayaran, {
-    ...lama,
-    deleted_at: sekarang(),
-    updated_at: sekarang(),
-  });
-  await hitungUlangUtangLokal(lama.transaksi_id);
+  const waktu = sekarang();
+  await tulisPembayaran({ ...lama, deleted_at: waktu, updated_at: waktu });
 }
 
 const terbaruDulu = <T extends { tanggal: string; created_at: string }>(baris: T[]) =>

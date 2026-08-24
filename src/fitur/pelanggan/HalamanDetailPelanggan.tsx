@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Pencil, Plus, Send, Wallet } from 'lucide-react';
 import { Kartu, StatusBadge, Tombol, type Status } from '@/komponen/ui';
@@ -7,6 +7,7 @@ import { daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
 import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
+import { SheetPilihUtang } from '@/fitur/pembayaran/SheetPilihUtang';
 
 /** Tanggal ISO -> "24 Agu 2026". */
 const formatTanggal = (iso: string) =>
@@ -27,6 +28,8 @@ function statusTampil(t: BarisTransaksi): Status {
 export function HalamanDetailPelanggan() {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const lokasi = useLocation();
+  const pilihUtangTerbuka = lokasi.pathname.endsWith('/bayar');
 
   const pelanggan = useLiveQuery(async () => await db.pelanggan.get(id), [id]);
   const utang = useLiveQuery(async () => await daftarUtangPelanggan(id), [id], []);
@@ -109,12 +112,28 @@ export function HalamanDetailPelanggan() {
               <Plus size={16} aria-hidden />
               Catat Utang
             </Link>
-            <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
-              Terima Bayar
-            </Tombol>
+            {belumLunas.length === 0 ? (
+              <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
+                Terima Bayar
+              </Tombol>
+            ) : (
+              <Link
+                // Satu utang belum lunas: langsung ke panel bayarnya, tidak
+                // perlu memilih. Lebih dari satu: pemiliknya yang memilih.
+                to={
+                  belumLunas.length === 1 && belumLunas[0]
+                    ? `/utang/${belumLunas[0].id}/bayar`
+                    : `/pelanggan/${id}/bayar`
+                }
+                className="permukaan flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] px-4 text-sm transition-colors hover:bg-permukaan-2"
+              >
+                <Wallet size={16} aria-hidden />
+                Terima Bayar
+              </Link>
+            )}
           </div>
           <p className="text-center text-xs text-teks-samar">
-            Terima Bayar aktif pada Tahap 6, Tagih via WhatsApp pada Tahap 8.
+            Tagih via WhatsApp aktif pada Tahap 8.
           </p>
         </div>
       </Kartu>
@@ -181,6 +200,12 @@ export function HalamanDetailPelanggan() {
           </ul>
         )}
       </section>
+      {pilihUtangTerbuka ? (
+        <SheetPilihUtang
+          utang={belumLunas}
+          onTutup={() => navigate(`/pelanggan/${id}`, { replace: true })}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,10 +1,12 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Pencil, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Wallet, X } from 'lucide-react';
 import { Kartu, StatusBadge, Tombol, type Status } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
 import { hapusUtang, sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
-import { riwayatPembayaran } from '@/data/repo/pembayaran';
+import { hapusPembayaran, riwayatPembayaran } from '@/data/repo/pembayaran';
+import { useSesi } from '@/fitur/auth/useSesi';
+import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from '@/fitur/pelanggan/FotoPelanggan';
 
@@ -40,6 +42,13 @@ function keteranganTempo(tempo: string): string {
 export function HalamanDetailUtang() {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const lokasi = useLocation();
+  const sesi = useSesi((s) => s.sesi);
+
+  // Panel pembayaran punya alamatnya sendiri (/utang/:id/bayar) tapi tetap
+  // digambar di atas halaman ini, jadi latar belakangnya tetap terlihat dan
+  // tautan langsung ke panel itu tetap bekerja.
+  const panelBayarTerbuka = lokasi.pathname.endsWith('/bayar');
 
   const utang = useLiveQuery(async () => await db.transaksi_utang.get(id), [id]);
   const pelanggan = useLiveQuery(
@@ -66,6 +75,16 @@ export function HalamanDetailUtang() {
   const dibayar = Math.round(utang.total_dibayar);
   const sisa = sisaUtang(utang);
   const persen = nominal > 0 ? Math.min(100, Math.round((dibayar / nominal) * 100)) : 0;
+
+  /**
+   * Membatalkan satu cicilan. Ini soft delete, bukan pengubahan nominal —
+   * pembayaran tidak pernah diedit, sehingga penggabungan data saat sync
+   * tidak bisa menghilangkan angka cicilan (lihat PLAN.md bagian 7.3).
+   */
+  async function batalkanCicilan(idPembayaran: string, nominalCicilan: number) {
+    if (!window.confirm(`Batalkan cicilan ${formatRupiah(nominalCicilan)}?`)) return;
+    await hapusPembayaran(idPembayaran);
+  }
 
   async function hapus() {
     if (!window.confirm('Hapus catatan utang ini?')) return;
@@ -166,12 +185,19 @@ export function HalamanDetailUtang() {
           </div>
         </dl>
 
-        <Tombol varian="utama" ukuran="besar" penuh ikon={<Wallet size={17} />} disabled>
-          Terima Pembayaran
-        </Tombol>
-        <p className="-mt-2 text-center text-xs text-teks-samar">
-          Tombol ini aktif pada Tahap 6.
-        </p>
+        {sisa > 0 ? (
+          <Link
+            to={`/utang/${id}/bayar`}
+            className="flex min-h-13 items-center justify-center gap-2.5 rounded-[var(--radius-kontrol)] bg-merah-600 px-5 text-base font-semibold text-putih transition-colors hover:bg-merah-700"
+          >
+            <Wallet size={17} aria-hidden />
+            Terima Pembayaran
+          </Link>
+        ) : (
+          <p className="rounded-[var(--radius-kontrol)] bg-[var(--tint-sukses)] px-3 py-2.5 text-center text-sm text-sukses">
+            Utang ini sudah lunas.
+          </p>
+        )}
       </Kartu>
 
       <section className="flex flex-col gap-2">
@@ -185,13 +211,26 @@ export function HalamanDetailUtang() {
             {pembayaran.map((b) => (
               <li key={b.id}>
                 <Kartu padat className="flex items-center justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm">{formatTanggal(b.tanggal)}</p>
                     <p className="text-xs capitalize text-teks-samar">{b.metode}</p>
+                    {b.catatan ? (
+                      <p className="truncate text-xs text-teks-samar">{b.catatan}</p>
+                    ) : null}
                   </div>
-                  <p className="angka text-sm font-semibold text-sukses">
-                    {formatRupiah(b.nominal)}
-                  </p>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <p className="angka text-sm font-semibold text-sukses">
+                      {formatRupiah(b.nominal)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void batalkanCicilan(b.id, b.nominal)}
+                      aria-label={`Batalkan cicilan ${formatRupiah(b.nominal)}`}
+                      className="flex size-8 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-[var(--tint-bahaya)] hover:text-bahaya"
+                    >
+                      <X size={15} aria-hidden />
+                    </button>
+                  </div>
                 </Kartu>
               </li>
             ))}
@@ -202,6 +241,15 @@ export function HalamanDetailUtang() {
       <Tombol varian="bahaya" ikon={<Trash2 size={16} />} onClick={() => void hapus()} penuh>
         Hapus catatan utang
       </Tombol>
+
+      {panelBayarTerbuka ? (
+        <FormPembayaran
+          utang={utang}
+          dibuatOleh={sesi?.user.id ?? null}
+          onTutup={() => navigate(`/utang/${id}`, { replace: true })}
+          onSelesai={() => navigate(`/utang/${id}`, { replace: true })}
+        />
+      ) : null}
     </div>
   );
 }

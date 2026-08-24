@@ -33,6 +33,47 @@ export const idBaru = () => crypto.randomUUID();
 type TabelDexie = typeof db.pelanggan | typeof db.transaksi_utang | typeof db.pembayaran;
 
 /**
+ * Mengantrekan satu baris ke outbox.
+ *
+ * HARUS dipanggil dari dalam transaksi Dexie yang sudah mencakup db.outbox.
+ * Dipisahkan dari simpanDanAntre supaya pemanggil yang perlu menulis
+ * beberapa tabel sekaligus (mis. pembayaran beserta perhitungan ulang
+ * utangnya) bisa melakukannya dalam SATU transaksi.
+ */
+export async function antreKeOutbox(
+  entitas: NamaEntitas,
+  baris: { id: string } & Record<string, unknown>,
+) {
+  const muatan = muatanUntukServer(entitas, baris);
+
+  // Kalau baris ini sudah punya entri yang menunggu, muatannya diperbarui
+  // DI TEMPAT — bukan dihapus lalu ditambahkan di belakang. Memindahkannya
+  // ke ujung antrean akan mengacaukan urutan: pembayaran bisa terkirim
+  // sebelum transaksi yang menjadi induknya.
+  const menunggu = await db.outbox.where('[entitas+id]').equals([entitas, baris.id]).first();
+
+  if (menunggu?.urutan !== undefined) {
+    await db.outbox.update(menunggu.urutan, {
+      muatan,
+      // Data berubah, jadi galat sebelumnya belum tentu masih berlaku:
+      // beri kesempatan sekali lagi.
+      galat: null,
+      percobaan: 0,
+    });
+    return;
+  }
+
+  await db.outbox.add({
+    entitas,
+    id: baris.id,
+    muatan,
+    dibuat_at: sekarang(),
+    percobaan: 0,
+    galat: null,
+  });
+}
+
+/**
  * Menulis satu baris ke tabel lokal DAN mengantrekannya ke outbox dalam satu
  * transaksi Dexie. Keduanya berhasil atau keduanya gagal — sehingga tidak
  * mungkin ada data yang tersimpan di perangkat tapi tidak pernah antre
@@ -45,33 +86,7 @@ export async function simpanDanAntre<T extends { id: string }>(
 ): Promise<T> {
   await db.transaction('rw', [tabel, db.outbox], async () => {
     await (tabel as unknown as { put: (b: T) => Promise<unknown> }).put(baris);
-
-    const muatan = muatanUntukServer(entitas, baris as Record<string, unknown>);
-
-    // Kalau baris ini sudah punya entri yang menunggu, muatannya diperbarui
-    // DI TEMPAT — bukan dihapus lalu ditambahkan di belakang. Memindahkannya
-    // ke ujung antrean akan mengacaukan urutan: pembayaran bisa terkirim
-    // sebelum transaksi yang menjadi induknya.
-    const menunggu = await db.outbox.where('[entitas+id]').equals([entitas, baris.id]).first();
-
-    if (menunggu?.urutan !== undefined) {
-      await db.outbox.update(menunggu.urutan, {
-        muatan,
-        // Data berubah, jadi galat sebelumnya belum tentu masih berlaku:
-        // beri kesempatan sekali lagi.
-        galat: null,
-        percobaan: 0,
-      });
-    } else {
-      await db.outbox.add({
-        entitas,
-        id: baris.id,
-        muatan,
-        dibuat_at: sekarang(),
-        percobaan: 0,
-        galat: null,
-      });
-    }
+    await antreKeOutbox(entitas, baris as { id: string } & Record<string, unknown>);
   });
 
   jadwalkanSync('mutasi');
