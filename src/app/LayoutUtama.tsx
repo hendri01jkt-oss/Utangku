@@ -5,7 +5,7 @@ import { BottomNav } from './BottomNav';
 import { IndikatorSync } from './IndikatorSync';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { useMesinSync } from '@/data/sync/useMesinSync';
-import { perluDitagih } from '@/fitur/beranda/ringkasanWarung';
+import { perluDitagih } from '@/fitur/tagihan/daftarTagihan';
 
 /**
  * Kerangka aplikasi: header permukaan yang menempel di atas, konten yang bisa

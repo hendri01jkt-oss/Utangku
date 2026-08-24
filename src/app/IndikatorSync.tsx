@@ -30,11 +30,19 @@ export function IndikatorSync() {
   const { label, Ikon, kelas } = tampilan;
   const jumlah = bermasalah > 0 ? bermasalah : tertunda;
 
+  // "Menyinkronkan" adalah keadaan sesaat, dan tulisannya paling panjang di
+  // antara semua status. Di layar 390px ia mendesak nama warung sampai
+  // terpotong — padahal nama warung itu identitas utama layarnya. Saat
+  // menyinkronkan, ikon berputar sudah cukup menjelaskan; teksnya tetap
+  // dibacakan pembaca layar lewat aria-label.
+  const sembunyikanLabel = status === 'menyinkronkan' && bermasalah === 0;
+
   return (
     <button
       type="button"
       onClick={() => void sinkronSekarang('manual')}
-      title="Sinkronkan sekarang"
+      title={`${label} — tekan untuk sinkronkan sekarang`}
+      aria-label={`${label}. Sinkronkan sekarang`}
       className={cn(
         'flex items-center gap-1.5 rounded-full px-2 py-1 text-xs transition-colors hover:bg-permukaan-2',
         kelas,
@@ -46,7 +54,7 @@ export function IndikatorSync() {
         aria-hidden
         className={status === 'menyinkronkan' && bermasalah === 0 ? 'animate-spin' : undefined}
       />
-      <span>{label}</span>
+      {sembunyikanLabel ? null : <span>{label}</span>}
       {jumlah > 0 ? <span className="angka">({jumlah})</span> : null}
     </button>
   );

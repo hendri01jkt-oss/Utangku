@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronRight, Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
-import { Kartu, KartuStatistik, StatusBadge, TombolTautan } from '@/komponen/ui';
+import { Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { Kartu, KartuStatistik, TombolTautan } from '@/komponen/ui';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { formatRupiah } from '@/lib/uang';
-import { cn } from '@/lib/cn';
-import { TombolTagihWa } from '@/fitur/tagihan/TombolTagihWa';
-import { labelTempo, perluDitagih, ringkasanWarung } from './ringkasanWarung';
+import { KartuBarisTagihan } from '@/fitur/tagihan/KartuBarisTagihan';
+import { perluDitagih } from '@/fitur/tagihan/daftarTagihan';
+import { ringkasanWarung } from './ringkasanWarung';
 
 /** Beranda hanya menampilkan yang paling mendesak; sisanya di tab Tagihan. */
 const BATAS_TAMPIL = 5;
@@ -94,50 +94,11 @@ export function HalamanBeranda() {
           <ul className="flex flex-col gap-2">
             {teratas.map((baris) => (
               <li key={baris.transaksi.id}>
-                {/* Tombol WA berdiri di luar tautan: tombol di dalam tautan
-                    bukan HTML yang sah, dan menekannya akan ikut menavigasi. */}
-                <Kartu padat className="flex items-center gap-2">
-                  <Link
-                    to={`/utang/${baris.transaksi.id}`}
-                    className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-kontrol)] transition-colors hover:bg-permukaan-2"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">{baris.namaPelanggan}</span>
-                      <span className="block truncate text-xs text-teks-samar">
-                        {baris.transaksi.keterangan ?? 'Tanpa keterangan'}
-                      </span>
-                      <StatusBadge
-                        status={baris.hariKeTempo < 0 ? 'lewat_tempo' : baris.transaksi.status}
-                        className="mt-1.5"
-                      />
-                    </span>
-                    <span className="shrink-0 text-right">
-                      <span className="angka block text-sm font-semibold text-merah-600">
-                        {formatRupiah(baris.sisa)}
-                      </span>
-                      <span
-                        className={cn(
-                          'block text-xs',
-                          baris.hariKeTempo < 0 ? 'text-bahaya' : 'text-teks-samar',
-                        )}
-                      >
-                        {labelTempo(baris.hariKeTempo)}
-                      </span>
-                    </span>
-                    <ChevronRight size={18} className="shrink-0 text-teks-samar" aria-hidden />
-                  </Link>
-
-                  <TombolTagihWa
-                    idPelanggan={baris.transaksi.pelanggan_id}
-                    namaPelanggan={baris.namaPelanggan}
-                    noWa={baris.noWa}
-                    namaWarung={warung?.nama_warung ?? 'Warung'}
-                    template={warung?.template_pesan_tagihan ?? null}
-                    utangBelumLunas={baris.utangPelanggan}
-                    ikonSaja
-                    label="Tagih via WhatsApp"
-                  />
-                </Kartu>
+                <KartuBarisTagihan
+                  baris={baris}
+                  namaWarung={warung?.nama_warung ?? 'Warung'}
+                  template={warung?.template_pesan_tagihan ?? null}
+                />
               </li>
             ))}
           </ul>
