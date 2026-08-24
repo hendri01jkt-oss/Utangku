@@ -1,0 +1,17 @@
+# Aturan redirect UtangKu di Netlify. Berkas nyata SELALU menang lebih dulu;
+# aturan di bawah hanya berlaku untuk alamat yang tidak punya berkas.
+
+# Berkas hasil build punya nama ber-hash. Kalau salah satu diminta tapi tidak
+# ada, itu artinya klien memegang index.html versi lama (mis. tab yang sudah
+# lama terbuka saat deploy baru masuk). Balas 404 tegas — kalau dibiarkan
+# jatuh ke aturan di bawah, klien akan menerima HTML yang menyamar jadi
+# JavaScript dan gagal dengan galat sintaks yang menyesatkan.
+/assets/*   /index.html   404
+
+# Fallback SPA. UtangKu memakai React Router, jadi /pelanggan, /utang/123,
+# /laporan tidak punya berkas sendiri. Tanpa aturan ini, membuka tautan
+# langsung atau menekan refresh di halaman selain "/" menghasilkan 404.
+#
+# Status 200 (rewrite), bukan 301/302: URL di address bar harus tetap utuh
+# supaya React Router bisa membaca rutenya.
+/*          /index.html   200

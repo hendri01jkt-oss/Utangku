@@ -1,0 +1,49 @@
+# Konfigurasi deploy UtangKu di Netlify.
+# Nilai rahasia (URL & kunci Supabase) TIDAK ada di sini — disimpan sebagai
+# environment variable di Netlify, lihat README bagian Deploy.
+
+[build]
+  command = "npm run build"   # tsc -b && vite build
+  publish = "dist"            # keluaran default Vite
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Aturan redirect ada di public/_redirects supaya hanya satu tempat yang
+# mengatur routing.
+
+# Berkas hasil build Vite namanya sudah mengandung hash isi, jadi aman
+# di-cache selamanya. Ganti kode = ganti nama berkas.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Service worker TIDAK boleh di-cache lama. Kalau di-cache, pengguna bisa
+# tertahan di versi lama berhari-hari karena browser tidak pernah menanyakan
+# ulang berkas yang mendaftarkan pembaruan.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/manifest+json; charset=utf-8"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Catatan pelanggan (nama, nomor WA) tidak boleh bocor lewat fitur
+    # perangkat yang memang tidak dipakai aplikasi ini.
+    Permissions-Policy = "geolocation=(), microphone=(), interest-cohort=()"

@@ -7,6 +7,7 @@
 /* eslint-disable react/only-export-components */
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+import { HalamanTidakDitemukan } from './HalamanTidakDitemukan';
 import { LayoutUtama } from './LayoutUtama';
 import { Memuat, PenjagaOnboarding, PenjagaRute, PenjagaTamu } from './PenjagaRute';
 import { HalamanMasuk } from '@/fitur/auth/HalamanMasuk';
@@ -104,6 +105,14 @@ export const router = createBrowserRouter([
           { path: 'tagihan', element: tunggu(<HalamanTagihan />) },
           { path: 'laporan', element: tunggu(<HalamanLaporan />) },
           { path: 'pengaturan', element: tunggu(<HalamanPengaturan />) },
+          /*
+           * Penampung alamat asing. Diletakkan DI DALAM penjaga rute supaya
+           * pengunjung yang belum masuk tetap diarahkan ke /masuk, bukan
+           * disuguhi halaman 404 lalu bingung harus ke mana. Tidak dimuat
+           * malas: halaman ini justru dibutuhkan saat ada yang sudah salah,
+           * jadi ia tidak boleh bergantung pada unduhan tambahan.
+           */
+          { path: '*', element: <HalamanTidakDitemukan /> },
         ],
       },
     ],
