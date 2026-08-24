@@ -12,16 +12,19 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const gayaVarian: Record<Varian, string> = {
-  /* Emas solid — hanya untuk satu aksi utama per layar. */
+  /* Merah solid — hanya untuk satu aksi utama per layar. */
   utama:
-    'bg-gold-500 text-navy-950 font-semibold hover:bg-gold-400 active:bg-gold-600 shadow-lg shadow-gold-500/10',
-  /* Kaca dengan garis emas tipis. */
-  sekunder: 'kaca text-teks-utama hover:bg-white/10',
+    'bg-merah-600 text-putih font-semibold hover:bg-merah-700 active:bg-merah-700',
+  /* Putih bergaris: aksi setara yang bukan aksi utama. */
+  sekunder: 'permukaan text-teks-utama hover:bg-permukaan-2',
   /* Tanpa latar, untuk aksi tersier. */
-  halus: 'text-teks-redup hover:bg-white/5 hover:text-teks-utama',
-  /* Merah bertint, bukan isian solid — isian merah jenuh gagal kontras. */
-  bahaya:
-    'bg-[var(--tint-bahaya)] text-bahaya border border-bahaya/30 hover:bg-bahaya/20',
+  halus: 'text-teks-redup hover:bg-permukaan-2 hover:text-teks-utama',
+  /*
+   * Aksi merusak. Tetap bergaris, bukan isian merah solid — di satu layar
+   * hanya boleh ada satu isian merah, dan itu jatah aksi utama. Kalau Hapus
+   * ikut solid, keduanya berebut perhatian yang sama.
+   */
+  bahaya: 'bg-putih text-bahaya border border-bahaya/40 hover:bg-[var(--tint-bahaya)]',
 };
 
 const gayaUkuran: Record<Ukuran, string> = {
@@ -44,7 +47,11 @@ export function Tombol({
       className={cn(
         'inline-flex items-center justify-center rounded-[var(--radius-kontrol)]',
         'transition-colors duration-150',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        /* Nonaktif dibuat pudar dengan mengganti warnanya, bukan dengan
+           opacity: teks putih di atas merah yang ditipiskan hanya mencapai
+           sekitar 2:1, dan malah masih terlihat seperti tombol aktif. */
+        'disabled:cursor-not-allowed disabled:border-garis disabled:bg-permukaan-2',
+        'disabled:text-teks-samar disabled:shadow-none disabled:hover:bg-permukaan-2',
         gayaVarian[varian],
         gayaUkuran[ukuran],
         penuh && 'w-full',

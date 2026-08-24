@@ -5,7 +5,7 @@ import { useSesi } from '@/fitur/auth/useSesi';
 function Memuat() {
   return (
     <div className="flex min-h-dvh items-center justify-center" role="status">
-      <Loader2 size={28} className="animate-spin text-gold-400" aria-hidden />
+      <Loader2 size={28} className="animate-spin text-merah-600" aria-hidden />
       <span className="sr-only">Memuat…</span>
     </div>
   );

@@ -36,7 +36,7 @@ export function IndikatorSync() {
       onClick={() => void sinkronSekarang('manual')}
       title="Sinkronkan sekarang"
       className={cn(
-        'flex items-center gap-1.5 rounded-full px-2 py-1 text-xs transition-colors hover:bg-white/10',
+        'flex items-center gap-1.5 rounded-full px-2 py-1 text-xs transition-colors hover:bg-permukaan-2',
         kelas,
       )}
       aria-live="polite"

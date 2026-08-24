@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
-  /** Permukaan lebih terang, untuk elemen yang "terangkat" (mis. bottom sheet). */
+  /** Bayangan lebih tegas, untuk elemen yang benar-benar terangkat (mis. bottom sheet). */
   terangkat?: boolean;
   padat?: boolean;
 }
@@ -11,7 +11,7 @@ export function Kartu({ terangkat, padat, className, children, ...sisa }: Props)
   return (
     <div
       className={cn(
-        terangkat ? 'kaca-kuat' : 'kaca',
+        terangkat ? 'permukaan-angkat' : 'permukaan',
         'rounded-[var(--radius-kartu)]',
         padat ? 'p-3' : 'p-4',
         className,
@@ -47,7 +47,7 @@ export function KartuStatistik({
       <p
         className={cn(
           'angka mt-auto pt-2 text-xl font-semibold',
-          penting ? 'text-gold-400' : 'text-teks-utama',
+          penting ? 'text-merah-600' : 'text-teks-utama',
         )}
       >
         {nilai}

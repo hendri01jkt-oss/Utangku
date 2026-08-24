@@ -59,13 +59,13 @@ export function HalamanDaftar() {
         judul="Cek email Anda"
         keterangan="Satu langkah lagi sebelum warung Anda siap."
         bawah={
-          <Link to="/masuk" className="text-gold-400 underline underline-offset-4">
+          <Link to="/masuk" className="text-merah-600 underline underline-offset-4">
             Kembali ke halaman masuk
           </Link>
         }
       >
         <div className="flex flex-col items-center gap-3 py-2 text-center">
-          <MailCheck size={40} className="text-gold-400" aria-hidden />
+          <MailCheck size={40} className="text-merah-600" aria-hidden />
           <p className="text-sm text-teks-redup">
             Kami mengirim tautan konfirmasi ke{' '}
             <span className="text-teks-utama">{email.trim()}</span>. Buka tautan
@@ -86,7 +86,7 @@ export function HalamanDaftar() {
       bawah={
         <>
           Sudah punya akun?{' '}
-          <Link to="/masuk" className="text-gold-400 underline underline-offset-4">
+          <Link to="/masuk" className="text-merah-600 underline underline-offset-4">
             Masuk
           </Link>
         </>

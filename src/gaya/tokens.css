@@ -1,48 +1,47 @@
 /**
- * Token desain UtangKu — dark navy + gold, glassmorphism.
+ * Token desain UtangKu — putih bersih dengan aksen merah, minimalis.
  *
  * Semua nilai warna di sini diverifikasi oleh `npm run cek:kontras`.
  * Kalau mengubah salah satu warna, jalankan skrip itu sebelum commit:
- * skrip menguji setiap warna teks terhadap SEMUA permukaan (termasuk
- * permukaan kaca paling terang) dengan ambang WCAG AA 4.5:1.
+ * skrip menguji setiap warna teks terhadap SEMUA permukaan (termasuk tint
+ * badge status) dengan ambang WCAG AA 4.5:1.
  */
 
 @theme {
-  /* ── Latar: navy gelap bergradasi ──────────────────────────────────────
-     navy-950 paling gelap (ujung gradien), navy-700 paling terang
-     (permukaan yang terangkat). */
-  --color-navy-950: #060b1a;
-  --color-navy-900: #0a1128;
-  --color-navy-850: #0d1530;
-  --color-navy-800: #101a35;
-  --color-navy-700: #16223f;
-  --color-navy-600: #1d2b4d;
+  /* ── Permukaan ─────────────────────────────────────────────────────────
+     Halaman dan kartu sama-sama putih; yang membedakan kartu adalah garis
+     tipis dan bayangan halus, bukan perbedaan warna. */
+  --color-putih: #ffffff;
+  --color-permukaan: #ffffff;
+  --color-permukaan-2: #f4f4f6;
+  --color-garis: #e4e4e9;
+  --color-garis-kuat: #d3d3db;
 
-  /* ── Emas: HANYA untuk aksen, CTA, dan angka penting ───────────────────
-     Jangan dipakai sebagai warna latar luas — melelahkan mata dan
-     membuat tampilan terasa murah. */
-  --color-gold-600: #b8912a;
-  --color-gold-500: #d4af37;
-  --color-gold-400: #e9c46a;
-  --color-gold-300: #f2d98d;
+  /* ── Merah: aksen, CTA, angka penting, dan status belum lunas ──────────
+     Dipakai terarah. Merah di mana-mana membuat tidak ada yang terasa
+     penting, dan aplikasi utang tidak perlu terasa mengancam. */
+  --color-merah-700: #a61b14;
+  --color-merah-600: #c62828;
+  --color-merah-500: #e53935;
+  --color-merah-50: #fdecec;
 
   /* ── Teks ──────────────────────────────────────────────────────────────
      Tiga tingkat saja. Lebih dari itu, hierarkinya jadi tidak terbaca. */
-  --color-teks-utama: #f5f3ee;
-  --color-teks-redup: #b8c0d4;
-  --color-teks-samar: #9aa5bf;
+  --color-teks-utama: #17181c;
+  --color-teks-redup: #4a4f5c;
+  --color-teks-samar: #616675;
 
   /* ── Status ────────────────────────────────────────────────────────────
-     Dipakai sebagai warna TEKS/BORDER di atas permukaan bertint,
-     bukan sebagai isian solid — isian solid jenuh gagal kontras
-     dengan teks putih maupun teks gelap. */
-  --color-sukses: #2fbf71; /* lunas */
-  --color-peringatan: #f4a261; /* jatuh tempo H-3 */
-  --color-bahaya: #ff8a8a; /* lewat tempo */
+     Nilainya jauh lebih gelap daripada warna status pada tema gelap: di
+     atas putih, hijau dan jingga yang "terlihat pekat" umumnya hanya
+     mencapai sekitar 3:1. */
+  --color-sukses: #137038; /* lunas */
+  --color-peringatan: #a15c07; /* sebagian / jatuh tempo dekat */
+  --color-bahaya: #c62828; /* belum lunas / lewat tempo */
 
   /* ── Radius ────────────────────────────────────────────────────────── */
-  --radius-kartu: 1rem;
-  --radius-kontrol: 0.75rem;
+  --radius-kartu: 0.875rem;
+  --radius-kontrol: 0.625rem;
 
   /* ── Huruf ─────────────────────────────────────────────────────────────
      Sengaja memakai font sistem: tanpa unduhan, langsung tampil, dan
@@ -53,19 +52,16 @@
 }
 
 :root {
-  /* ── Permukaan kaca ────────────────────────────────────────────────────
-     Nilai alpha di sini ikut diuji oleh skrip kontras. Menaikkannya
-     membuat permukaan lebih terang dan bisa membuat teks samar gagal. */
-  --kaca-bg: rgb(255 255 255 / 0.06);
-  --kaca-bg-kuat: rgb(255 255 255 / 0.1);
-  --kaca-border: rgb(233 196 106 / 0.18);
-  --kaca-border-kuat: rgb(233 196 106 / 0.35);
-  --kaca-blur: 16px;
+  /* ── Bayangan ──────────────────────────────────────────────────────────
+     Sangat halus. Di tema terang, bayangan tebal membuat tampilan terasa
+     kotor, bukan berdimensi. */
+  --bayang-kartu: 0 1px 2px rgb(23 24 28 / 0.04), 0 1px 3px rgb(23 24 28 / 0.06);
+  --bayang-angkat: 0 4px 12px rgb(23 24 28 / 0.08), 0 1px 3px rgb(23 24 28 / 0.06);
 
-  /* Tint status untuk latar badge/kartu berstatus. */
-  --tint-sukses: rgb(47 191 113 / 0.14);
-  --tint-peringatan: rgb(244 162 97 / 0.14);
-  --tint-bahaya: rgb(255 138 138 / 0.14);
+  /* Tint status untuk latar badge dan baris berstatus. */
+  --tint-sukses: #ecfdf3;
+  --tint-peringatan: #fef6e7;
+  --tint-bahaya: #fdecec;
 
   /* Tinggi bottom nav — dipakai untuk memberi ruang di bawah konten. */
   --tinggi-nav: 4.25rem;

@@ -61,7 +61,7 @@ export function HalamanBeranda() {
               <p className="font-medium">Bu Siti</p>
               <p className="text-xs text-teks-samar">Jatuh tempo 3 hari lagi</p>
             </div>
-            <p className="angka font-semibold text-gold-400">
+            <p className="angka font-semibold text-merah-600">
               {formatRupiah(85_000)}
             </p>
           </div>

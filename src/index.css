@@ -7,27 +7,13 @@
     -webkit-text-size-adjust: 100%;
     /* Membuat kontrol bawaan browser (spinner angka, pemilih tanggal,
        scrollbar) ikut bertema gelap. Tanpa ini kontrol native tampil
-       terang dan merusak tampilan kaca. */
-    color-scheme: dark;
+       terang dan bertabrakan dengan tema putih. */
+    color-scheme: light;
   }
 
   body {
     min-height: 100dvh;
-    background-color: var(--color-navy-950);
-    /* Gradasi navy: satu sapuan hangat di kanan atas supaya latar tidak
-       terasa datar, lalu turun ke navy paling gelap di bawah. */
-    background-image:
-      radial-gradient(
-        ellipse 80% 60% at 75% -10%,
-        rgb(29 43 77 / 0.55),
-        transparent 60%
-      ),
-      linear-gradient(
-        180deg,
-        var(--color-navy-900) 0%,
-        var(--color-navy-950) 100%
-      );
-    background-attachment: fixed;
+    background-color: var(--color-putih);
     color: var(--color-teks-utama);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -41,30 +27,40 @@
 
   /* Fokus keyboard selalu terlihat — jangan pernah dimatikan. */
   :focus-visible {
-    outline: 2px solid var(--color-gold-400);
+    outline: 2px solid var(--color-merah-600);
     outline-offset: 2px;
   }
 
   ::selection {
-    background: var(--color-gold-500);
-    color: var(--color-navy-950);
+    background: var(--color-merah-600);
+    color: var(--color-putih);
   }
 }
 
 @layer components {
-  /* Permukaan kaca: dipakai semua kartu, header, dan bottom nav. */
-  .kaca {
-    background: var(--kaca-bg);
-    border: 1px solid var(--kaca-border);
-    backdrop-filter: blur(var(--kaca-blur));
-    -webkit-backdrop-filter: blur(var(--kaca-blur));
+  /*
+   * Permukaan kartu: putih dengan garis tipis dan bayangan halus.
+   * Tidak ada backdrop-filter di sini — selain tidak relevan di tema
+   * terang, blur adalah salah satu properti termahal untuk digambar ulang
+   * dan itu terasa betul di HP kelas bawah yang jadi target UtangKu.
+   */
+  .permukaan {
+    background: var(--color-permukaan);
+    border: 1px solid var(--color-garis);
+    box-shadow: var(--bayang-kartu);
   }
 
-  .kaca-kuat {
-    background: var(--kaca-bg-kuat);
-    border: 1px solid var(--kaca-border-kuat);
-    backdrop-filter: blur(var(--kaca-blur));
-    -webkit-backdrop-filter: blur(var(--kaca-blur));
+  /* Untuk elemen yang benar-benar terangkat, mis. bottom sheet. */
+  .permukaan-angkat {
+    background: var(--color-permukaan);
+    border: 1px solid var(--color-garis);
+    box-shadow: var(--bayang-angkat);
+  }
+
+  /* Permukaan datar tanpa bayangan: baris daftar, kotak input. */
+  .permukaan-datar {
+    background: var(--color-permukaan-2);
+    border: 1px solid var(--color-garis);
   }
 }
 

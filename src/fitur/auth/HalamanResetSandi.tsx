@@ -61,7 +61,7 @@ export function HalamanResetSandi() {
         judul="Tautan tidak berlaku"
         keterangan="Tautan reset kata sandi hanya berlaku sekali dan punya masa berlaku."
         bawah={
-          <Link to="/lupa-sandi" className="text-gold-400 underline underline-offset-4">
+          <Link to="/lupa-sandi" className="text-merah-600 underline underline-offset-4">
             Minta tautan baru
           </Link>
         }

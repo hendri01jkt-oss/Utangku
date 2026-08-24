@@ -1,11 +1,10 @@
 /**
  * Pengecek kontras WCAG untuk token warna UtangKu.
  *
- * Glassmorphism sangat mudah gagal kontras: permukaan kaca semi-transparan
- * membuat latar efektif teks berbeda dari warna yang tertulis di token.
- * Skrip ini menghitung latar efektif (alpha compositing) lalu menguji setiap
- * warna teks terhadap SEMUA permukaan yang mungkin dipakai — bukan hanya
- * yang paling gelap.
+ * Tema terang punya jebakan kontrasnya sendiri: warna aksen dan status yang
+ * terlihat "cukup pekat" di layar sering hanya mencapai 3:1 di atas putih.
+ * Skrip ini menguji setiap warna teks terhadap SEMUA permukaan yang dipakai,
+ * termasuk tint badge, lalu mengambil hasil terburuk.
  *
  * Jalankan: npm run cek:kontras
  */
@@ -14,10 +13,6 @@ const hex = (h) => {
   const s = h.replace('#', '');
   return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16));
 };
-
-/** Menempatkan warna ber-alpha di atas warna dasar yang solid. */
-const timpa = ([r, g, b], a, dasar) =>
-  dasar.map((d, i) => Math.round(a * [r, g, b][i] + (1 - a) * d));
 
 /** Luminansi relatif WCAG 2.1 */
 const luminansi = ([r, g, b]) => {
@@ -33,48 +28,42 @@ const rasio = (a, b) => {
   return (x + 0.05) / (y + 0.05);
 };
 
-// ── Token warna (harus sama persis dengan src/gaya/tokens.css) ───────────────
+// ── Token warna (harus sama persis dengan src/gaya/tokens.css) ──────────────
 const T = {
-  navy950: '#060B1A',
-  navy900: '#0A1128',
-  navy800: '#101A35',
-  navy700: '#16223F',
-  gold300: '#F2D98D',
-  gold400: '#E9C46A',
-  gold500: '#D4AF37',
-  teksUtama: '#F5F3EE',
-  teksRedup: '#B8C0D4',
-  teksSamar: '#9AA5BF',
-  sukses: '#2FBF71',
-  peringatan: '#F4A261',
-  bahaya: '#FF8A8A',
+  putih: '#FFFFFF',
+  permukaan2: '#F4F4F6',
+  merah700: '#A61B14',
+  merah600: '#C62828',
+  teksUtama: '#17181C',
+  teksRedup: '#4A4F5C',
+  teksSamar: '#616675',
+  sukses: '#137038',
+  peringatan: '#A15C07',
+  bahaya: '#C62828',
+  tintSukses: '#ECFDF3',
+  tintPeringatan: '#FEF6E7',
+  tintBahaya: '#FDECEC',
 };
 
-const PUTIH_KACA = [255, 255, 255];
-
 /**
- * Semua permukaan tempat teks bisa berdiri. Yang paling terang adalah kasus
- * terburuk untuk teks terang — dan justru itu yang gampang terlewat kalau
- * kontras cuma dicek terhadap navy paling gelap.
+ * Semua permukaan tempat teks bisa berdiri. Warna status diuji juga di atas
+ * tint badge-nya sendiri, bukan cuma di atas putih — di tema terang, tint
+ * berwarna adalah latar yang paling mudah membuat teks gagal kontras.
  */
 const permukaan = [
-  ['navy-950 (dasar gradien)', hex(T.navy950)],
-  ['navy-900 (dasar gradien)', hex(T.navy900)],
-  ['navy-800 (dasar gradien)', hex(T.navy800)],
-  ['navy-700 (dasar gradien)', hex(T.navy700)],
-  ['kaca 6% / navy-900', timpa(PUTIH_KACA, 0.06, hex(T.navy900))],
-  ['kaca 6% / navy-800', timpa(PUTIH_KACA, 0.06, hex(T.navy800))],
-  ['kaca 10% / navy-800', timpa(PUTIH_KACA, 0.1, hex(T.navy800))],
-  ['kaca 10% / navy-700 (paling terang)', timpa(PUTIH_KACA, 0.1, hex(T.navy700))],
+  ['putih (halaman & kartu)', hex(T.putih)],
+  ['permukaan-2 (baris/input)', hex(T.permukaan2)],
+  ['tint sukses (badge lunas)', hex(T.tintSukses)],
+  ['tint peringatan (badge sebagian)', hex(T.tintPeringatan)],
+  ['tint bahaya (badge belum lunas)', hex(T.tintBahaya)],
 ];
 
 const teks = [
   ['teks-utama', T.teksUtama],
   ['teks-redup', T.teksRedup],
   ['teks-samar', T.teksSamar],
-  ['gold-300', T.gold300],
-  ['gold-400', T.gold400],
-  ['gold-500', T.gold500],
+  ['merah-600', T.merah600],
+  ['merah-700', T.merah700],
   ['sukses', T.sukses],
   ['peringatan', T.peringatan],
   ['bahaya', T.bahaya],
@@ -104,8 +93,8 @@ for (const [namaTeks, warnaTeks] of teks) {
 console.log('\nTeks di atas isian solid');
 console.log('='.repeat(74));
 const solid = [
-  ['navy-950 di atas gold-500 (tombol utama)', T.navy950, T.gold500],
-  ['navy-950 di atas gold-400 (tombol hover)', T.navy950, T.gold400],
+  ['putih di atas merah-600 (tombol utama)', T.putih, T.merah600],
+  ['putih di atas merah-700 (tombol ditekan)', T.putih, T.merah700],
 ];
 for (const [nama, fg, bg] of solid) {
   const r = rasio(hex(fg), hex(bg));

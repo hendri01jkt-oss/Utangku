@@ -41,7 +41,7 @@ export function HalamanMasuk() {
       bawah={
         <>
           Belum punya akun?{' '}
-          <Link to="/daftar" className="text-gold-400 underline underline-offset-4">
+          <Link to="/daftar" className="text-merah-600 underline underline-offset-4">
             Daftar
           </Link>
         </>

@@ -8,6 +8,8 @@ import { HalamanResetSandi } from '@/fitur/auth/HalamanResetSandi';
 import { HalamanOnboarding } from '@/fitur/onboarding/HalamanOnboarding';
 import { HalamanBeranda } from '@/fitur/beranda/HalamanBeranda';
 import { HalamanPelanggan } from '@/fitur/pelanggan/HalamanPelanggan';
+import { HalamanDetailPelanggan } from '@/fitur/pelanggan/HalamanDetailPelanggan';
+import { FormPelanggan } from '@/fitur/pelanggan/FormPelanggan';
 import { HalamanTagihan } from '@/fitur/tagihan/HalamanTagihan';
 import { HalamanLaporan } from '@/fitur/laporan/HalamanLaporan';
 
@@ -41,6 +43,9 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <HalamanBeranda /> },
           { path: 'pelanggan', element: <HalamanPelanggan /> },
+          { path: 'pelanggan/baru', element: <FormPelanggan mode="baru" /> },
+          { path: 'pelanggan/:id', element: <HalamanDetailPelanggan /> },
+          { path: 'pelanggan/:id/ubah', element: <FormPelanggan mode="ubah" /> },
           { path: 'tagihan', element: <HalamanTagihan /> },
           { path: 'laporan', element: <HalamanLaporan /> },
         ],

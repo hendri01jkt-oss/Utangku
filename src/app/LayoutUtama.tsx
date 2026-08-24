@@ -6,7 +6,7 @@ import { useSesi } from '@/fitur/auth/useSesi';
 import { useMesinSync } from '@/data/sync/useMesinSync';
 
 /**
- * Kerangka aplikasi: header kaca yang menempel di atas, konten yang bisa
+ * Kerangka aplikasi: header permukaan yang menempel di atas, konten yang bisa
  * digulir, dan navigasi bawah yang tetap.
  *
  * Lebar dibatasi max-w-lg karena UtangKu adalah aplikasi HP lebih dulu —
@@ -22,7 +22,7 @@ export function LayoutUtama() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
       <header
-        className="kaca sticky top-0 z-10 rounded-none border-x-0 border-t-0 px-4 py-3"
+        className="sticky top-0 z-10 border-b border-garis bg-putih px-4 py-3"
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
       >
         <div className="flex items-center justify-between gap-3">
@@ -30,7 +30,7 @@ export function LayoutUtama() {
             <p className="truncate text-base font-semibold tracking-tight">
               {warung?.nama_warung ?? (
                 <>
-                  Utang<span className="text-gold-400">Ku</span>
+                  Utang<span className="text-merah-600">Ku</span>
                 </>
               )}
             </p>
@@ -46,7 +46,7 @@ export function LayoutUtama() {
               onClick={() => void keluar()}
               aria-label="Keluar"
               title="Keluar"
-              className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-white/10 hover:text-teks-utama"
+              className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-permukaan-2 hover:text-teks-utama"
             >
               <LogOut size={18} aria-hidden />
             </button>

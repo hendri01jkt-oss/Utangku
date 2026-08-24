@@ -8,10 +8,32 @@ export type Status = 'lunas' | 'sebagian' | 'belum_lunas' | 'lewat_tempo';
  * terbaca oleh pengguna dengan buta warna.
  */
 const konfigurasi = {
-  lunas: { label: 'Lunas', ikon: CircleCheck, kelas: 'bg-[var(--tint-sukses)] text-sukses border-sukses/25' },
-  sebagian: { label: 'Sebagian', ikon: CircleDot, kelas: 'bg-[var(--tint-peringatan)] text-peringatan border-peringatan/25' },
-  belum_lunas: { label: 'Belum Lunas', ikon: Clock, kelas: 'kaca text-teks-redup' },
-  lewat_tempo: { label: 'Lewat Tempo', ikon: TriangleAlert, kelas: 'bg-[var(--tint-bahaya)] text-bahaya border-bahaya/25' },
+  lunas: {
+    label: 'Lunas',
+    ikon: CircleCheck,
+    kelas: 'bg-[var(--tint-sukses)] text-sukses border-sukses/30',
+  },
+  sebagian: {
+    label: 'Sebagian',
+    ikon: CircleDot,
+    kelas: 'bg-[var(--tint-peringatan)] text-peringatan border-peringatan/30',
+  },
+  belum_lunas: {
+    label: 'Belum Lunas',
+    ikon: Clock,
+    kelas: 'bg-[var(--tint-bahaya)] text-bahaya border-bahaya/30',
+  },
+  /*
+   * Lewat tempo dan belum lunas sama-sama merah, jadi keduanya dibedakan
+   * dengan BOBOT, bukan warna: yang paling mendesak memakai isian penuh.
+   * Ikon dan labelnya juga berbeda, supaya tetap terbaca oleh pengguna
+   * dengan buta warna.
+   */
+  lewat_tempo: {
+    label: 'Lewat Tempo',
+    ikon: TriangleAlert,
+    kelas: 'bg-merah-600 text-putih border-merah-600',
+  },
 } as const;
 
 export function StatusBadge({ status, className }: { status: Status; className?: string }) {

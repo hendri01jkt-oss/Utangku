@@ -25,7 +25,7 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
   return (
     <nav
       aria-label="Navigasi utama"
-      className="kaca fixed inset-x-0 bottom-0 z-20 rounded-none border-x-0 border-b-0"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-garis bg-putih"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="mx-auto flex max-w-lg">
@@ -38,7 +38,7 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
                 cn(
                   'relative flex min-h-16 flex-col items-center justify-center gap-1',
                   'text-[11px] transition-colors',
-                  isActive ? 'text-gold-400' : 'text-teks-samar hover:text-teks-redup',
+                  isActive ? 'text-merah-600' : 'text-teks-samar hover:text-teks-redup',
                 )
               }
             >
@@ -48,7 +48,7 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
                     <Ikon size={21} strokeWidth={isActive ? 2.4 : 1.8} aria-hidden />
                     {label === 'Tagihan' && jumlahTagihan > 0 ? (
                       <span
-                        className="angka absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-[var(--tint-bahaya)] px-1 text-center text-[10px] font-semibold text-bahaya ring-1 ring-bahaya/40"
+                        className="angka absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-merah-600 px-1 text-center text-[10px] font-semibold text-putih"
                         aria-label={`${jumlahTagihan} perlu ditagih`}
                       >
                         {jumlahTagihan}

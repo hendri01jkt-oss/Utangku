@@ -33,7 +33,7 @@ export function HalamanLupaSandi() {
       judul="Lupa kata sandi"
       keterangan="Kami kirimkan tautan untuk membuat kata sandi baru."
       bawah={
-        <Link to="/masuk" className="text-gold-400 underline underline-offset-4">
+        <Link to="/masuk" className="text-merah-600 underline underline-offset-4">
           Kembali ke halaman masuk
         </Link>
       }

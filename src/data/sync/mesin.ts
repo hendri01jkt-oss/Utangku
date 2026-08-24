@@ -1,5 +1,6 @@
 import { db, type NamaEntitas } from '@/data/db';
 import { supabase } from '@/lib/supabase';
+import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
 import { useSync } from './useSync';
 
 const ENTITAS: readonly NamaEntitas[] = ['pelanggan', 'transaksi_utang', 'pembayaran'];
@@ -142,6 +143,17 @@ async function tarik(warungId: string): Promise<number> {
   return masuk;
 }
 
+/**
+ * Sistem operasi bisa mengaku online padahal server tidak terjangkau —
+ * wifi hotel dengan halaman login, sinyal seolah penuh tapi data mati.
+ * Setelah dua kegagalan beruntun, berhenti menampilkan "Menyinkronkan" yang
+ * berputar tanpa ujung dan katakan apa adanya bahwa server tidak tersambung.
+ */
+function statusSaatGagalJaringan() {
+  if (!navigator.onLine) return 'offline' as const;
+  return percobaanJaringan >= 2 ? ('offline' as const) : ('menyinkronkan' as const);
+}
+
 function jadwalkanBackoff() {
   if (timerBackoff) clearTimeout(timerBackoff);
   const jeda = Math.min(BACKOFF_AWAL_MS * 2 ** percobaanJaringan, BACKOFF_MAKS_MS);
@@ -168,17 +180,32 @@ export async function sinkronSekarang(_alasan: string): Promise<void> {
   setStatus('menyinkronkan');
 
   try {
+    // Foto diunggah sebelum barisnya dikirim: baris pelanggan sudah membawa
+    // foto_path, jadi kalau urutannya terbalik, perangkat lain sempat
+    // melihat path yang berkasnya belum ada.
+    await unggahFotoTertunda();
+
     // Dorong dulu baru tarik: memperkecil jendela waktu saat data server
     // bisa menimpa perubahan lokal yang belum terkirim.
     const hasil = await dorong();
 
     if (hasil.terhentiJaringan) {
-      setStatus(navigator.onLine ? 'menyinkronkan' : 'offline');
+      setStatus(statusSaatGagalJaringan());
       jadwalkanBackoff();
       return;
     }
 
     await tarik(warungAktif);
+
+    // Foto yang ada di Storage tapi belum ada di perangkat ini (mis. setelah
+    // ganti HP). Gagal di sini tidak boleh menggagalkan sinkronisasi data —
+    // catatan utang jauh lebih penting daripada foto.
+    try {
+      await unduhFotoHilang(warungAktif);
+    } catch {
+      /* diabaikan dengan sengaja */
+    }
+
     percobaanJaringan = 0;
     if (timerBackoff) {
       clearTimeout(timerBackoff);
@@ -188,7 +215,7 @@ export async function sinkronSekarang(_alasan: string): Promise<void> {
   } catch (galat) {
     const pesan = galat instanceof Error ? galat.message : String(galat);
     if (gagalKarenaJaringan(undefined, pesan)) {
-      setStatus(navigator.onLine ? 'menyinkronkan' : 'offline', pesan);
+      setStatus(statusSaatGagalJaringan(), pesan);
       jadwalkanBackoff();
     } else {
       setStatus('tersinkron', pesan);

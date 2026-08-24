@@ -70,8 +70,8 @@ export function InputRupiah({
               type="button"
               onClick={() => onChange(nilai + n)}
               className={cn(
-                'angka kaca rounded-full px-3 py-1.5 text-xs text-teks-redup',
-                'transition-colors hover:bg-white/10 hover:text-teks-utama',
+                'angka rounded-full border border-garis bg-putih px-3 py-1.5 text-xs text-teks-redup',
+                'transition-colors hover:bg-permukaan-2 hover:text-teks-utama',
               )}
             >
               + {formatAngka(n)}

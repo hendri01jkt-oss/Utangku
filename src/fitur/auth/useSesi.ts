@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { kosongkanDataLokal } from '@/data/db';
+import { db, kosongkanDataLokal } from '@/data/db';
 import type { Tables } from '@/data/database.types';
 
 export type Warung = Tables<'warung'>;
@@ -30,17 +30,28 @@ interface StoreSesi {
 /**
  * Mengambil warung milik pengguna. RLS sudah menyaring per keanggotaan,
  * jadi kueri ini tidak perlu (dan tidak boleh) menyaring sendiri di client.
+ *
+ * Hasilnya disimpan ke Dexie. Saat jaringan mati, salinan lokal itulah yang
+ * dipakai — tanpa ini, membuka aplikasi tanpa sinyal akan terbaca sebagai
+ * "belum punya warung" dan pemiliknya dilempar ke layar onboarding.
  */
 async function ambilWarung(): Promise<Warung | null> {
-  const { data, error } = await supabase
-    .from('warung')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('warung')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    if (data) await db.warung.put(data);
+    return data;
+  } catch (galat) {
+    const tersimpan = await db.warung.toCollection().first();
+    if (tersimpan) return tersimpan;
+    throw galat;
+  }
 }
 
 export const useSesi = create<StoreSesi>((set) => ({
