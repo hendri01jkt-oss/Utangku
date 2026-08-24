@@ -1,0 +1,72 @@
+/**
+ * Token desain UtangKu — dark navy + gold, glassmorphism.
+ *
+ * Semua nilai warna di sini diverifikasi oleh `npm run cek:kontras`.
+ * Kalau mengubah salah satu warna, jalankan skrip itu sebelum commit:
+ * skrip menguji setiap warna teks terhadap SEMUA permukaan (termasuk
+ * permukaan kaca paling terang) dengan ambang WCAG AA 4.5:1.
+ */
+
+@theme {
+  /* ── Latar: navy gelap bergradasi ──────────────────────────────────────
+     navy-950 paling gelap (ujung gradien), navy-700 paling terang
+     (permukaan yang terangkat). */
+  --color-navy-950: #060b1a;
+  --color-navy-900: #0a1128;
+  --color-navy-850: #0d1530;
+  --color-navy-800: #101a35;
+  --color-navy-700: #16223f;
+  --color-navy-600: #1d2b4d;
+
+  /* ── Emas: HANYA untuk aksen, CTA, dan angka penting ───────────────────
+     Jangan dipakai sebagai warna latar luas — melelahkan mata dan
+     membuat tampilan terasa murah. */
+  --color-gold-600: #b8912a;
+  --color-gold-500: #d4af37;
+  --color-gold-400: #e9c46a;
+  --color-gold-300: #f2d98d;
+
+  /* ── Teks ──────────────────────────────────────────────────────────────
+     Tiga tingkat saja. Lebih dari itu, hierarkinya jadi tidak terbaca. */
+  --color-teks-utama: #f5f3ee;
+  --color-teks-redup: #b8c0d4;
+  --color-teks-samar: #9aa5bf;
+
+  /* ── Status ────────────────────────────────────────────────────────────
+     Dipakai sebagai warna TEKS/BORDER di atas permukaan bertint,
+     bukan sebagai isian solid — isian solid jenuh gagal kontras
+     dengan teks putih maupun teks gelap. */
+  --color-sukses: #2fbf71; /* lunas */
+  --color-peringatan: #f4a261; /* jatuh tempo H-3 */
+  --color-bahaya: #ff8a8a; /* lewat tempo */
+
+  /* ── Radius ────────────────────────────────────────────────────────── */
+  --radius-kartu: 1rem;
+  --radius-kontrol: 0.75rem;
+
+  /* ── Huruf ─────────────────────────────────────────────────────────────
+     Sengaja memakai font sistem: tanpa unduhan, langsung tampil, dan
+     tetap jalan saat offline — sesuai prinsip offline-first UtangKu. */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+:root {
+  /* ── Permukaan kaca ────────────────────────────────────────────────────
+     Nilai alpha di sini ikut diuji oleh skrip kontras. Menaikkannya
+     membuat permukaan lebih terang dan bisa membuat teks samar gagal. */
+  --kaca-bg: rgb(255 255 255 / 0.06);
+  --kaca-bg-kuat: rgb(255 255 255 / 0.1);
+  --kaca-border: rgb(233 196 106 / 0.18);
+  --kaca-border-kuat: rgb(233 196 106 / 0.35);
+  --kaca-blur: 16px;
+
+  /* Tint status untuk latar badge/kartu berstatus. */
+  --tint-sukses: rgb(47 191 113 / 0.14);
+  --tint-peringatan: rgb(244 162 97 / 0.14);
+  --tint-bahaya: rgb(255 138 138 / 0.14);
+
+  /* Tinggi bottom nav — dipakai untuk memberi ruang di bawah konten. */
+  --tinggi-nav: 4.25rem;
+}
