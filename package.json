@@ -34,5 +34,9 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.0"
   },
-  "description": "Aplikasi pencatatan utang untuk warung, warteg, dan warkop"
+  "description": "Aplikasi pencatatan utang untuk warung, warteg, dan warkop",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hendri01jkt-oss/utangku.git"
+  }
 }

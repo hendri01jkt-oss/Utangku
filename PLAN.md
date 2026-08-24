@@ -5,7 +5,7 @@
 
 - **Versi dokumen:** 1.0
 - **Tanggal:** 24 Agustus 2026
-- **Repo:** `hendri01jkt-oss/website-pertama`
+- **Repo:** `hendri01jkt-oss/utangku`
 - **Status:** Menunggu review — belum ada baris kode yang ditulis
 
 ---
