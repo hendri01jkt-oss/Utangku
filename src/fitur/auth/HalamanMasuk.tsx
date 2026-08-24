@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -18,7 +18,7 @@ export function HalamanMasuk() {
     setGalat(null);
     setSedangKirim(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await (await ambilSupabase()).auth.signInWithPassword({
         email: email.trim(),
         password: sandi,
       });

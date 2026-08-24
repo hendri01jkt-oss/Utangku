@@ -1,5 +1,5 @@
 import { db, type NamaEntitas } from '@/data/db';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
 import { useSync } from './useSync';
 
@@ -67,6 +67,7 @@ async function dorong(): Promise<HasilDorong> {
     const entri = await db.outbox.orderBy('urutan').filter((e) => e.galat === null).first();
     if (!entri || entri.urutan === undefined) break;
 
+    const supabase = await ambilSupabase();
     const { error, status } = await supabase
       .from(entri.entitas)
       // Upsert, bukan insert: ID dibuat di perangkat, jadi mengirim ulang
@@ -100,7 +101,8 @@ async function dorong(): Promise<HasilDorong> {
  * lain memakai `warung_id` — jadi penyaringnya dipisah, bukan dipaksakan
  * jadi satu ekspresi.
  */
-function ambilHalaman(entitas: NamaEntitas, warungId: string, kursor: string) {
+async function ambilHalaman(entitas: NamaEntitas, warungId: string, kursor: string) {
+  const supabase = await ambilSupabase();
   if (entitas === 'warung') {
     return supabase
       .from('warung')

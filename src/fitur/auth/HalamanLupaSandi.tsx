@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -16,7 +16,7 @@ export function HalamanLupaSandi() {
     setGalat(null);
     setSedangKirim(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error } = await (await ambilSupabase()).auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-sandi`,
       });
       if (error) throw error;

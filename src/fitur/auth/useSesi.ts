@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { db, kosongkanDataLokal } from '@/data/db';
 import type { Tables } from '@/data/database.types';
 
@@ -33,6 +33,7 @@ interface StoreSesi {
  * sendiri di client.
  */
 async function ambilWarungDariServer(): Promise<Warung | null> {
+  const supabase = await ambilSupabase();
   const { data, error } = await supabase
     .from('warung')
     .select('*')
@@ -83,24 +84,41 @@ export const useSesi = create<StoreSesi>((set) => ({
       }
     };
 
-    void supabase.auth.getSession().then(({ data }) => terapkan(data.session));
+    // Klien Supabase dimuat belakangan, jadi pemasangan pendengar juga
+    // menyusul. Bendera `batal` menjaga agar komponen yang sudah dilepas
+    // tidak terlanjur memasang pendengar yang tidak pernah dicabut.
+    let batal = false;
+    let lepas: (() => void) | null = null;
 
-    const { data: langganan } = supabase.auth.onAuthStateChange((peristiwa, sesi) => {
-      // Penyegaran token tidak mengubah apa pun yang perlu dimuat ulang.
-      if (peristiwa === 'TOKEN_REFRESHED') {
-        set({ sesi });
-        return;
-      }
-      void terapkan(sesi);
-    });
+    void (async () => {
+      const supabase = await ambilSupabase();
+      if (batal) return;
 
-    return () => langganan.subscription.unsubscribe();
+      const { data } = await supabase.auth.getSession();
+      if (batal) return;
+      void terapkan(data.session);
+
+      const { data: langganan } = supabase.auth.onAuthStateChange((peristiwa, sesi) => {
+        // Penyegaran token tidak mengubah apa pun yang perlu dimuat ulang.
+        if (peristiwa === 'TOKEN_REFRESHED') {
+          set({ sesi });
+          return;
+        }
+        void terapkan(sesi);
+      });
+      lepas = () => langganan.subscription.unsubscribe();
+    })();
+
+    return () => {
+      batal = true;
+      lepas?.();
+    };
   },
 
   setWarung: (warung) => set({ warung, status: 'siap' }),
 
   keluar: async () => {
-    await supabase.auth.signOut();
+    await (await ambilSupabase()).auth.signOut();
     // Data warung sebelumnya harus hilang dari perangkat: satu HP bisa
     // dipakai bergantian, dan catatan utang orang lain tidak boleh tertinggal
     // di IndexedDB.

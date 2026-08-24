@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Store } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from '@/fitur/auth/LayoutAuth';
 import { pesanGalat } from '@/fitur/auth/pesanGalat';
@@ -30,7 +30,7 @@ export function HalamanOnboarding() {
       // Satu RPC transaksional: warung + keanggotaan pemilik + baris
       // langganan dibuat sekaligus, sehingga tidak mungkin ada akun yang
       // berhasil dibuat tapi setengah jadi.
-      const { data, error } = await supabase.rpc('buat_warung', {
+      const { data, error } = await (await ambilSupabase()).rpc('buat_warung', {
         p_nama_warung: nama.trim(),
         p_no_wa: noWa.trim() || undefined,
         p_alamat: alamat.trim() || undefined,

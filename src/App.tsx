@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './app/router';
+import { PemberitahuanPwa } from './app/PemberitahuanPwa';
 import { useSesi } from './fitur/auth/useSesi';
 
 export default function App() {
@@ -8,5 +9,10 @@ export default function App() {
 
   useEffect(() => inisialisasi(), [inisialisasi]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <PemberitahuanPwa />
+    </>
+  );
 }

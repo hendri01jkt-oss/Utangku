@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -25,9 +25,11 @@ export function HalamanResetSandi() {
 
   useEffect(() => {
     let batal = false;
-    void supabase.auth.getSession().then(({ data }) => {
+    void (async () => {
+      const supabase = await ambilSupabase();
+      const { data } = await supabase.auth.getSession();
       if (!batal) setTautanSah(Boolean(data.session));
-    });
+    })();
     return () => {
       batal = true;
     };
@@ -44,7 +46,7 @@ export function HalamanResetSandi() {
 
     setSedangKirim(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: sandi });
+      const { error } = await (await ambilSupabase()).auth.updateUser({ password: sandi });
       if (error) throw error;
       setBerhasil(true);
       setTimeout(() => navigate('/', { replace: true }), 1500);

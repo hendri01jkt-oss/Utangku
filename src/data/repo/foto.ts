@@ -1,5 +1,5 @@
 import { db } from '@/data/db';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { perkecilGambar } from '@/lib/gambar';
 import { jadwalkanSync } from '@/data/sync/mesin';
 
@@ -41,7 +41,7 @@ export async function unggahFotoTertunda(): Promise<number> {
   let terunggah = 0;
 
   for (const foto of menunggu) {
-    const { error } = await supabase.storage
+    const { error } = await (await ambilSupabase()).storage
       .from(BUCKET)
       .upload(jalurFoto(foto.warung_id, foto.pelanggan_id), foto.blob, {
         contentType: 'image/jpeg',
@@ -73,7 +73,7 @@ export async function unduhFotoHilang(warungId: string): Promise<number> {
   for (const p of pelanggan) {
     if (await db.foto.get(p.id)) continue;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await (await ambilSupabase()).storage
       .from(BUCKET)
       .createSignedUrl(p.foto_path as string, 60);
     if (error || !data) continue;

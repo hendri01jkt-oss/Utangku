@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useSesi } from '@/fitur/auth/useSesi';
 
-function Memuat() {
+export function Memuat() {
   return (
     <div className="flex min-h-dvh items-center justify-center" role="status">
       <Loader2 size={28} className="animate-spin text-merah-600" aria-hidden />

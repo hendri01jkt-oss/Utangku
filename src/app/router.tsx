@@ -1,41 +1,88 @@
+/*
+ * Berkas ini memang mencampur definisi komponen dengan objek router, yang
+ * membuat fast refresh tidak bekerja untuknya. Itu wajar untuk satu berkas
+ * rute: isinya jarang diubah, dan memecahnya jadi dua berkas hanya untuk
+ * menyenangkan aturan lint akan membuat peta rutenya lebih sulit dibaca.
+ */
+/* eslint-disable react/only-export-components */
+import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { LayoutUtama } from './LayoutUtama';
-import { PenjagaOnboarding, PenjagaRute, PenjagaTamu } from './PenjagaRute';
+import { Memuat, PenjagaOnboarding, PenjagaRute, PenjagaTamu } from './PenjagaRute';
 import { HalamanMasuk } from '@/fitur/auth/HalamanMasuk';
-import { HalamanDaftar } from '@/fitur/auth/HalamanDaftar';
-import { HalamanLupaSandi } from '@/fitur/auth/HalamanLupaSandi';
-import { HalamanResetSandi } from '@/fitur/auth/HalamanResetSandi';
-import { HalamanOnboarding } from '@/fitur/onboarding/HalamanOnboarding';
 import { HalamanBeranda } from '@/fitur/beranda/HalamanBeranda';
-import { HalamanPelanggan } from '@/fitur/pelanggan/HalamanPelanggan';
-import { HalamanDetailPelanggan } from '@/fitur/pelanggan/HalamanDetailPelanggan';
-import { FormPelanggan } from '@/fitur/pelanggan/FormPelanggan';
-import { FormUtang } from '@/fitur/utang/FormUtang';
-import { HalamanDetailUtang } from '@/fitur/utang/HalamanDetailUtang';
-import { HalamanTagihan } from '@/fitur/tagihan/HalamanTagihan';
-import { HalamanLaporan } from '@/fitur/laporan/HalamanLaporan';
-import { HalamanPengaturan } from '@/fitur/pengaturan/HalamanPengaturan';
+
+/*
+ * Halaman masuk dan beranda dimuat di awal karena satu di antaranya PASTI
+ * jadi layar pertama. Sisanya dimuat saat benar-benar dibuka — sebagian
+ * besar pembukaan aplikasi hanya mencatat utang lalu ditutup lagi, dan
+ * tidak perlu ikut mengunduh halaman laporan beserta pustaka ekspornya.
+ */
+const HalamanDaftar = lazy(() =>
+  import('@/fitur/auth/HalamanDaftar').then((m) => ({ default: m.HalamanDaftar })),
+);
+const HalamanLupaSandi = lazy(() =>
+  import('@/fitur/auth/HalamanLupaSandi').then((m) => ({ default: m.HalamanLupaSandi })),
+);
+const HalamanResetSandi = lazy(() =>
+  import('@/fitur/auth/HalamanResetSandi').then((m) => ({ default: m.HalamanResetSandi })),
+);
+const HalamanOnboarding = lazy(() =>
+  import('@/fitur/onboarding/HalamanOnboarding').then((m) => ({
+    default: m.HalamanOnboarding,
+  })),
+);
+const HalamanPelanggan = lazy(() =>
+  import('@/fitur/pelanggan/HalamanPelanggan').then((m) => ({ default: m.HalamanPelanggan })),
+);
+const HalamanDetailPelanggan = lazy(() =>
+  import('@/fitur/pelanggan/HalamanDetailPelanggan').then((m) => ({
+    default: m.HalamanDetailPelanggan,
+  })),
+);
+const FormPelanggan = lazy(() =>
+  import('@/fitur/pelanggan/FormPelanggan').then((m) => ({ default: m.FormPelanggan })),
+);
+const FormUtang = lazy(() =>
+  import('@/fitur/utang/FormUtang').then((m) => ({ default: m.FormUtang })),
+);
+const HalamanDetailUtang = lazy(() =>
+  import('@/fitur/utang/HalamanDetailUtang').then((m) => ({ default: m.HalamanDetailUtang })),
+);
+const HalamanTagihan = lazy(() =>
+  import('@/fitur/tagihan/HalamanTagihan').then((m) => ({ default: m.HalamanTagihan })),
+);
+const HalamanLaporan = lazy(() =>
+  import('@/fitur/laporan/HalamanLaporan').then((m) => ({ default: m.HalamanLaporan })),
+);
+const HalamanPengaturan = lazy(() =>
+  import('@/fitur/pengaturan/HalamanPengaturan').then((m) => ({
+    default: m.HalamanPengaturan,
+  })),
+);
+
+const tunggu = (isi: ReactNode) => <Suspense fallback={<Memuat />}>{isi}</Suspense>;
 
 /**
- * Rute detail (pelanggan/:id, utang/:id, laporan, pengaturan) ditambahkan
- * pada tahapnya masing-masing — lihat PLAN.md bagian 4.3.
+ * Rute detail dan panel digambar di atas halaman induknya, jadi beberapa
+ * alamat sengaja memakai elemen yang sama.
  */
 export const router = createBrowserRouter([
   {
     element: <PenjagaTamu />,
     children: [
       { path: '/masuk', element: <HalamanMasuk /> },
-      { path: '/daftar', element: <HalamanDaftar /> },
-      { path: '/lupa-sandi', element: <HalamanLupaSandi /> },
+      { path: '/daftar', element: tunggu(<HalamanDaftar />) },
+      { path: '/lupa-sandi', element: tunggu(<HalamanLupaSandi />) },
     ],
   },
   // Reset sandi sengaja di luar PenjagaTamu: pengguna yang membuka tautan
-  // dari email sudah memegang sesi pemulihan, sehingga penjaga tamu akan
-  // melemparnya ke beranda sebelum sempat mengganti kata sandi.
-  { path: '/reset-sandi', element: <HalamanResetSandi /> },
+  // dari email sudah memegang sesi pemulihan dan akan terlempar ke beranda
+  // sebelum sempat mengganti kata sandinya.
+  { path: '/reset-sandi', element: tunggu(<HalamanResetSandi />) },
   {
     element: <PenjagaOnboarding />,
-    children: [{ path: '/onboarding', element: <HalamanOnboarding /> }],
+    children: [{ path: '/onboarding', element: tunggu(<HalamanOnboarding />) }],
   },
   {
     element: <PenjagaRute />,
@@ -45,19 +92,18 @@ export const router = createBrowserRouter([
         element: <LayoutUtama />,
         children: [
           { index: true, element: <HalamanBeranda /> },
-          { path: 'pelanggan', element: <HalamanPelanggan /> },
-          { path: 'pelanggan/baru', element: <FormPelanggan mode="baru" /> },
-          { path: 'pelanggan/:id', element: <HalamanDetailPelanggan /> },
-          // Panel digambar di atas halaman induknya, jadi elemennya sama.
-          { path: 'pelanggan/:id/bayar', element: <HalamanDetailPelanggan /> },
-          { path: 'pelanggan/:id/ubah', element: <FormPelanggan mode="ubah" /> },
-          { path: 'utang/baru', element: <FormUtang mode="baru" /> },
-          { path: 'utang/:id', element: <HalamanDetailUtang /> },
-          { path: 'utang/:id/bayar', element: <HalamanDetailUtang /> },
-          { path: 'utang/:id/ubah', element: <FormUtang mode="ubah" /> },
-          { path: 'tagihan', element: <HalamanTagihan /> },
-          { path: 'laporan', element: <HalamanLaporan /> },
-          { path: 'pengaturan', element: <HalamanPengaturan /> },
+          { path: 'pelanggan', element: tunggu(<HalamanPelanggan />) },
+          { path: 'pelanggan/baru', element: tunggu(<FormPelanggan mode="baru" />) },
+          { path: 'pelanggan/:id', element: tunggu(<HalamanDetailPelanggan />) },
+          { path: 'pelanggan/:id/bayar', element: tunggu(<HalamanDetailPelanggan />) },
+          { path: 'pelanggan/:id/ubah', element: tunggu(<FormPelanggan mode="ubah" />) },
+          { path: 'utang/baru', element: tunggu(<FormUtang mode="baru" />) },
+          { path: 'utang/:id', element: tunggu(<HalamanDetailUtang />) },
+          { path: 'utang/:id/bayar', element: tunggu(<HalamanDetailUtang />) },
+          { path: 'utang/:id/ubah', element: tunggu(<FormUtang mode="ubah" />) },
+          { path: 'tagihan', element: tunggu(<HalamanTagihan />) },
+          { path: 'laporan', element: tunggu(<HalamanLaporan />) },
+          { path: 'pengaturan', element: tunggu(<HalamanPengaturan />) },
         ],
       },
     ],

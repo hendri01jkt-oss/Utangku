@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="UtangKu">
-  <rect width="64" height="64" rx="14" fill="#0A1128"/>
-  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="#D4AF37" stroke-opacity=".35" stroke-width="3"/>
-  <path d="M20 18v18a12 12 0 0 0 24 0V18" fill="none" stroke="#E9C46A" stroke-width="7" stroke-linecap="round"/>
+  <rect width="64" height="64" rx="14" fill="#c62828"/>
+  <path d="M20 17v18a12 12 0 0 0 24 0V17" fill="none" stroke="#ffffff" stroke-width="7"
+        stroke-linecap="round"/>
 </svg>

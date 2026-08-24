@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MailCheck } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -28,7 +28,7 @@ export function HalamanDaftar() {
 
     setSedangKirim(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await (await ambilSupabase()).auth.signUp({
         email: email.trim(),
         password: sandi,
         options: {
