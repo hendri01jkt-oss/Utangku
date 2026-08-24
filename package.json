@@ -37,6 +37,6 @@
   "description": "Aplikasi pencatatan utang untuk warung, warteg, dan warkop",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hendri01jkt-oss/utangku.git"
+    "url": "git+https://github.com/hendri01jkt-oss/Utangku.git"
   }
 }
