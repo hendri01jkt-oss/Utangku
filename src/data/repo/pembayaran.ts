@@ -1,5 +1,6 @@
 import { db, type BarisPembayaran } from '@/data/db';
 import { idBaru, sekarang, simpanDanAntre } from './dasar';
+import { tanggalHariIni } from './transaksi';
 import type { Enums } from '@/data/database.types';
 
 export interface DataPembayaranBaru {
@@ -50,7 +51,7 @@ export async function catatPembayaran(data: DataPembayaranBaru) {
     warung_id: data.warung_id,
     transaksi_id: data.transaksi_id,
     pelanggan_id: data.pelanggan_id,
-    tanggal: data.tanggal ?? waktu.slice(0, 10),
+    tanggal: data.tanggal ?? tanggalHariIni(),
     nominal: Math.round(data.nominal),
     metode: data.metode ?? 'tunai',
     catatan: data.catatan?.trim() || null,
@@ -81,18 +82,25 @@ export async function hapusPembayaran(id: string) {
   await hitungUlangUtangLokal(lama.transaksi_id);
 }
 
-export const riwayatPembayaran = (transaksiId: string) =>
-  db.pembayaran
-    .where('transaksi_id')
-    .equals(transaksiId)
-    .filter((b) => b.deleted_at === null)
-    .reverse()
-    .sortBy('tanggal');
+const terbaruDulu = <T extends { tanggal: string; created_at: string }>(baris: T[]) =>
+  baris.sort(
+    (a, b) => b.tanggal.localeCompare(a.tanggal) || b.created_at.localeCompare(a.created_at),
+  );
 
-export const riwayatPembayaranPelanggan = (pelangganId: string) =>
-  db.pembayaran
-    .where('pelanggan_id')
-    .equals(pelangganId)
-    .filter((b) => b.deleted_at === null)
-    .reverse()
-    .sortBy('tanggal');
+export const riwayatPembayaran = async (transaksiId: string) =>
+  terbaruDulu(
+    await db.pembayaran
+      .where('transaksi_id')
+      .equals(transaksiId)
+      .filter((b) => b.deleted_at === null)
+      .toArray(),
+  );
+
+export const riwayatPembayaranPelanggan = async (pelangganId: string) =>
+  terbaruDulu(
+    await db.pembayaran
+      .where('pelanggan_id')
+      .equals(pelangganId)
+      .filter((b) => b.deleted_at === null)
+      .toArray(),
+  );

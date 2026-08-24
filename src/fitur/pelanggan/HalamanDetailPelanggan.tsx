@@ -97,22 +97,24 @@ export function HalamanDetailPelanggan() {
           <p className="text-sm text-teks-redup">{pelanggan.catatan}</p>
         ) : null}
 
-        {/* Aksi ini baru hidup di Tahap 5-6; dinonaktifkan, bukan disembunyikan,
-            supaya bentuk akhir layarnya sudah terlihat saat ditinjau. */}
         <div className="flex flex-col gap-2">
           <Tombol varian="utama" ukuran="besar" penuh ikon={<Send size={17} />} disabled>
             Tagih via WhatsApp
           </Tombol>
           <div className="grid grid-cols-2 gap-2">
-            <Tombol varian="sekunder" ikon={<Plus size={16} />} disabled>
+            <Link
+              to={`/utang/baru?pelanggan=${id}`}
+              className="permukaan flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] px-4 text-sm transition-colors hover:bg-permukaan-2"
+            >
+              <Plus size={16} aria-hidden />
               Catat Utang
-            </Tombol>
+            </Link>
             <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
               Terima Bayar
             </Tombol>
           </div>
           <p className="text-center text-xs text-teks-samar">
-            Tombol ini aktif pada Tahap 5–6.
+            Terima Bayar aktif pada Tahap 6, Tagih via WhatsApp pada Tahap 8.
           </p>
         </div>
       </Kartu>
@@ -127,7 +129,11 @@ export function HalamanDetailPelanggan() {
           <ul className="flex flex-col gap-2">
             {utang.map((t) => (
               <li key={t.id}>
-                <Kartu padat className="flex items-center justify-between gap-3">
+                <Link to={`/utang/${t.id}`} className="block">
+                  <Kartu
+                    padat
+                    className="flex items-center justify-between gap-3 transition-colors hover:bg-permukaan-2"
+                  >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
                       {t.keterangan ?? 'Tanpa keterangan'}
@@ -143,7 +149,8 @@ export function HalamanDetailPelanggan() {
                       </p>
                     ) : null}
                   </div>
-                </Kartu>
+                  </Kartu>
+                </Link>
               </li>
             ))}
           </ul>

@@ -12,11 +12,29 @@ export interface DataUtangBaru {
   dibuat_oleh?: string | null;
 }
 
-/** Tanggal hari ini menurut zona waktu perangkat, format YYYY-MM-DD. */
+/**
+ * Tanggal hari ini menurut Waktu Indonesia Barat, format YYYY-MM-DD.
+ *
+ * Sengaja dipatok ke Asia/Jakarta, bukan zona perangkat, supaya sama persis
+ * dengan fungsi hari_ini() di database. Kalau jam HP salah setel zona, utang
+ * yang dicatat malam hari bisa tercatat di tanggal yang berbeda dengan yang
+ * dipakai server untuk menghitung jatuh tempo.
+ */
 export function tanggalHariIni(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  // en-CA menghasilkan format YYYY-MM-DD.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+/** Menambah sejumlah hari pada tanggal YYYY-MM-DD, mis. untuk jatuh tempo. */
+export function tambahHari(tanggal: string, hari: number): string {
+  const d = new Date(`${tanggal}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + hari);
+  return d.toISOString().slice(0, 10);
 }
 
 export async function catatUtang(data: DataUtangBaru) {
@@ -61,13 +79,24 @@ export async function ubahUtang(
 
 export const hapusUtang = (id: string) => ubahUtang(id, { deleted_at: sekarang() });
 
-export const daftarUtangPelanggan = (pelangganId: string) =>
-  db.transaksi_utang
+/**
+ * Utang satu pelanggan, terbaru dulu.
+ *
+ * Diurutkan secara eksplisit di JavaScript, bukan mengandalkan sortBy:
+ * di warung, beberapa utang pada tanggal yang sama adalah hal biasa, dan
+ * tanpa pemecah seri urutannya jadi sembarang setiap kali dimuat.
+ */
+export const daftarUtangPelanggan = async (pelangganId: string) => {
+  const baris = await db.transaksi_utang
     .where('pelanggan_id')
     .equals(pelangganId)
     .filter((t) => t.deleted_at === null)
-    .reverse()
-    .sortBy('tanggal');
+    .toArray();
+
+  return baris.sort(
+    (a, b) => b.tanggal.localeCompare(a.tanggal) || b.created_at.localeCompare(a.created_at),
+  );
+};
 
 export const ambilUtang = (id: string) => db.transaksi_utang.get(id);
 

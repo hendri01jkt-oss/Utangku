@@ -28,30 +28,20 @@ interface StoreSesi {
 }
 
 /**
- * Mengambil warung milik pengguna. RLS sudah menyaring per keanggotaan,
- * jadi kueri ini tidak perlu (dan tidak boleh) menyaring sendiri di client.
- *
- * Hasilnya disimpan ke Dexie. Saat jaringan mati, salinan lokal itulah yang
- * dipakai — tanpa ini, membuka aplikasi tanpa sinyal akan terbaca sebagai
- * "belum punya warung" dan pemiliknya dilempar ke layar onboarding.
+ * Mengambil warung milik pengguna dari server. RLS sudah menyaring per
+ * keanggotaan, jadi kueri ini tidak perlu (dan tidak boleh) menyaring
+ * sendiri di client.
  */
-async function ambilWarung(): Promise<Warung | null> {
-  try {
-    const { data, error } = await supabase
-      .from('warung')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
+async function ambilWarungDariServer(): Promise<Warung | null> {
+  const { data, error } = await supabase
+    .from('warung')
+    .select('*')
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-    if (error) throw error;
-    if (data) await db.warung.put(data);
-    return data;
-  } catch (galat) {
-    const tersimpan = await db.warung.toCollection().first();
-    if (tersimpan) return tersimpan;
-    throw galat;
-  }
+  if (error) throw error;
+  return data;
 }
 
 export const useSesi = create<StoreSesi>((set) => ({
@@ -65,17 +55,31 @@ export const useSesi = create<StoreSesi>((set) => ({
         set({ status: 'tamu', sesi: null, warung: null });
         return;
       }
+
+      // Tampilkan dari salinan lokal DULU, tanpa menunggu jaringan sedetik
+      // pun. Saat offline, kueri PostgREST butuh sekitar tujuh detik untuk
+      // menyerah — dan selama itu pemilik warung hanya melihat layar
+      // "Memuat…". Aplikasi yang menjanjikan jalan tanpa sinyal tidak boleh
+      // menahan tampilannya di belakang panggilan jaringan.
+      const tersimpan = await db.warung.toCollection().first();
+      if (tersimpan) set({ sesi, warung: tersimpan, status: 'siap' });
+
       try {
-        const warung = await ambilWarung();
-        set({
-          sesi,
-          warung,
-          status: warung ? 'siap' : 'perlu_onboarding',
-        });
+        const segar = await ambilWarungDariServer();
+        if (segar) {
+          await db.warung.put(segar);
+          set({ sesi, warung: segar, status: 'siap' });
+          return;
+        }
+        // Server bilang tidak ada warung. Itu hanya dipercaya kalau memang
+        // belum ada salinan lokal; kalau ada, salinan lokal dipertahankan
+        // supaya gangguan sesaat tidak melempar pemilik ke onboarding.
+        if (!tersimpan) set({ sesi, warung: null, status: 'perlu_onboarding' });
       } catch {
-        // Gagal memuat warung (mis. jaringan mati) bukan alasan melempar
-        // pengguna keluar — sesinya tetap sah. Onboarding akan mencoba lagi.
-        set({ sesi, warung: null, status: 'perlu_onboarding' });
+        // Jaringan mati bukan alasan melempar pengguna keluar — sesinya
+        // tetap sah. Kalau belum pernah ada salinan lokal (login pertama
+        // tanpa sinyal), onboarding yang akan mencoba lagi.
+        if (!tersimpan) set({ sesi, warung: null, status: 'perlu_onboarding' });
       }
     };
 

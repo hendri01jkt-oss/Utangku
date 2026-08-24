@@ -10,6 +10,8 @@ import { HalamanBeranda } from '@/fitur/beranda/HalamanBeranda';
 import { HalamanPelanggan } from '@/fitur/pelanggan/HalamanPelanggan';
 import { HalamanDetailPelanggan } from '@/fitur/pelanggan/HalamanDetailPelanggan';
 import { FormPelanggan } from '@/fitur/pelanggan/FormPelanggan';
+import { FormUtang } from '@/fitur/utang/FormUtang';
+import { HalamanDetailUtang } from '@/fitur/utang/HalamanDetailUtang';
 import { HalamanTagihan } from '@/fitur/tagihan/HalamanTagihan';
 import { HalamanLaporan } from '@/fitur/laporan/HalamanLaporan';
 
@@ -46,6 +48,9 @@ export const router = createBrowserRouter([
           { path: 'pelanggan/baru', element: <FormPelanggan mode="baru" /> },
           { path: 'pelanggan/:id', element: <HalamanDetailPelanggan /> },
           { path: 'pelanggan/:id/ubah', element: <FormPelanggan mode="ubah" /> },
+          { path: 'utang/baru', element: <FormUtang mode="baru" /> },
+          { path: 'utang/:id', element: <HalamanDetailUtang /> },
+          { path: 'utang/:id/ubah', element: <FormUtang mode="ubah" /> },
           { path: 'tagihan', element: <HalamanTagihan /> },
           { path: 'laporan', element: <HalamanLaporan /> },
         ],
