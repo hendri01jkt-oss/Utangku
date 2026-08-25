@@ -84,21 +84,84 @@ const KOLOM_TETAP = new Set(['id', 'warung_id', 'created_at', 'dibuat_oleh']);
  * lain atau berganti identitas lewat sinkronisasi. Jadi yang menyesuaikan
  * adalah klien, bukan jaminan di database.
  */
-async function kirimEntri(entri: EntriOutbox) {
-  const supabase = await ambilSupabase();
+/**
+ * Entitas yang TIDAK PERNAH dibuat lewat sinkronisasi, hanya diperbarui.
+ *
+ * Baris warung lahir dari RPC `buat_warung()` saat onboarding, dan policy
+ * INSERT-nya mensyaratkan `pemilik_id = auth.uid()`. Sementara `pemilik_id`
+ * justru sengaja tidak pernah ikut dikirim — kepemilikan warung tidak boleh
+ * berpindah lewat sinkronisasi biasa. Kedua aturan itu benar sendiri-
+ * sendiri, tapi berarti klien secara struktural tidak akan pernah bisa
+ * meng-INSERT warung: yang didapat selalu "new row violates row-level
+ * security policy for table warung".
+ *
+ * Dan itu tidak bisa dipulihkan dengan mencoba INSERT dulu lalu jatuh ke
+ * UPDATE, karena Postgres memeriksa WITH CHECK SEBELUM pelanggaran kunci
+ * unik muncul — 23505 yang jadi pemicu jalur cadangan tidak pernah sempat
+ * terjadi.
+ */
+const ENTITAS_TANPA_SISIP = new Set<NamaEntitas>(['warung']);
 
+interface HasilKirim {
+  error: { message: string; code?: string } | null;
+  status?: number;
+}
+
+/** Memperbarui baris yang sudah ada, tanpa menyentuh kolom identitas. */
+async function ubahDiServer(entri: EntriOutbox): Promise<HasilKirim> {
+  const supabase = await ambilSupabase();
+  const perubahan = Object.fromEntries(
+    Object.entries(entri.muatan).filter(([kunci]) => !KOLOM_TETAP.has(kunci)),
+  );
+
+  const { error, status, data } = await supabase
+    .from(entri.entitas)
+    .update(perubahan as never)
+    .eq('id', entri.id)
+    .select('id');
+
+  if (error) return { error, status };
+
+  // UPDATE yang tidak mengenai baris apa pun TIDAK dianggap berhasil. Kalau
+  // dibiarkan, entrinya dihapus dari antrean dan perubahan pengguna lenyap
+  // tanpa jejak — persis kegagalan yang paling sulit disadari.
+  if (!data || data.length === 0) {
+    return {
+      error: { message: 'Baris tidak ditemukan di server saat hendak diperbarui.' },
+      status: 404,
+    };
+  }
+
+  return { error: null, status };
+}
+
+/**
+ * Mengirim satu entri: INSERT untuk baris baru, UPDATE untuk yang sudah ada.
+ *
+ * Dulu ini satu panggilan `upsert`, dan itu ternyata TIDAK PERNAH berhasil
+ * untuk transaksi_utang. PostgREST menerjemahkan upsert menjadi
+ * `INSERT ... ON CONFLICT DO UPDATE SET <semua kolom muatan>`, dan Postgres
+ * memeriksa hak UPDATE untuk setiap kolom di klausa itu — tanpa peduli
+ * apakah konfliknya benar-benar terjadi. Karena `id`, `warung_id`, dan
+ * `dibuat_oleh` sengaja dibuat tak-bisa-diubah, seluruh pernyataan ditolak
+ * dengan "permission denied for table transaksi_utang", bahkan untuk baris
+ * yang baru pertama kali dikirim.
+ *
+ * Memberi hak UPDATE pada kolom-kolom itu memang akan membuat upsert lolos,
+ * tapi harganya terlalu mahal: sebuah utang jadi bisa dipindahkan ke warung
+ * lain atau berganti identitas lewat sinkronisasi. Jadi yang menyesuaikan
+ * adalah klien, bukan jaminan di database.
+ */
+async function kirimEntri(entri: EntriOutbox): Promise<HasilKirim> {
+  if (ENTITAS_TANPA_SISIP.has(entri.entitas)) return ubahDiServer(entri);
+
+  const supabase = await ambilSupabase();
   const sisip = await supabase.from(entri.entitas).insert(entri.muatan as never);
   // 23505 = unique_violation, artinya barisnya sudah ada di server dan yang
   // dimaksud entri ini adalah perubahan, bukan pembuatan.
   if (!sisip.error || sisip.error.code !== '23505') return sisip;
 
-  const perubahan = Object.fromEntries(
-    Object.entries(entri.muatan).filter(([kunci]) => !KOLOM_TETAP.has(kunci)),
-  );
-  return supabase
-    .from(entri.entitas)
-    .update(perubahan as never)
-    .eq('id', entri.id);
+  return ubahDiServer(entri);
 }
 
 /** Menyalurkan outbox berurutan. */
