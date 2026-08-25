@@ -20,6 +20,7 @@ Perintah lain:
 | Perintah | Gunanya |
 |---|---|
 | `npm run build` | `tsc -b && vite build` → keluaran ke `dist/` |
+| `npm run build:pages` | Build + salin `404.html` (untuk GitHub Pages) |
 | `npm run typecheck` | Periksa tipe tanpa membangun |
 | `npm run lint` | `oxlint --deny-warnings` (peringatan dianggap galat) |
 | `npm run cek:kontras` | Pastikan semua pasangan warna ≥ 4.5:1 (WCAG AA) |
@@ -77,6 +78,47 @@ dashboard:
 
 Setelah tertaut, setiap push ke `main` memicu build dan deploy otomatis.
 
+## Deploy (GitHub Pages) — alternatif
+
+Dipakai selagi kredit Netlify habis. Keduanya bisa hidup berdampingan:
+konfigurasi Netlify tidak disentuh, dan bedanya hanya pada awalan alamat.
+
+| | Netlify | GitHub Pages |
+|---|---|---|
+| Alamat | akar domain `/` | subpath `/<nama-repo>/` |
+| Fallback SPA | `_redirects` (200 rewrite) | `404.html` (status 404) |
+| Dipicu oleh | push ke `main` (setelah repo tertaut) | `.github/workflows/deploy-gh-pages.yml` |
+
+Awalan alamat diatur variabel `BASE_PATH` saat build. Bawaannya `/`, jadi
+Netlify tidak perlu tahu apa-apa; workflow Pages mengisinya dari nama repo
+yang sebenarnya (`github.event.repository.name`), bukan ditulis tangan.
+
+Membangun versi Pages secara lokal:
+
+```bash
+BASE_PATH=/Utangku/ npm run build:pages
+```
+
+`build:pages` menjalankan build biasa lalu menyalin `dist/index.html`
+menjadi `dist/404.html`. GitHub Pages tidak punya aturan rewrite; satu-
+satunya kesepakatannya adalah menyajikan `404.html` untuk alamat tanpa
+berkas. Dengan isi yang sama persis, `/pelanggan/123` tetap memuat aplikasi
+— hanya saja responsnya berstatus 404, bukan 200.
+
+### Langkah sekali jalan di GitHub
+
+1. **Settings → Pages → Source: GitHub Actions**
+2. **Settings → Secrets and variables → Actions → New repository secret**,
+   isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_PUBLISHABLE_KEY`
+   (opsional `VITE_SUPABASE_PROJECT_REF`). Workflow sengaja berhenti dengan
+   pesan jelas kalau dua yang pertama kosong — build yang lolos tanpa
+   keduanya menghasilkan aplikasi yang gagal saat dibuka.
+3. Tambahkan alamat Pages ke **Supabase → Authentication → URL
+   Configuration → Redirect URLs**
+
+> GitHub Pages untuk repo **privat** hanya tersedia di paket berbayar
+> (Pro/Team/Enterprise). Di paket gratis, repo harus dijadikan publik dulu.
+
 ## Supabase
 
 Migrasi ada di [`supabase/migrations/`](./supabase/migrations), bernomor urut
@@ -88,8 +130,9 @@ dan diterapkan berurutan. Tipe TypeScript-nya di-generate ke
 mengarah ke komputer penerimanya sendiri:
 
 - **Site URL**: `https://utangku.netlify.app`
-- **Redirect URLs**: `https://utangku.netlify.app/**` dan
-  `http://localhost:5173/**` (yang kedua untuk pengembangan)
+- **Redirect URLs**: `https://utangku.netlify.app/**`,
+  `https://<akun>.github.io/Utangku/**` (kalau memakai Pages), dan
+  `http://localhost:5173/**` untuk pengembangan
 
 ## Arsitektur singkat
 

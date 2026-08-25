@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { alamatAplikasi } from '@/lib/alamat';
 import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo, LayoutAuth } from './LayoutAuth';
@@ -17,7 +18,7 @@ export function HalamanLupaSandi() {
     setSedangKirim(true);
     try {
       const { error } = await (await ambilSupabase()).auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-sandi`,
+        redirectTo: alamatAplikasi('reset-sandi'),
       });
       if (error) throw error;
       setTerkirim(true);

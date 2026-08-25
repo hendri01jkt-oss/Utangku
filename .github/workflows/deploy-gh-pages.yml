@@ -1,0 +1,90 @@
+name: Deploy ke GitHub Pages
+
+# Alternatif sementara selagi kredit Netlify habis. Konfigurasi Netlify
+# (netlify.toml + public/_redirects) sengaja dibiarkan utuh — keduanya bisa
+# hidup berdampingan, dan bedanya hanya pada awalan alamat yang diisi lewat
+# BASE_PATH di bawah.
+
+on:
+  push:
+    branches: [main]
+  # Memungkinkan deploy manual dari tab Actions tanpa harus push.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Kalau ada dua push beruntun, biarkan yang berjalan selesai lalu langsung
+# lompat ke yang terbaru — jangan sampai deploy lama menimpa yang baru.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      # Ketiga variabel dibaca saat BUILD (Vite menyalinnya ke dalam berkas
+      # JavaScript), bukan saat aplikasi berjalan. Kalau kosong, hasil build
+      # tetap "berhasil" tapi aplikasinya gagal begitu dibuka. Lebih baik
+      # gagal di sini, dengan pesan yang menyebut persis apa yang kurang.
+      - name: Pastikan secret Supabase terisi
+        env:
+          URL: ${{ secrets.VITE_SUPABASE_URL }}
+          KUNCI: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          kurang=""
+          [ -z "$URL" ] && kurang="$kurang VITE_SUPABASE_URL"
+          [ -z "$KUNCI" ] && kurang="$kurang VITE_SUPABASE_PUBLISHABLE_KEY"
+          if [ -n "$kurang" ]; then
+            echo "::error::Secret belum diisi:$kurang — isi di Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Periksa tipe dan lint
+        run: |
+          npm run typecheck
+          npm run lint
+
+      - name: Build
+        env:
+          # Nama repo diambil dari konteks, bukan ditulis tangan, supaya
+          # awalan alamatnya tidak pernah melenceng kalau repo berganti nama.
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_REF: ${{ secrets.VITE_SUPABASE_PROJECT_REF }}
+        run: npm run build:pages
+
+      # Tanpa ini Jekyll di sisi Pages akan membuang berkas dan folder yang
+      # namanya diawali garis bawah.
+      - name: Matikan pemrosesan Jekyll
+        run: touch dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

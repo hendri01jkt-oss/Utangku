@@ -4,7 +4,23 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+/*
+ * Awalan alamat tempat aplikasi disajikan.
+ *
+ * Netlify melayani dari akar domain, jadi "/" adalah bawaannya. GitHub Pages
+ * melayani dari subpath nama repo (mis. "/Utangku/"), dan nilai itu diisi
+ * oleh workflow lewat BASE_PATH — diambil dari nama repo yang sebenarnya,
+ * bukan ditulis tangan, supaya tidak pernah melenceng kalau repo berganti
+ * nama.
+ *
+ * Nilai ini merembes ke banyak tempat: alamat aset, basename React Router,
+ * start_url manifest, dan navigateFallback service worker. Salah satu saja
+ * tertinggal di "/" akan membuat aplikasi tampak kosong di subpath.
+ */
+const base = process.env.BASE_PATH ?? '/';
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     tailwindcss(),
@@ -17,8 +33,8 @@ export default defineConfig({
         description:
           'Catatan utang pelanggan untuk warung, warteg, dan warkop. Tetap jalan tanpa sinyal.',
         lang: 'id',
-        start_url: '/',
-        scope: '/',
+        start_url: base,
+        scope: base,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
@@ -38,7 +54,7 @@ export default defineConfig({
         // App shell di-precache seluruhnya supaya pembukaan pertama setelah
         // dipasang tidak butuh jaringan sama sekali.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: '/index.html',
+        navigateFallback: `${base}index.html`,
         // Chunk ekspor jauh lebih besar dari sisanya dan jarang dipakai.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [

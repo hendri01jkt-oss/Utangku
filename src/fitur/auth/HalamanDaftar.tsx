@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MailCheck } from 'lucide-react';
+import { alamatAplikasi } from '@/lib/alamat';
 import { ambilSupabase } from '@/lib/supabase';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
@@ -34,7 +35,7 @@ export function HalamanDaftar() {
         options: {
           // Dibaca trigger on_auth_user_created untuk mengisi profiles.nama_lengkap.
           data: { full_name: nama.trim() },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: alamatAplikasi(),
         },
       });
       if (error) throw error;

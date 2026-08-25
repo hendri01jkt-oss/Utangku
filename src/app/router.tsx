@@ -6,7 +6,7 @@
  */
 /* eslint-disable react/only-export-components */
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import { HalamanTidakDitemukan } from './HalamanTidakDitemukan';
 import { LayoutUtama } from './LayoutUtama';
 import { Memuat, PenjagaOnboarding, PenjagaRute, PenjagaTamu } from './PenjagaRute';
@@ -68,7 +68,7 @@ const tunggu = (isi: ReactNode) => <Suspense fallback={<Memuat />}>{isi}</Suspen
  * Rute detail dan panel digambar di atas halaman induknya, jadi beberapa
  * alamat sengaja memakai elemen yang sama.
  */
-export const router = createBrowserRouter([
+const rute: RouteObject[] = [
   {
     element: <PenjagaTamu />,
     children: [
@@ -117,4 +117,14 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+];
+
+/*
+ * basename mengikuti awalan tempat aplikasi disajikan.
+ *
+ * Di Netlify BASE_URL adalah "/" dan ini tidak berpengaruh apa-apa. Di
+ * GitHub Pages nilainya "/Utangku/", dan tanpa basename setiap rute akan
+ * dicocokkan terhadap alamat lengkap termasuk nama repo — router tidak akan
+ * mengenali satu pun, lalu seluruh aplikasi jatuh ke halaman 404 sendiri.
+ */
+export const router = createBrowserRouter(rute, { basename: import.meta.env.BASE_URL });
