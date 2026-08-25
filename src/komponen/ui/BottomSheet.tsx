@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 /**
@@ -36,7 +37,18 @@ export function BottomSheet({
     };
   }, [onTutup]);
 
-  return (
+  /*
+   * Dirender ke <body> lewat portal, bukan di tempat ia dipanggil.
+   *
+   * `z-30` hanya berarti sesuatu bila dibandingkan di stacking context yang
+   * sama. Saat panel ini dibuka dari header — yang `sticky z-10` dan karena
+   * itu membentuk stacking context sendiri — seluruh panel ikut terkurung di
+   * dalamnya dan justru tertimbun navigasi bawah yang `z-20`. Akibatnya
+   * tombol aksi di dasar panel tidak bisa ditekan sama sekali di layar
+   * 390px. Portal melepaskannya dari kurungan itu, apa pun tempat ia
+   * dipanggil.
+   */
+  return createPortal(
     <div className="fixed inset-0 z-30 flex items-end justify-center">
       {/*
         Latar gelap: menekannya menutup panel. Sengaja BUKAN <button> dan
@@ -75,6 +87,7 @@ export function BottomSheet({
 
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

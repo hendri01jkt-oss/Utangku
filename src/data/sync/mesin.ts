@@ -1,4 +1,4 @@
-import { db, type NamaEntitas } from '@/data/db';
+import { db, type EntriOutbox, type NamaEntitas } from '@/data/db';
 import { ambilSupabase } from '@/lib/supabase';
 import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
 import { useSync } from './useSync';
@@ -57,6 +57,50 @@ interface HasilDorong {
   terhentiJaringan: boolean;
 }
 
+/**
+ * Kolom yang tidak pernah berubah setelah sebuah baris lahir.
+ *
+ * Identitas baris, warung pemiliknya, waktu pembuatan, dan siapa yang
+ * membuatnya bukan sesuatu yang boleh berpindah lewat sinkronisasi. Database
+ * menegakkan hal yang sama: hak UPDATE pada kolom-kolom ini memang tidak
+ * diberikan ke peran authenticated.
+ */
+const KOLOM_TETAP = new Set(['id', 'warung_id', 'created_at', 'dibuat_oleh']);
+
+/**
+ * Mengirim satu entri: coba INSERT, dan baru UPDATE bila barisnya sudah ada.
+ *
+ * Dulu ini satu panggilan `upsert`, dan itu ternyata TIDAK PERNAH berhasil
+ * untuk transaksi_utang. PostgREST menerjemahkan upsert menjadi
+ * `INSERT ... ON CONFLICT DO UPDATE SET <semua kolom muatan>`, dan Postgres
+ * memeriksa hak UPDATE untuk setiap kolom di klausa itu — tanpa peduli
+ * apakah konfliknya benar-benar terjadi. Karena `id`, `warung_id`, dan
+ * `dibuat_oleh` sengaja dibuat tak-bisa-diubah, seluruh pernyataan ditolak
+ * dengan "permission denied for table transaksi_utang", bahkan untuk baris
+ * yang baru pertama kali dikirim.
+ *
+ * Memberi hak UPDATE pada kolom-kolom itu memang akan membuat upsert lolos,
+ * tapi harganya terlalu mahal: sebuah utang jadi bisa dipindahkan ke warung
+ * lain atau berganti identitas lewat sinkronisasi. Jadi yang menyesuaikan
+ * adalah klien, bukan jaminan di database.
+ */
+async function kirimEntri(entri: EntriOutbox) {
+  const supabase = await ambilSupabase();
+
+  const sisip = await supabase.from(entri.entitas).insert(entri.muatan as never);
+  // 23505 = unique_violation, artinya barisnya sudah ada di server dan yang
+  // dimaksud entri ini adalah perubahan, bukan pembuatan.
+  if (!sisip.error || sisip.error.code !== '23505') return sisip;
+
+  const perubahan = Object.fromEntries(
+    Object.entries(entri.muatan).filter(([kunci]) => !KOLOM_TETAP.has(kunci)),
+  );
+  return supabase
+    .from(entri.entitas)
+    .update(perubahan as never)
+    .eq('id', entri.id);
+}
+
 /** Menyalurkan outbox berurutan. */
 async function dorong(): Promise<HasilDorong> {
   let terkirim = 0;
@@ -67,12 +111,7 @@ async function dorong(): Promise<HasilDorong> {
     const entri = await db.outbox.orderBy('urutan').filter((e) => e.galat === null).first();
     if (!entri || entri.urutan === undefined) break;
 
-    const supabase = await ambilSupabase();
-    const { error, status } = await supabase
-      .from(entri.entitas)
-      // Upsert, bukan insert: ID dibuat di perangkat, jadi mengirim ulang
-      // entri yang sama tidak menghasilkan baris ganda.
-      .upsert(entri.muatan as never, { onConflict: 'id' });
+    const { error, status } = await kirimEntri(entri);
 
     if (!error) {
       await db.outbox.delete(entri.urutan);
