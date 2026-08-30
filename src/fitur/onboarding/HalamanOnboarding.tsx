@@ -5,6 +5,7 @@ import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from '@/fitur/auth/LayoutAuth';
 import { pesanGalat } from '@/fitur/auth/pesanGalat';
 import { useSesi } from '@/fitur/auth/useSesi';
+import { useKeluar } from '@/fitur/auth/useKeluar';
 
 export function HalamanOnboarding() {
   const [nama, setNama] = useState('');
@@ -14,7 +15,7 @@ export function HalamanOnboarding() {
   const [galat, setGalat] = useState<string | null>(null);
   const [sedangKirim, setSedangKirim] = useState(false);
   const setWarung = useSesi((s) => s.setWarung);
-  const keluar = useSesi((s) => s.keluar);
+  const { mintaKeluar, dialogKeluar } = useKeluar();
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
@@ -53,7 +54,7 @@ export function HalamanOnboarding() {
       bawah={
         <button
           type="button"
-          onClick={() => void keluar()}
+          onClick={() => void mintaKeluar()}
           className="text-teks-samar underline underline-offset-4"
         >
           Keluar
@@ -102,6 +103,7 @@ export function HalamanOnboarding() {
           {sedangKirim ? 'Menyiapkan…' : 'Mulai pakai UtangKu'}
         </Tombol>
       </form>
+      {dialogKeluar}
     </LayoutAuth>
   );
 }

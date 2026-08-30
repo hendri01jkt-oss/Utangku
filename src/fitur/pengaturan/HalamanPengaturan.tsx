@@ -6,6 +6,7 @@ import { useSesi } from '@/fitur/auth/useSesi';
 import { ubahWarung } from '@/data/repo/warung';
 import { sinkronSekarang } from '@/data/sync/mesin';
 import { contohPesan, TEMPLATE_BAWAAN } from '@/fitur/tagihan/pesanTagihan';
+import { useKeluar } from '@/fitur/auth/useKeluar';
 
 const variabel = [
   { kunci: '{nama}', arti: 'nama pelanggan' },
@@ -18,7 +19,7 @@ const variabel = [
 export function HalamanPengaturan() {
   const warung = useSesi((s) => s.warung);
   const setWarung = useSesi((s) => s.setWarung);
-  const keluar = useSesi((s) => s.keluar);
+  const { mintaKeluar, dialogKeluar } = useKeluar();
 
   const [namaWarung, setNamaWarung] = useState('');
   const [noWa, setNoWa] = useState('');
@@ -164,9 +165,10 @@ export function HalamanPengaturan() {
         </p>
       </Kartu>
 
-      <Tombol varian="bahaya" onClick={() => void keluar()} penuh>
+      <Tombol varian="bahaya" onClick={() => void mintaKeluar()} penuh>
         Keluar dari akun
       </Tombol>
+      {dialogKeluar}
     </div>
   );
 }

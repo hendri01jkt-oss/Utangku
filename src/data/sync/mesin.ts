@@ -1,6 +1,7 @@
 import { db, type EntriOutbox, type NamaEntitas } from '@/data/db';
 import { ambilSupabase } from '@/lib/supabase';
 import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
+import { tulisSalinanServer } from './salinanServer';
 import { useSync } from './useSync';
 
 const ENTITAS: readonly NamaEntitas[] = [
@@ -67,23 +68,6 @@ interface HasilDorong {
  */
 const KOLOM_TETAP = new Set(['id', 'warung_id', 'created_at', 'dibuat_oleh']);
 
-/**
- * Mengirim satu entri: coba INSERT, dan baru UPDATE bila barisnya sudah ada.
- *
- * Dulu ini satu panggilan `upsert`, dan itu ternyata TIDAK PERNAH berhasil
- * untuk transaksi_utang. PostgREST menerjemahkan upsert menjadi
- * `INSERT ... ON CONFLICT DO UPDATE SET <semua kolom muatan>`, dan Postgres
- * memeriksa hak UPDATE untuk setiap kolom di klausa itu — tanpa peduli
- * apakah konfliknya benar-benar terjadi. Karena `id`, `warung_id`, dan
- * `dibuat_oleh` sengaja dibuat tak-bisa-diubah, seluruh pernyataan ditolak
- * dengan "permission denied for table transaksi_utang", bahkan untuk baris
- * yang baru pertama kali dikirim.
- *
- * Memberi hak UPDATE pada kolom-kolom itu memang akan membuat upsert lolos,
- * tapi harganya terlalu mahal: sebuah utang jadi bisa dipindahkan ke warung
- * lain atau berganti identitas lewat sinkronisasi. Jadi yang menyesuaikan
- * adalah klien, bukan jaminan di database.
- */
 /**
  * Entitas yang TIDAK PERNAH dibuat lewat sinkronisasi, hanya diperbarui.
  *
@@ -243,18 +227,9 @@ async function tarik(warungId: string): Promise<number> {
       if (error) throw error;
       if (!data || data.length === 0) break;
 
-      // Baris yang masih menunggu dikirim TIDAK ditimpa data server —
-      // perubahan lokal yang belum sampai harus menang sampai ia terkirim,
-      // kalau tidak suntingan pengguna akan hilang begitu saja.
-      const menunggu = new Set(
-        (await db.outbox.where('entitas').equals(entitas).toArray()).map((e) => e.id),
-      );
-      const bolehTulis = data.filter((baris) => !menunggu.has(baris.id));
-
-      if (bolehTulis.length > 0) {
-        await db.table(entitas).bulkPut(bolehTulis);
-        masuk += bolehTulis.length;
-      }
+      // Baris yang masih menunggu dikirim tidak ditimpa data server; aturan
+      // itu dipegang satu tempat supaya tidak ada penulis yang lupa.
+      masuk += await tulisSalinanServer(entitas, data);
 
       const kursorBaru = data[data.length - 1]?.updated_at ?? kursor;
       const habis = data.length < BATAS_TARIK;

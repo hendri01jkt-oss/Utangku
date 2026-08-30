@@ -6,6 +6,7 @@ import { IndikatorSync } from './IndikatorSync';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { useMesinSync } from '@/data/sync/useMesinSync';
 import { perluDitagih } from '@/fitur/tagihan/daftarTagihan';
+import { useKeluar } from '@/fitur/auth/useKeluar';
 
 /**
  * Kerangka aplikasi: header permukaan yang menempel di atas, konten yang bisa
@@ -16,7 +17,7 @@ import { perluDitagih } from '@/fitur/tagihan/daftarTagihan';
  */
 export function LayoutUtama() {
   const warung = useSesi((s) => s.warung);
-  const keluar = useSesi((s) => s.keluar);
+  const { mintaKeluar, dialogKeluar } = useKeluar();
 
   // Mesin sync hidup selama pengguna berada di dalam aplikasi.
   useMesinSync(warung?.id);
@@ -59,7 +60,7 @@ export function LayoutUtama() {
             </Link>
             <button
               type="button"
-              onClick={() => void keluar()}
+              onClick={() => void mintaKeluar()}
               aria-label="Keluar"
               title="Keluar"
               className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-permukaan-2 hover:text-teks-utama"
@@ -69,6 +70,7 @@ export function LayoutUtama() {
           </div>
         </div>
       </header>
+      {dialogKeluar}
 
       <main
         className="flex-1 px-4 py-4"

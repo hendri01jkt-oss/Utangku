@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { ambilSupabase } from '@/lib/supabase';
 import { db, kosongkanDataLokal } from '@/data/db';
+import { tulisSalinanServer } from '@/data/sync/salinanServer';
 import type { Tables } from '@/data/database.types';
 
 export type Warung = Tables<'warung'>;
@@ -24,7 +25,7 @@ interface StoreSesi {
   inisialisasi: () => () => void;
   /** Dipakai onboarding setelah warung berhasil dibuat. */
   setWarung: (warung: Warung) => void;
-  keluar: () => Promise<void>;
+  keluar: (opsi?: { paksa?: boolean }) => Promise<void>;
 }
 
 /**
@@ -68,8 +69,20 @@ export const useSesi = create<StoreSesi>((set) => ({
       try {
         const segar = await ambilWarungDariServer();
         if (segar) {
-          await db.warung.put(segar);
-          set({ sesi, warung: segar, status: 'siap' });
+          /*
+           * Salinan server TIDAK ditulis begitu saja.
+           *
+           * Jalur ini pernah menjadi lubang yang sesungguhnya: ia menimpa
+           * baris warung setiap kali aplikasi dibuka, tanpa memeriksa
+           * antrean. Akibatnya perubahan nama warung yang belum sempat
+           * terkirim tampak batal sendiri — pemiliknya mengetik nama baru,
+           * lalu menemukannya kembali ke nama lama tanpa penjelasan apa pun.
+           * Sekarang aturannya sama dengan mesin sync: selama masih ada
+           * kiriman tertunda, versi lokal yang menang.
+           */
+          const ditulis = await tulisSalinanServer('warung', [segar]);
+          const tampil = ditulis === 0 ? ((await db.warung.get(segar.id)) ?? segar) : segar;
+          set({ sesi, warung: tampil, status: 'siap' });
           return;
         }
         // Server bilang tidak ada warung. Itu hanya dipercaya kalau memang
@@ -117,7 +130,23 @@ export const useSesi = create<StoreSesi>((set) => ({
 
   setWarung: (warung) => set({ warung, status: 'siap' }),
 
-  keluar: async () => {
+  keluar: async (opsi) => {
+    /*
+     * Penjaga terakhir, bukan pengganti dialog konfirmasi di UI.
+     *
+     * Pengosongan data lokal di bawah ikut membuang antrean outbox, jadi
+     * keluar saat masih ada kiriman tertunda berarti membuang catatan yang
+     * tidak punya salinan di mana pun. Dialog di useKeluar sudah menanyakan
+     * hal ini lebih dulu; penjaga di sini memastikan pemanggil baru yang
+     * lupa bertanya tidak bisa menghapusnya tanpa sengaja.
+     */
+    const tertunda = await db.outbox.count();
+    if (tertunda > 0 && !opsi?.paksa) {
+      throw new Error(
+        `Masih ada ${tertunda} catatan yang belum terkirim. Sinkronkan dulu sebelum keluar.`,
+      );
+    }
+
     await (await ambilSupabase()).auth.signOut();
     // Data warung sebelumnya harus hilang dari perangkat: satu HP bisa
     // dipakai bergantian, dan catatan utang orang lain tidak boleh tertinggal
