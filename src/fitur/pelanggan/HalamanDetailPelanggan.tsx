@@ -7,6 +7,7 @@ import { daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
 import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
+import { KartuLinkPantau } from './KartuLinkPantau';
 import { SheetPilihUtang } from '@/fitur/pembayaran/SheetPilihUtang';
 import { TombolTagihWa } from '@/fitur/tagihan/TombolTagihWa';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -142,8 +143,14 @@ export function HalamanDetailPelanggan() {
               </TombolTautan>
             )}
           </div>
-
         </div>
+
+        <KartuLinkPantau
+          pelangganId={pelanggan.id}
+          namaPelanggan={pelanggan.nama}
+          token={pelanggan.token_pantau}
+          terakhirDilihat={pelanggan.terakhir_dilihat_pelanggan}
+        />
       </Kartu>
 
       <section className="flex flex-col gap-2">

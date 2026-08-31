@@ -23,6 +23,11 @@ export async function buatPelanggan(data: DataPelangganBaru) {
     catatan: data.catatan?.trim() || null,
     foto_path: data.foto_path ?? null,
     status: 'aktif',
+    // Token dibuat di perangkat, bukan menunggu default server: pelanggan
+    // yang dicatat tanpa sinyal harus langsung punya link pantau yang bisa
+    // disalin, bukan link yang baru ada setelah warung dapat sinyal.
+    token_pantau: idBaru(),
+    terakhir_dilihat_pelanggan: null,
     created_at: waktu,
     updated_at: waktu,
     deleted_at: null,
@@ -41,6 +46,17 @@ export async function ubahPelanggan(
     ...perubahan,
     updated_at: sekarang(),
   });
+}
+
+/**
+ * Membuat token baru untuk link pantau pelanggan.
+ *
+ * Dipakai kalau link lama bocor — diteruskan di grup WA, misalnya. Tidak ada
+ * cara menarik kembali pesan yang sudah tersebar, jadi satu-satunya
+ * pencabutan yang berarti adalah membuat token lama berhenti berlaku.
+ */
+export async function gantiTokenPantau(id: string) {
+  return ubahPelanggan(id, { token_pantau: idBaru() });
 }
 
 /** Hapus = soft delete, supaya penghapusan ikut tersinkron dan tidak hidup lagi. */

@@ -13,7 +13,13 @@ const KOLOM_MILIK_SERVER: Record<NamaEntitas, readonly string[]> = {
   // pemilik_id ikut dibuang: kepemilikan warung bukan sesuatu yang boleh
   // berpindah lewat sinkronisasi biasa.
   warung: ['created_at', 'updated_at', 'pemilik_id'],
-  pelanggan: ['created_at', 'updated_at'],
+  // terakhir_dilihat_pelanggan hanya ditulis fungsi pantau_utang() di server,
+  // dan hak UPDATE-nya sudah dicabut dari authenticated di migrasi 0012.
+  // Kalau ikut dikirim, PostgREST menolak SELURUH baris dengan "permission
+  // denied" — dan sebelum itu pun nilainya sudah basi: baris yang ditarik ke
+  // perangkat membawa stempel lama, lalu suntingan berikutnya akan
+  // menimpanya di atas kunjungan yang lebih baru.
+  pelanggan: ['created_at', 'updated_at', 'terakhir_dilihat_pelanggan'],
   transaksi_utang: ['created_at', 'updated_at', 'status', 'total_dibayar'],
   pembayaran: ['created_at', 'updated_at'],
 };

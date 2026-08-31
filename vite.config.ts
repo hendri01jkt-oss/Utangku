@@ -92,7 +92,17 @@ export default defineConfig({
             return 'react';
           }
           if (id.includes('@supabase')) return 'supabase';
-          if (/[\\/]node_modules[\\/](dexie|zustand)/.test(id)) return 'data';
+          /*
+           * Dexie dan zustand SENGAJA tidak lagi dikelompokkan sendiri.
+           *
+           * Dulu keduanya dipaksa ke chunk 'data', dan rolldown ikut
+           * menaruh runtime JSX di sana — sehingga chunk itu menjadi
+           * kebutuhan statis titik masuk dan ter-modulepreload dari
+           * index.html. Akibatnya halaman pantau, yang tidak menyentuh
+           * basis data sama sekali, tetap mengunduh 104 kB Dexie di kuota
+           * pelanggan. Dibiarkan mengikuti pemakainya, keduanya hanya
+           * terunduh oleh halaman yang benar-benar memakainya.
+           */
           return undefined;
         },
       },
