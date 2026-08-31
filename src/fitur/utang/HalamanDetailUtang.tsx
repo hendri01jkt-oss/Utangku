@@ -1,12 +1,14 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Pencil, Trash2, Wallet, X } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer, Trash2, Wallet, X } from 'lucide-react';
 import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
 import { hapusUtang, sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
 import { hapusPembayaran, riwayatPembayaran } from '@/data/repo/pembayaran';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
+import { PanelStruk } from '@/fitur/struk/PanelStruk';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from '@/fitur/pelanggan/FotoPelanggan';
 
@@ -49,6 +51,29 @@ export function HalamanDetailUtang() {
   // digambar di atas halaman ini, jadi latar belakangnya tetap terlihat dan
   // tautan langsung ke panel itu tetap bekerja.
   const panelBayarTerbuka = lokasi.pathname.endsWith('/bayar');
+  /*
+   * Dibuka sendiri hanya kalau halaman ini datang dari pencatatan utang
+   * baru. Membukanya di setiap kunjungan akan menghalangi pemilik warung
+   * yang cuma ingin melihat detail, sementara struknya tetap bisa dicetak
+   * ulang kapan saja lewat tombol di bawah.
+   */
+  const [panelStrukTerbuka, setPanelStrukTerbuka] = useState(
+    (lokasi.state as { baruDicatat?: boolean } | null)?.baruDicatat === true,
+  );
+
+  /*
+   * Penanda "baru dicatat" dihapus dari riwayat setelah dipakai sekali.
+   *
+   * Tanpa ini penandanya menempel pada entri riwayat itu selamanya: menutup
+   * panel lalu memuat ulang halaman — atau kembali ke sini lewat tombol
+   * back — akan membukanya lagi, seolah utangnya baru dicatat untuk kedua
+   * kalinya.
+   */
+  useEffect(() => {
+    if ((lokasi.state as { baruDicatat?: boolean } | null)?.baruDicatat) {
+      navigate(lokasi.pathname, { replace: true, state: null });
+    }
+  }, [lokasi.pathname, lokasi.state, navigate]);
 
   const utang = useLiveQuery(async () => await db.transaksi_utang.get(id), [id]);
   const pelanggan = useLiveQuery(
@@ -200,6 +225,14 @@ export function HalamanDetailUtang() {
             Utang ini sudah lunas.
           </p>
         )}
+        <Tombol
+          varian="sekunder"
+          penuh
+          ikon={<Printer size={16} />}
+          onClick={() => setPanelStrukTerbuka(true)}
+        >
+          Cetak Struk
+        </Tombol>
       </Kartu>
 
       <section className="flex flex-col gap-2">
@@ -243,6 +276,10 @@ export function HalamanDetailUtang() {
       <Tombol varian="bahaya" ikon={<Trash2 size={16} />} onClick={() => void hapus()} penuh>
         Hapus catatan utang
       </Tombol>
+
+      {panelStrukTerbuka && id ? (
+        <PanelStruk transaksiId={id} onTutup={() => setPanelStrukTerbuka(false)} />
+      ) : null}
 
       {panelBayarTerbuka ? (
         <FormPembayaran

@@ -4,7 +4,12 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    /*
+     * "types" membatasi paket @types mana yang ikut dimuat, jadi
+     * web-bluetooth harus disebutkan — TypeScript tidak memuatnya sendiri
+     * meski paketnya terpasang. Web Bluetooth belum masuk lib.dom bawaan.
+     */
+    "types": ["vite/client", "web-bluetooth"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 

@@ -109,7 +109,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
           reminder_hari_sebelum: 3,
           dibuat_oleh: sesi?.user.id ?? null,
         });
-        navigate(`/utang/${baru.id}`, { replace: true });
+        navigate(`/utang/${baru.id}`, { replace: true, state: { baruDicatat: true } });
       }
     } catch (err) {
       setGalat(err instanceof Error ? err.message : 'Gagal menyimpan utang.');

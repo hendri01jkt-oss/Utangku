@@ -1,12 +1,5 @@
-import { formatRupiah } from '@/lib/uang';
+import { formatRupiahDatar } from '@/lib/uang';
 import { namaBerkas, namaBulan, type Laporan } from './dataLaporan';
-
-/**
- * Intl memakai spasi tak-putus di antara "Rp" dan angkanya. Di layar itu
- * bagus, tapi di PDF dan Excel karakter itu bisa tampil sebagai kotak atau
- * ikut terbawa saat sel disalin, jadi diganti spasi biasa.
- */
-const rupiahDatar = (n: number) => formatRupiah(n).replace(/ /g, ' ');
 
 const tanggalPendek = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('id-ID', {
@@ -60,11 +53,11 @@ export async function buatPdf(laporan: Laporan, namaWarung: string) {
     styles: { fontSize: 10, cellPadding: 4 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     body: [
-      ['Utang baru periode ini', rupiahDatar(laporan.totalUtangBaru)],
-      ['Tertagih periode ini', rupiahDatar(laporan.totalTertagih)],
+      ['Utang baru periode ini', formatRupiahDatar(laporan.totalUtangBaru)],
+      ['Tertagih periode ini', formatRupiahDatar(laporan.totalTertagih)],
       [
         `Sisa piutang per ${tanggalPendek(laporan.periode.sampai)}`,
-        rupiahDatar(laporan.sisaPiutang),
+        formatRupiahDatar(laporan.sisaPiutang),
       ],
       ['Pelanggan masih berutang', String(laporan.jumlahPelangganBerutang)],
     ],
@@ -86,9 +79,9 @@ export async function buatPdf(laporan: Laporan, namaWarung: string) {
       t.keterangan,
       t.jatuhTempo ? tanggalPendek(t.jatuhTempo) : '—',
       labelStatus[t.status] ?? t.status,
-      rupiahDatar(t.nominal),
+      formatRupiahDatar(t.nominal),
     ]),
-    foot: [['', '', '', '', 'Total', rupiahDatar(laporan.totalUtangBaru)]],
+    foot: [['', '', '', '', 'Total', formatRupiahDatar(laporan.totalUtangBaru)]],
     headStyles: { fillColor: merah },
     footStyles: { fillColor: abu, textColor: 20, fontStyle: 'bold' },
     styles: { fontSize: 9, cellPadding: 4 },
@@ -103,9 +96,9 @@ export async function buatPdf(laporan: Laporan, namaWarung: string) {
       b.namaPelanggan,
       b.metode,
       b.catatan,
-      rupiahDatar(b.nominal),
+      formatRupiahDatar(b.nominal),
     ]),
-    foot: [['', '', '', 'Total', rupiahDatar(laporan.totalTertagih)]],
+    foot: [['', '', '', 'Total', formatRupiahDatar(laporan.totalTertagih)]],
     headStyles: { fillColor: merah },
     footStyles: { fillColor: abu, textColor: 20, fontStyle: 'bold' },
     styles: { fontSize: 9, cellPadding: 4 },

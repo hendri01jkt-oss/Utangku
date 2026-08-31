@@ -20,6 +20,18 @@ const formatterRingkas = new Intl.NumberFormat('id-ID', {
 export const formatRupiah = (nominal: number): string =>
   formatter.format(Math.round(nominal));
 
+/**
+ * Rupiah tanpa spasi tak-terputus (NBSP).
+ *
+ * `Intl.NumberFormat` menyisipkan NBSP di antara "Rp" dan angkanya. Di web
+ * itu berguna supaya nominal tidak patah di akhir baris, tapi di luar DOM
+ * justru menyusahkan: printer thermal mencetaknya sebagai karakter asing,
+ * canvas mengukur lebarnya berbeda dari spasi biasa, dan sel spreadsheet
+ * jadi sulit dicari dengan pencarian teks biasa.
+ */
+export const formatRupiahDatar = (nominal: number): string =>
+  formatRupiah(nominal).replace(/\u00A0/g, ' ');
+
 /** 1500000 -> "1.500.000" (tanpa "Rp", untuk dipakai di dalam input) */
 export const formatAngka = (nominal: number): string =>
   formatterRingkas.format(Math.round(nominal));

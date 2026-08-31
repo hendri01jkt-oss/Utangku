@@ -360,6 +360,7 @@ export type Database = {
           alamat: string | null
           created_at: string
           id: string
+          lebar_struk: number
           logo_path: string | null
           nama_warung: string
           no_wa_warung: string | null
@@ -372,6 +373,7 @@ export type Database = {
           alamat?: string | null
           created_at?: string
           id?: string
+          lebar_struk?: number
           logo_path?: string | null
           nama_warung: string
           no_wa_warung?: string | null
@@ -384,6 +386,7 @@ export type Database = {
           alamat?: string | null
           created_at?: string
           id?: string
+          lebar_struk?: number
           logo_path?: string | null
           nama_warung?: string
           no_wa_warung?: string | null
@@ -504,6 +507,7 @@ export type Database = {
           alamat: string | null
           created_at: string
           id: string
+          lebar_struk: number
           logo_path: string | null
           nama_warung: string
           no_wa_warung: string | null

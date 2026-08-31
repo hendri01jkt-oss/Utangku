@@ -18,6 +18,7 @@ export async function ubahWarung(
       | 'tempo_default_hari'
       | 'template_pesan_tagihan'
       | 'logo_path'
+      | 'lebar_struk'
     >
   >,
 ) {

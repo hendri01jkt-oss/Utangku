@@ -5,6 +5,10 @@ import * as pembayaran from './repo/pembayaran';
 import { sinkronSekarang } from './sync/mesin';
 import * as laporan from '@/fitur/laporan/dataLaporan';
 import * as ekspor from '@/fitur/laporan/ekspor';
+import * as struk from '@/fitur/struk/barisStruk';
+import * as escpos from '@/fitur/struk/escpos';
+import * as gambarStruk from '@/fitur/struk/gambarStruk';
+import * as dataStruk from '@/fitur/struk/dataStruk';
 
 /**
  * Jalan masuk ke lapisan data dari konsol browser — HANYA saat mode
@@ -26,6 +30,10 @@ export function pasangSeamDev() {
       ...pembayaran,
       ...laporan,
       ...ekspor,
+      ...struk,
+      ...escpos,
+      ...gambarStruk,
+      ...dataStruk,
       sinkronSekarang,
     },
   });
