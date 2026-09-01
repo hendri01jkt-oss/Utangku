@@ -66,14 +66,38 @@ interface HasilDorong {
 }
 
 /**
- * Kolom yang tidak pernah berubah setelah sebuah baris lahir.
+ * Kolom yang boleh diisi saat baris LAHIR, tapi tidak pernah boleh berubah
+ * sesudahnya.
  *
  * Identitas baris, warung pemiliknya, waktu pembuatan, dan siapa yang
  * membuatnya bukan sesuatu yang boleh berpindah lewat sinkronisasi. Database
  * menegakkan hal yang sama: hak UPDATE pada kolom-kolom ini memang tidak
  * diberikan ke peran authenticated.
+ *
+ * Daftarnya PER ENTITAS, bukan satu daftar global. Dulu global, dan itu
+ * ternyata perangkap: kolom `jenis` ditambahkan di Tahap 15 dengan hak
+ * INSERT saja — sengaja, supaya sebuah utang tidak bisa diam-diam berubah
+ * jadi penjualan tunai — tapi tidak ada tempat yang wajar untuk
+ * mencantumkannya, sehingga ia ikut terkirim pada setiap UPDATE dan
+ * Postgres menolak SELURUH pernyataan dengan 42501. Akibatnya setiap
+ * penyuntingan utang yang sudah tersinkron berhenti bekerja.
+ *
+ * Aturannya sekarang bisa dibaca sebagai satu tabel yang sejajar dengan
+ * daftar `grant update (...)` di migrasi. Setiap kolom baru yang hanya
+ * boleh disisipkan HARUS ditambahkan di sini juga.
  */
-const KOLOM_TETAP = new Set(['id', 'warung_id', 'created_at', 'dibuat_oleh']);
+const KOLOM_TETAP_UMUM = ['id', 'warung_id', 'created_at', 'dibuat_oleh'] as const;
+
+const KOLOM_TETAP: Record<NamaEntitas, ReadonlySet<string>> = {
+  warung: new Set(KOLOM_TETAP_UMUM),
+  pelanggan: new Set(KOLOM_TETAP_UMUM),
+  // jenis: hak UPDATE-nya sengaja tidak diberikan (migrasi 0013).
+  transaksi_utang: new Set([...KOLOM_TETAP_UMUM, 'jenis']),
+  // transaksi_id: sebuah item maupun cicilan tidak boleh berpindah ke
+  // transaksi lain lewat sinkronisasi — itu memindahkan uang tanpa jejak.
+  transaksi_item: new Set([...KOLOM_TETAP_UMUM, 'transaksi_id']),
+  pembayaran: new Set([...KOLOM_TETAP_UMUM, 'transaksi_id']),
+};
 
 /**
  * Entitas yang TIDAK PERNAH dibuat lewat sinkronisasi, hanya diperbarui.
@@ -101,8 +125,9 @@ interface HasilKirim {
 /** Memperbarui baris yang sudah ada, tanpa menyentuh kolom identitas. */
 async function ubahDiServer(entri: EntriOutbox): Promise<HasilKirim> {
   const supabase = await ambilSupabase();
+  const tetap = KOLOM_TETAP[entri.entitas];
   const perubahan = Object.fromEntries(
-    Object.entries(entri.muatan).filter(([kunci]) => !KOLOM_TETAP.has(kunci)),
+    Object.entries(entri.muatan).filter(([kunci]) => !tetap.has(kunci)),
   );
 
   const { error, status, data } = await supabase
