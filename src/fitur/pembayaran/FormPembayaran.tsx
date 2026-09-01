@@ -54,7 +54,9 @@ export function FormPembayaran({
       await catatPembayaran({
         warung_id: utang.warung_id,
         transaksi_id: utang.id,
-        pelanggan_id: utang.pelanggan_id,
+        // Pembayaran hanya bisa dibuat untuk utang, dan batasan database
+        // menjamin utang selalu punya pelanggan.
+        pelanggan_id: utang.pelanggan_id ?? '',
         nominal,
         metode,
         tanggal,

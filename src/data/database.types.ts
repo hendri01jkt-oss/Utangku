@@ -278,6 +278,63 @@ export type Database = {
           },
         ]
       }
+      transaksi_item: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          harga_satuan: number
+          id: string
+          nama_item: string
+          qty: number
+          subtotal: number
+          transaksi_id: string
+          updated_at: string
+          urutan: number
+          warung_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          harga_satuan: number
+          id?: string
+          nama_item: string
+          qty: number
+          subtotal?: never
+          transaksi_id: string
+          updated_at?: string
+          urutan?: number
+          warung_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          harga_satuan?: number
+          id?: string
+          nama_item?: string
+          qty?: number
+          subtotal?: never
+          transaksi_id?: string
+          updated_at?: string
+          urutan?: number
+          warung_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaksi_item_transaksi_id_fkey"
+            columns: ["transaksi_id"]
+            isOneToOne: false
+            referencedRelation: "transaksi_utang"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaksi_item_warung_id_fkey"
+            columns: ["warung_id"]
+            isOneToOne: false
+            referencedRelation: "warung"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaksi_utang: {
         Row: {
           created_at: string
@@ -285,9 +342,10 @@ export type Database = {
           dibuat_oleh: string | null
           id: string
           jatuh_tempo: string | null
+          jenis: Database["public"]["Enums"]["jenis_transaksi"]
           keterangan: string | null
           nominal: number
-          pelanggan_id: string
+          pelanggan_id: string | null
           reminder_hari_sebelum: number
           reminder_terkirim_untuk: string | null
           status: Database["public"]["Enums"]["utang_status"]
@@ -302,9 +360,10 @@ export type Database = {
           dibuat_oleh?: string | null
           id?: string
           jatuh_tempo?: string | null
+          jenis?: Database["public"]["Enums"]["jenis_transaksi"]
           keterangan?: string | null
           nominal: number
-          pelanggan_id: string
+          pelanggan_id?: string | null
           reminder_hari_sebelum?: number
           reminder_terkirim_untuk?: string | null
           status?: Database["public"]["Enums"]["utang_status"]
@@ -319,9 +378,10 @@ export type Database = {
           dibuat_oleh?: string | null
           id?: string
           jatuh_tempo?: string | null
+          jenis?: Database["public"]["Enums"]["jenis_transaksi"]
           keterangan?: string | null
           nominal?: number
-          pelanggan_id?: string
+          pelanggan_id?: string | null
           reminder_hari_sebelum?: number
           reminder_terkirim_untuk?: string | null
           status?: Database["public"]["Enums"]["utang_status"]
@@ -535,6 +595,7 @@ export type Database = {
       warung_saya: { Args: never; Returns: string[] }
     }
     Enums: {
+      jenis_transaksi: "utang" | "tunai"
       metode_bayar: "tunai" | "transfer" | "qris" | "lainnya"
       payment_status: "pending" | "settlement" | "expired" | "failed"
       pelanggan_status: "aktif" | "nonaktif"
@@ -669,6 +730,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      jenis_transaksi: ["utang", "tunai"],
       metode_bayar: ["tunai", "transfer", "qris", "lainnya"],
       payment_status: ["pending", "settlement", "expired", "failed"],
       pelanggan_status: ["aktif", "nonaktif"],

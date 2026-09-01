@@ -56,7 +56,7 @@ export function KartuBarisTagihan({
       </Link>
 
       <TombolTagihWa
-        idPelanggan={baris.transaksi.pelanggan_id}
+        idPelanggan={baris.idPelanggan}
         namaPelanggan={baris.namaPelanggan}
         noWa={baris.noWa}
         namaWarung={namaWarung}

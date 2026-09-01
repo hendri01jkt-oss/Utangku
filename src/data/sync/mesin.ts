@@ -4,10 +4,17 @@ import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
 import { tulisSalinanServer } from './salinanServer';
 import { useSync } from './useSync';
 
+/*
+ * Urutan menentukan urutan TARIK. transaksi_item diletakkan sesudah
+ * transaksi_utang supaya induknya sudah ada di perangkat sebelum barisnya
+ * masuk — tampilan yang menggabungkan keduanya jadi tidak pernah sempat
+ * menampilkan item tanpa transaksi.
+ */
 const ENTITAS: readonly NamaEntitas[] = [
   'warung',
   'pelanggan',
   'transaksi_utang',
+  'transaksi_item',
   'pembayaran',
 ];
 

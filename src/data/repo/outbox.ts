@@ -18,6 +18,7 @@ const LABEL_ENTITAS: Record<NamaEntitas, string> = {
   warung: 'Data warung',
   pelanggan: 'Pelanggan',
   transaksi_utang: 'Utang',
+  transaksi_item: 'Rincian item',
   pembayaran: 'Pembayaran',
 };
 

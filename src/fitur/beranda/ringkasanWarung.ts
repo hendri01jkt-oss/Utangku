@@ -41,9 +41,13 @@ export async function ringkasanWarung(warungId: string): Promise<RingkasanWarung
   let totalPiutang = 0;
 
   for (const t of transaksi) {
+    // Penjualan tunai selalu berstatus lunas dengan sisa nol, jadi ia tidak
+    // bisa menyumbang piutang walaupun ikut terbaca di sini. Yang tetap
+    // perlu dijaga hanya pelanggan_id-nya, yang boleh kosong untuk pembeli
+    // lewat.
     const sisa = sisaUtang(t);
     totalPiutang += sisa;
-    if (t.status !== 'lunas' && sisa > 0) berutang.add(t.pelanggan_id);
+    if (t.status !== 'lunas' && sisa > 0 && t.pelanggan_id) berutang.add(t.pelanggan_id);
   }
 
   return {

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { Banknote, Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { Kartu, KartuStatistik, TombolTautan } from '@/komponen/ui';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { formatRupiah } from '@/lib/uang';
@@ -54,9 +54,26 @@ export function HalamanBeranda() {
           />
         </div>
 
-        <TombolTautan to="/utang/baru" varian="utama" ukuran="besar" penuh ikon={<Plus size={18} />}>
-          Catat Utang
-        </TombolTautan>
+        <div className="flex flex-col gap-2">
+          <TombolTautan
+            to="/utang/baru"
+            varian="utama"
+            ukuran="besar"
+            penuh
+            ikon={<Plus size={18} />}
+          >
+            Catat Utang
+          </TombolTautan>
+          {/*
+            Penjualan tunai diletakkan sebagai tombol kedua, bukan disamakan
+            besarnya dengan Catat Utang: mencatat utang adalah alasan
+            aplikasi ini dipasang, dan tombolnya harus tetap yang paling
+            gampang dikenai jempol.
+          */}
+          <TombolTautan to="/tunai/baru" varian="sekunder" penuh ikon={<Banknote size={16} />}>
+            Catat Penjualan Tunai
+          </TombolTautan>
+        </div>
       </section>
 
       {/* Warung yang baru dibuat: satu ajakan yang jelas, bukan deretan angka nol. */}

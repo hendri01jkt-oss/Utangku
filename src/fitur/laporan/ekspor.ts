@@ -55,6 +55,7 @@ export async function buatPdf(laporan: Laporan, namaWarung: string) {
     body: [
       ['Utang baru periode ini', formatRupiahDatar(laporan.totalUtangBaru)],
       ['Tertagih periode ini', formatRupiahDatar(laporan.totalTertagih)],
+      ['Penjualan tunai periode ini', formatRupiahDatar(laporan.totalPenjualanTunai)],
       [
         `Sisa piutang per ${tanggalPendek(laporan.periode.sampai)}`,
         formatRupiahDatar(laporan.sisaPiutang),
@@ -86,6 +87,22 @@ export async function buatPdf(laporan: Laporan, namaWarung: string) {
     footStyles: { fillColor: abu, textColor: 20, fontStyle: 'bold' },
     styles: { fontSize: 9, cellPadding: 4 },
     columnStyles: { 5: { halign: 'right' } },
+  });
+
+  autoTable(doc, {
+    startY: judulSeksi('Penjualan Tunai'),
+    head: [['Tanggal', 'Pembeli', 'Keterangan', 'Nominal']],
+    body: laporan.penjualanTunai.map((t) => [
+      tanggalPendek(t.tanggal),
+      t.namaPelanggan,
+      t.keterangan,
+      formatRupiahDatar(t.nominal),
+    ]),
+    foot: [['', '', 'Total', formatRupiahDatar(laporan.totalPenjualanTunai)]],
+    headStyles: { fillColor: merah },
+    footStyles: { fillColor: abu, textColor: 20, fontStyle: 'bold' },
+    styles: { fontSize: 9, cellPadding: 4 },
+    columnStyles: { 3: { halign: 'right' } },
   });
 
   autoTable(doc, {
@@ -143,6 +160,7 @@ export async function buatExcel(laporan: Laporan, namaWarung: string) {
     [{ value: 'Periode sampai' }, { value: laporan.periode.sampai }],
     [{ value: 'Utang baru' }, { value: laporan.totalUtangBaru, ...uang }],
     [{ value: 'Tertagih' }, { value: laporan.totalTertagih, ...uang }],
+    [{ value: 'Penjualan tunai' }, { value: laporan.totalPenjualanTunai, ...uang }],
     [{ value: 'Sisa piutang akhir periode' }, { value: laporan.sisaPiutang, ...uang }],
     [
       { value: 'Pelanggan masih berutang' },
@@ -165,6 +183,21 @@ export async function buatExcel(laporan: Laporan, namaWarung: string) {
       { value: t.keterangan },
       { value: t.jatuhTempo ?? '' },
       { value: labelStatus[t.status] ?? t.status },
+      { value: t.nominal, ...uang },
+    ]),
+  ];
+
+  const lembarTunai = [
+    [
+      { value: 'Tanggal', ...judulKolom },
+      { value: 'Pembeli', ...judulKolom },
+      { value: 'Keterangan', ...judulKolom },
+      { value: 'Nominal', ...judulKolom },
+    ],
+    ...laporan.penjualanTunai.map((t) => [
+      { value: t.tanggal },
+      { value: t.namaPelanggan },
+      { value: t.keterangan },
       { value: t.nominal, ...uang },
     ]),
   ];
@@ -203,6 +236,11 @@ export async function buatExcel(laporan: Laporan, namaWarung: string) {
         { width: 14 },
         { width: 14 },
       ],
+    },
+    {
+      sheet: 'Penjualan Tunai',
+      data: lembarTunai,
+      columns: [{ width: 12 }, { width: 22 }, { width: 30 }, { width: 14 }],
     },
     {
       sheet: 'Pembayaran',

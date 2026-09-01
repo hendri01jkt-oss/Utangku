@@ -1,5 +1,6 @@
 import { db } from '@/data/db';
 import { sisaUtang } from '@/data/repo/transaksi';
+import { itemTransaksi } from '@/data/repo/item';
 import { lebarKertasSah, type DataStruk, type LebarKertas } from './barisStruk';
 
 /** Jam:menit menurut jam perangkat, dua digit. */
@@ -25,9 +26,10 @@ export async function siapkanStruk(transaksiId: string): Promise<StrukSiap | nul
   const transaksi = await db.transaksi_utang.get(transaksiId);
   if (!transaksi) return null;
 
-  const [warung, pelanggan] = await Promise.all([
+  const [warung, pelanggan, item] = await Promise.all([
     db.warung.get(transaksi.warung_id),
-    db.pelanggan.get(transaksi.pelanggan_id),
+    transaksi.pelanggan_id ? db.pelanggan.get(transaksi.pelanggan_id) : undefined,
+    itemTransaksi(transaksi.id),
   ]);
   if (!warung) return null;
 
@@ -40,11 +42,13 @@ export async function siapkanStruk(transaksiId: string): Promise<StrukSiap | nul
    * tersinkron — kalau memakai angka dari server, struk yang dicetak saat
    * offline akan menyebut jumlah yang sudah kedaluwarsa.
    */
-  const transaksiPelanggan = await db.transaksi_utang
-    .where('pelanggan_id')
-    .equals(transaksi.pelanggan_id)
-    .filter((t) => t.deleted_at === null)
-    .toArray();
+  const transaksiPelanggan = transaksi.pelanggan_id
+    ? await db.transaksi_utang
+        .where('pelanggan_id')
+        .equals(transaksi.pelanggan_id)
+        .filter((t) => t.deleted_at === null && t.jenis === 'utang')
+        .toArray()
+    : [];
   const sisaTotal = transaksiPelanggan.reduce((jumlah, t) => jumlah + sisaUtang(t), 0);
 
   return {
@@ -55,10 +59,14 @@ export async function siapkanStruk(transaksiId: string): Promise<StrukSiap | nul
       noWaWarung: warung.no_wa_warung,
       tanggal: transaksi.tanggal,
       waktu: jamSekarang(),
-      namaPelanggan: pelanggan?.nama ?? 'Pelanggan',
+      // Penjualan tunai boleh tanpa pelanggan; struknya tidak perlu menyebut
+      // nama palsu untuk pembeli yang lewat.
+      namaPelanggan: pelanggan?.nama ?? (transaksi.jenis === 'tunai' ? null : 'Pelanggan'),
       keterangan: transaksi.keterangan,
       nominal: transaksi.nominal,
       sisaUtangPelanggan: sisaTotal,
+      jenis: transaksi.jenis,
+      item,
     },
   };
 }

@@ -13,6 +13,16 @@ interface Props {
   pintasan?: number[];
   placeholder?: string;
   autoFocus?: boolean;
+  /**
+   * Menyembunyikan gema nilai di bawah kotak.
+   *
+   * Gema itu berguna sebagai penegasan bahwa mask membaca angkanya dengan
+   * benar. Tapi di dalam baris rincian item ia berdiri persis di atas
+   * Subtotal yang menyebut angka yang sama, jadi ia hanya menambah tinggi
+   * baris — dan tinggi baris mahal ketika daftar itu dipakai di layar 390px
+   * sambil melayani pembeli.
+   */
+  ringkas?: boolean;
 }
 
 /**
@@ -30,6 +40,7 @@ export function InputRupiah({
   pintasan,
   placeholder = '0',
   autoFocus,
+  ringkas,
 }: Props) {
   const idInput = useId();
   const idBantuan = `${idInput}-bantuan`;
@@ -95,7 +106,7 @@ export function InputRupiah({
         </p>
       ) : null}
 
-      {nilai > 0 ? (
+      {nilai > 0 && !ringkas ? (
         <p className="text-xs text-teks-samar">{formatRupiah(nilai)}</p>
       ) : null}
     </div>

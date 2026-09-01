@@ -6,6 +6,7 @@ import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/kompone
 import { db, type BarisTransaksi } from '@/data/db';
 import { hapusUtang, sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
 import { hapusPembayaran, riwayatPembayaran } from '@/data/repo/pembayaran';
+import { itemTransaksi } from '@/data/repo/item';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
 import { PanelStruk } from '@/fitur/struk/PanelStruk';
@@ -77,10 +78,11 @@ export function HalamanDetailUtang() {
 
   const utang = useLiveQuery(async () => await db.transaksi_utang.get(id), [id]);
   const pelanggan = useLiveQuery(
-    async () => (utang ? await db.pelanggan.get(utang.pelanggan_id) : undefined),
+    async () => (utang?.pelanggan_id ? await db.pelanggan.get(utang.pelanggan_id) : undefined),
     [utang?.pelanggan_id],
   );
   const pembayaran = useLiveQuery(async () => await riwayatPembayaran(id), [id], []);
+  const item = useLiveQuery(async () => await itemTransaksi(id), [id], []);
 
   if (utang === undefined) {
     return <p className="py-8 text-center text-sm text-teks-samar">Memuat…</p>;
@@ -129,7 +131,9 @@ export function HalamanDetailUtang() {
         >
           <ArrowLeft size={20} aria-hidden />
         </button>
-        <h1 className="flex-1 text-lg font-semibold">Detail Utang</h1>
+        <h1 className="flex-1 text-lg font-semibold">
+          {utang.jenis === 'tunai' ? 'Detail Penjualan' : 'Detail Utang'}
+        </h1>
         <Link
           to={`/utang/${id}/ubah`}
           aria-label="Ubah utang"
@@ -155,17 +159,23 @@ export function HalamanDetailUtang() {
       <Kartu className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs text-teks-samar">Sisa utang</p>
-            <p className="angka mt-1 text-3xl font-semibold text-merah-600">
-              {formatRupiah(sisa)}
+            <p className="text-xs text-teks-samar">
+              {utang.jenis === 'tunai' ? 'Penjualan tunai' : 'Sisa utang'}
+            </p>
+            <p
+              className={`angka mt-1 text-3xl font-semibold ${
+                utang.jenis === 'tunai' ? 'text-sukses' : 'text-merah-600'
+              }`}
+            >
+              {formatRupiah(utang.jenis === 'tunai' ? nominal : sisa)}
             </p>
           </div>
           <StatusBadge status={statusTampil(utang)} />
         </div>
 
-        {/* Progres cicilan. Tahap 5 belum punya pembayaran, jadi biasanya 0% —
-            batangnya tetap ditampilkan supaya bentuk akhirnya sudah terlihat. */}
-        <div className="flex flex-col gap-1.5">
+        {/* Progres cicilan tidak punya arti untuk penjualan tunai: uangnya
+            sudah diterima penuh saat dicatat. */}
+        <div className={`flex flex-col gap-1.5 ${utang.jenis === 'tunai' ? 'hidden' : ''}`}>
           <div
             className="h-2 overflow-hidden rounded-full bg-permukaan-2"
             role="progressbar"
@@ -210,6 +220,33 @@ export function HalamanDetailUtang() {
           </div>
         </dl>
 
+        {/*
+          Rincian item ditampilkan sebagai daftar, bukan sebagai satu teks
+          gabungan seperti di kolom Keterangan di atas. Keduanya memang
+          menyebut isi yang sama — teks gabungan itulah yang dibaca permukaan
+          lama seperti pesan tagihan WhatsApp dan ekspor laporan.
+        */}
+        {item.length > 0 ? (
+          <div className="border-t border-garis pt-3">
+            <p className="mb-2 text-xs text-teks-samar">Rincian item</p>
+            <ul className="flex flex-col gap-1.5 text-sm">
+              {item.map((i) => (
+                <li key={i.id} className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="block truncate">{i.nama_item}</span>
+                    <span className="angka block text-xs text-teks-samar">
+                      {i.qty} x {formatRupiah(i.harga_satuan)}
+                    </span>
+                  </span>
+                  <span className="angka shrink-0 font-medium">
+                    {formatRupiah(i.subtotal)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         {sisa > 0 ? (
           <TombolTautan
             to={`/utang/${id}/bayar`}
@@ -222,7 +259,9 @@ export function HalamanDetailUtang() {
           </TombolTautan>
         ) : (
           <p className="rounded-[var(--radius-kontrol)] bg-[var(--tint-sukses)] px-3 py-2.5 text-center text-sm text-sukses">
-            Utang ini sudah lunas.
+            {utang.jenis === 'tunai'
+              ? 'Penjualan tunai — uang sudah diterima.'
+              : 'Utang ini sudah lunas.'}
           </p>
         )}
         <Tombol

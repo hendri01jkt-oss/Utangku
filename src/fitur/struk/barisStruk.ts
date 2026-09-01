@@ -17,6 +17,13 @@ export type LebarKertas = keyof typeof UKURAN_KERTAS;
 export const lebarKertasSah = (nilai: number): LebarKertas =>
   nilai === 80 ? 80 : 58;
 
+export interface ItemStruk {
+  nama_item: string;
+  qty: number;
+  harga_satuan: number;
+  subtotal: number;
+}
+
 export interface DataStruk {
   namaWarung: string;
   alamatWarung: string | null;
@@ -25,11 +32,15 @@ export interface DataStruk {
   tanggal: string;
   /** HH:MM, waktu pencatatan menurut jam perangkat. */
   waktu: string;
-  namaPelanggan: string;
+  /** null untuk penjualan tunai kepada pembeli yang tidak dicatat namanya. */
+  namaPelanggan: string | null;
   keterangan: string | null;
   nominal: number;
   /** Sisa utang SELURUH transaksi pelanggan ini, termasuk yang baru dicatat. */
   sisaUtangPelanggan: number;
+  jenis: 'utang' | 'tunai';
+  /** Kosong bila pemiliknya memilih keterangan teks bebas. */
+  item: readonly ItemStruk[];
 }
 
 export type BarisStruk =
@@ -101,26 +112,61 @@ export function barisStruk(data: DataStruk, lebar: number): BarisStruk[] {
   }
   baris.push({ jenis: 'pisah' });
 
+  const tunai = data.jenis === 'tunai';
+
   for (const b of duaKolom('Tanggal', `${data.tanggal} ${data.waktu}`, lebar)) baris.push(teks(b));
-  for (const b of duaKolom('Pelanggan', data.namaPelanggan, lebar)) baris.push(teks(b));
+  // Pembeli tanpa nama tidak diberi baris kosong "Pelanggan: -": pada kertas
+  // 32 kolom setiap baris yang tidak berguna terasa mahal.
+  if (data.namaPelanggan) {
+    for (const b of duaKolom('Pelanggan', data.namaPelanggan, lebar)) baris.push(teks(b));
+  }
   baris.push({ jenis: 'pisah' });
 
-  baris.push(teks('CATATAN UTANG', 'tengah', true));
+  baris.push(teks(tunai ? 'STRUK PEMBELIAN' : 'CATATAN UTANG', 'tengah', true));
   baris.push({ jenis: 'kosong' });
-  const rincian = data.keterangan?.trim() || 'Utang';
-  for (const b of duaKolom(rincian, formatRupiahDatar(data.nominal), lebar)) baris.push(teks(b));
+
+  if (data.item.length > 0) {
+    /*
+     * Rincian item ditulis dua baris per item: namanya penuh di baris
+     * pertama, lalu "qty x harga" di kiri dan subtotal di kanan. Memaksanya
+     * jadi satu baris membuat nama item terpotong pada 32 kolom — dan nama
+     * item yang terpotong persis menghapus gunanya rincian.
+     */
+    for (const i of data.item) {
+      for (const b of penggal(i.nama_item, lebar)) baris.push(teks(b));
+      for (const b of duaKolom(
+        `  ${i.qty} x ${formatRupiahDatar(i.harga_satuan)}`,
+        formatRupiahDatar(i.subtotal),
+        lebar,
+      )) {
+        baris.push(teks(b));
+      }
+    }
+  } else {
+    const rincian = data.keterangan?.trim() || (tunai ? 'Pembelian' : 'Utang');
+    for (const b of duaKolom(rincian, formatRupiahDatar(data.nominal), lebar)) baris.push(teks(b));
+  }
   baris.push({ jenis: 'pisah' });
 
-  for (const b of duaKolom('Utang kali ini', formatRupiahDatar(data.nominal), lebar)) baris.push(teks(b));
-  for (const b of duaKolom('TOTAL SISA UTANG', formatRupiahDatar(data.sisaUtangPelanggan), lebar)) {
-    baris.push(teks(b, 'kiri', true));
+  if (tunai) {
+    for (const b of duaKolom('TOTAL', formatRupiahDatar(data.nominal), lebar)) {
+      baris.push(teks(b, 'kiri', true));
+    }
+    baris.push(teks('LUNAS - TERIMA KASIH', 'tengah', true));
+  } else {
+    for (const b of duaKolom('Utang kali ini', formatRupiahDatar(data.nominal), lebar)) {
+      baris.push(teks(b));
+    }
+    for (const b of duaKolom('TOTAL SISA UTANG', formatRupiahDatar(data.sisaUtangPelanggan), lebar)) {
+      baris.push(teks(b, 'kiri', true));
+    }
   }
   baris.push({ jenis: 'pisah' });
 
   if (data.noWaWarung?.trim()) {
     baris.push(teks(`WA ${data.noWaWarung.trim()}`, 'tengah'));
   }
-  baris.push(teks('Terima kasih', 'tengah'));
+  if (!tunai) baris.push(teks('Terima kasih', 'tengah'));
   baris.push(teks('Simpan struk ini sebagai bukti', 'tengah'));
 
   return baris;

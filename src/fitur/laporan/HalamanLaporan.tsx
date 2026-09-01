@@ -130,6 +130,15 @@ export function HalamanLaporan() {
             nilai={laporan ? formatRupiah(laporan.totalTertagih) : '—'}
           />
         </div>
+        {/*
+          Penjualan tunai berdiri sendiri, sebaris penuh, supaya tidak pernah
+          terbaca sebagai bagian dari piutang maupun dari uang tagihan yang
+          masuk. Keduanya sudah punya kartunya sendiri di atas.
+        */}
+        <KartuStatistik
+          label="Penjualan tunai"
+          nilai={laporan ? formatRupiah(laporan.totalPenjualanTunai) : '—'}
+        />
       </section>
 
       <div className="grid grid-cols-2 gap-3">
@@ -181,6 +190,41 @@ export function HalamanLaporan() {
           <Kartu>
             <p className="text-sm text-teks-samar">
               Tidak ada utang baru pada periode ini.
+            </p>
+          </Kartu>
+        )}
+      </section>
+
+      <section aria-labelledby="judul-tunai" className="flex flex-col gap-2">
+        <h2 id="judul-tunai" className="text-sm font-semibold text-teks-redup">
+          Penjualan Tunai{' '}
+          <span className="angka font-normal text-teks-samar">
+            ({laporan?.penjualanTunai.length ?? 0})
+          </span>
+        </h2>
+        {laporan && laporan.penjualanTunai.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {laporan.penjualanTunai.map((t, i) => (
+              <li key={`${t.tanggal}-${i}`}>
+                <Kartu padat className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{t.namaPelanggan}</p>
+                    <p className="truncate text-xs text-teks-samar">
+                      {formatTanggal(t.tanggal)}
+                      {t.keterangan ? ` · ${t.keterangan}` : ''}
+                    </p>
+                  </div>
+                  <p className="angka shrink-0 text-sm font-semibold text-sukses">
+                    {formatRupiah(t.nominal)}
+                  </p>
+                </Kartu>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Kartu>
+            <p className="text-sm text-teks-samar">
+              Tidak ada penjualan tunai pada periode ini.
             </p>
           </Kartu>
         )}

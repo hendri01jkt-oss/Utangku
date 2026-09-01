@@ -48,6 +48,9 @@ export async function daftarPelangganRingkas(
   );
 
   for (const t of transaksi) {
+    // Baris tanpa pelanggan (penjualan tunai ke pembeli lewat) tidak punya
+    // tempat di daftar ini.
+    if (!t.pelanggan_id) continue;
     const baris = perPelanggan.get(t.pelanggan_id);
     if (!baris) continue;
     baris.sisaUtang += Math.max(Math.round(t.nominal) - Math.round(t.total_dibayar), 0);

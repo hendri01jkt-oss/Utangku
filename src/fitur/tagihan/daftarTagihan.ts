@@ -3,6 +3,8 @@ import { sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
 
 export interface BarisTagihan {
   transaksi: BarisTransaksi;
+  /** Selalu terisi: hanya utang yang masuk daftar ini, dan utang wajib berpelanggan. */
+  idPelanggan: string;
   namaPelanggan: string;
   noWa: string | null;
   sisa: number;
@@ -47,7 +49,10 @@ export async function kelompokTagihan(warungId: string): Promise<KelompokTagihan
   const belumLunas = await db.transaksi_utang
     .where('warung_id')
     .equals(warungId)
-    .filter((t) => t.deleted_at === null && t.status !== 'lunas')
+    // Penjualan tunai selalu berstatus lunas, jadi sebenarnya sudah
+    // tersaring di sini. Penyaring jenis ditulis eksplisit supaya halaman
+    // Tagihan tetap benar seandainya aturan status itu berubah kelak.
+    .filter((t) => t.deleted_at === null && t.status !== 'lunas' && t.jenis === 'utang')
     .toArray();
 
   if (belumLunas.length === 0) {
@@ -56,6 +61,9 @@ export async function kelompokTagihan(warungId: string): Promise<KelompokTagihan
 
   const perPelanggan = new Map<string, BarisTransaksi[]>();
   for (const t of belumLunas) {
+    // Batasan database menjamin utang selalu punya pelanggan; penjagaan ini
+    // hanya membuat tipe null-nya terselesaikan di satu tempat.
+    if (!t.pelanggan_id) continue;
     const daftar = perPelanggan.get(t.pelanggan_id);
     if (daftar) daftar.push(t);
     else perPelanggan.set(t.pelanggan_id, [t]);
@@ -64,14 +72,18 @@ export async function kelompokTagihan(warungId: string): Promise<KelompokTagihan
   const pelanggan = await db.pelanggan.where('warung_id').equals(warungId).toArray();
   const dataPelanggan = new Map<string, BarisPelanggan>(pelanggan.map((p) => [p.id, p]));
 
-  const jadikanBaris = (t: BarisTransaksi, hariKeTempo: number | null): BarisTagihan => ({
-    transaksi: t,
-    namaPelanggan: dataPelanggan.get(t.pelanggan_id)?.nama ?? 'Pelanggan terhapus',
-    noWa: dataPelanggan.get(t.pelanggan_id)?.no_wa ?? null,
-    sisa: sisaUtang(t),
-    hariKeTempo,
-    utangPelanggan: perPelanggan.get(t.pelanggan_id) ?? [t],
-  });
+  const jadikanBaris = (t: BarisTransaksi, hariKeTempo: number | null): BarisTagihan => {
+    const idPelanggan = t.pelanggan_id ?? '';
+    return {
+      transaksi: t,
+      idPelanggan,
+      namaPelanggan: dataPelanggan.get(idPelanggan)?.nama ?? 'Pelanggan terhapus',
+      noWa: dataPelanggan.get(idPelanggan)?.no_wa ?? null,
+      sisa: sisaUtang(t),
+      hariKeTempo,
+      utangPelanggan: perPelanggan.get(idPelanggan) ?? [t],
+    };
+  };
 
   const lewatTempo: BarisTagihan[] = [];
   const mendekatiTempo: BarisTagihan[] = [];

@@ -111,7 +111,7 @@ export async function gambarStruk(data: DataStruk, lebarMm: LebarKertas): Promis
 
 /** Nama berkas yang bisa dikenali kembali di galeri: tanggal + nama pelanggan. */
 export function namaBerkasStruk(data: DataStruk): string {
-  const nama = data.namaPelanggan
+  const nama = (data.namaPelanggan ?? (data.jenis === 'tunai' ? 'tunai' : ''))
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');

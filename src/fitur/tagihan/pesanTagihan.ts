@@ -73,6 +73,7 @@ export function contohPesan(template: string, namaWarung: string): string {
     id: 'contoh',
     warung_id: 'contoh',
     pelanggan_id: 'contoh',
+    jenis: 'utang',
     tanggal: hariIni,
     nominal,
     keterangan,

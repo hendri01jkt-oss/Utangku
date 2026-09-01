@@ -15,6 +15,13 @@ export interface BarisLaporanUtang {
   status: string;
 }
 
+export interface BarisLaporanTunai {
+  tanggal: string;
+  namaPelanggan: string;
+  keterangan: string;
+  nominal: number;
+}
+
 export interface BarisLaporanBayar {
   tanggal: string;
   namaPelanggan: string;
@@ -26,8 +33,10 @@ export interface BarisLaporanBayar {
 export interface Laporan {
   periode: Periode;
   utangBaru: BarisLaporanUtang[];
+  penjualanTunai: BarisLaporanTunai[];
   pembayaran: BarisLaporanBayar[];
   totalUtangBaru: number;
+  totalPenjualanTunai: number;
   totalTertagih: number;
   /** Sisa piutang pada akhir periode, bukan sisa hari ini. */
   sisaPiutang: number;
@@ -84,13 +93,15 @@ export async function susunLaporan(warungId: string, periode: Periode): Promise<
   ]);
 
   const nama = new Map<string, BarisPelanggan>(pelanggan.map((p) => [p.id, p]));
-  const namaDari = (id: string) => nama.get(id)?.nama ?? 'Pelanggan terhapus';
+  // Penjualan tunai boleh tanpa pelanggan sama sekali — pembeli yang lewat.
+  const namaDari = (id: string | null) =>
+    id === null ? 'Pembeli umum' : (nama.get(id)?.nama ?? 'Pelanggan terhapus');
 
   const dalamPeriode = (tanggal: string) =>
     tanggal >= periode.mulai && tanggal <= periode.sampai;
 
   const utangBaru = transaksi
-    .filter((t) => dalamPeriode(t.tanggal))
+    .filter((t) => t.jenis === 'utang' && dalamPeriode(t.tanggal))
     .sort((a, b) => a.tanggal.localeCompare(b.tanggal))
     .map((t) => ({
       tanggal: t.tanggal,
@@ -99,6 +110,24 @@ export async function susunLaporan(warungId: string, periode: Periode): Promise<
       nominal: Math.round(t.nominal),
       jatuhTempo: t.jatuh_tempo,
       status: t.status,
+    }));
+
+  /*
+   * Penjualan tunai dipisah sebagai kategori sendiri, bukan digabung ke
+   * "utang baru" maupun ke "tertagih".
+   *
+   * Menggabungkannya ke tertagih akan salah dua kali: uang tunai bukan utang
+   * yang berhasil ditagih, dan angkanya akan terhitung dua kali begitu
+   * pemiliknya menjumlahkan penjualan hari itu.
+   */
+  const penjualanTunai = transaksi
+    .filter((t) => t.jenis === 'tunai' && dalamPeriode(t.tanggal))
+    .sort((a, b) => a.tanggal.localeCompare(b.tanggal))
+    .map((t) => ({
+      tanggal: t.tanggal,
+      namaPelanggan: namaDari(t.pelanggan_id),
+      keterangan: t.keterangan ?? '',
+      nominal: Math.round(t.nominal),
     }));
 
   const bayarPeriode = pembayaran
@@ -132,6 +161,9 @@ export async function susunLaporan(warungId: string, periode: Periode): Promise<
   let sisaPiutang = 0;
   const berutang = new Set<string>();
   for (const t of transaksi) {
+    // Penjualan tunai tidak pernah menyisakan piutang; ikut dihitung di sini
+    // akan menaikkan sisa piutang sebesar seluruh penjualan tunai periode.
+    if (t.jenis !== 'utang' || t.pelanggan_id === null) continue;
     if (t.tanggal > periode.sampai) continue;
     const sisa = Math.max(
       Math.round(t.nominal) - (dibayarSampai.get(t.id) ?? 0),
@@ -144,8 +176,10 @@ export async function susunLaporan(warungId: string, periode: Periode): Promise<
   return {
     periode,
     utangBaru,
+    penjualanTunai,
     pembayaran: bayarPeriode,
     totalUtangBaru: utangBaru.reduce((j, t) => j + t.nominal, 0),
+    totalPenjualanTunai: penjualanTunai.reduce((j, t) => j + t.nominal, 0),
     totalTertagih: bayarPeriode.reduce((j, b) => j + b.nominal, 0),
     sisaPiutang,
     jumlahPelangganBerutang: berutang.size,

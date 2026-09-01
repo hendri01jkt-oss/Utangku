@@ -5,9 +5,15 @@ export type BarisWarung = Tables<'warung'>;
 export type BarisPelanggan = Tables<'pelanggan'>;
 export type BarisTransaksi = Tables<'transaksi_utang'>;
 export type BarisPembayaran = Tables<'pembayaran'>;
+export type BarisItem = Tables<'transaksi_item'>;
 
 /** Tabel yang ikut disinkronkan dua arah. */
-export type NamaEntitas = 'warung' | 'pelanggan' | 'transaksi_utang' | 'pembayaran';
+export type NamaEntitas =
+  | 'warung'
+  | 'pelanggan'
+  | 'transaksi_utang'
+  | 'transaksi_item'
+  | 'pembayaran';
 
 /**
  * Satu perubahan yang menunggu dikirim ke server.
@@ -58,6 +64,7 @@ export const db = new Dexie('utangku') as Dexie & {
   pelanggan: EntityTable<BarisPelanggan, 'id'>;
   transaksi_utang: EntityTable<BarisTransaksi, 'id'>;
   pembayaran: EntityTable<BarisPembayaran, 'id'>;
+  transaksi_item: EntityTable<BarisItem, 'id'>;
   outbox: EntityTable<EntriOutbox, 'urutan'>;
   foto: EntityTable<FotoLokal, 'pelanggan_id'>;
   meta: EntityTable<Meta, 'kunci'>;
@@ -84,16 +91,36 @@ db.version(2).stores({
   warung: 'id',
 });
 
+/**
+ * Rincian item per transaksi (Tahap 15).
+ *
+ * Menambah tabel tidak menyentuh data yang sudah ada: Dexie hanya membuat
+ * object store baru, dan baris lama tetap di tempatnya.
+ */
+db.version(3).stores({
+  transaksi_item: 'id, warung_id, transaksi_id, updated_at, deleted_at',
+});
+
 /** Membersihkan seluruh data lokal — dipakai saat pengguna keluar. */
 export async function kosongkanDataLokal() {
   await db.transaction(
     'rw',
-    [db.warung, db.pelanggan, db.transaksi_utang, db.pembayaran, db.outbox, db.foto, db.meta],
+    [
+      db.warung,
+      db.pelanggan,
+      db.transaksi_utang,
+      db.transaksi_item,
+      db.pembayaran,
+      db.outbox,
+      db.foto,
+      db.meta,
+    ],
     async () => {
       await Promise.all([
         db.warung.clear(),
         db.pelanggan.clear(),
         db.transaksi_utang.clear(),
+        db.transaksi_item.clear(),
         db.pembayaran.clear(),
         db.outbox.clear(),
         db.foto.clear(),

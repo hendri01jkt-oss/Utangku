@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Pencil, Plus, Wallet } from 'lucide-react';
 import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
-import { daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
+import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
 import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
@@ -38,6 +38,7 @@ export function HalamanDetailPelanggan() {
   const pelanggan = useLiveQuery(async () => await db.pelanggan.get(id), [id]);
   const utang = useLiveQuery(async () => await daftarUtangPelanggan(id), [id], []);
   const pembayaran = useLiveQuery(async () => await riwayatPembayaranPelanggan(id), [id], []);
+  const tunai = useLiveQuery(async () => await daftarTunaiPelanggan(id), [id], []);
 
   if (pelanggan === undefined) {
     return <p className="py-8 text-center text-sm text-teks-samar">Memuat…</p>;
@@ -190,6 +191,41 @@ export function HalamanDetailPelanggan() {
           </ul>
         )}
       </section>
+
+      {/*
+        Belanja tunai berdiri sebagai daftar sendiri, di bawah riwayat utang.
+        Digabung ke daftar utang, angkanya akan terbaca sebagai piutang yang
+        belum dibayar — padahal uangnya sudah diterima di tempat. Bagian ini
+        disembunyikan sama sekali kalau pelanggan ini memang tidak pernah
+        belanja tunai, supaya halamannya tidak jadi ramai tanpa guna.
+      */}
+      {tunai.length > 0 ? (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold text-teks-redup">Riwayat belanja tunai</h2>
+          <ul className="flex flex-col gap-2">
+            {tunai.map((t) => (
+              <li key={t.id}>
+                <Link to={`/utang/${t.id}`} className="block">
+                  <Kartu
+                    padat
+                    className="flex items-center justify-between gap-3 transition-colors hover:bg-permukaan-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {t.keterangan ?? 'Tanpa keterangan'}
+                      </p>
+                      <p className="text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+                    </div>
+                    <p className="angka shrink-0 text-sm font-semibold text-sukses">
+                      {formatRupiah(t.nominal)}
+                    </p>
+                  </Kartu>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-teks-redup">Riwayat pembayaran</h2>

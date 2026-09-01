@@ -21,6 +21,11 @@ const KOLOM_MILIK_SERVER: Record<NamaEntitas, readonly string[]> = {
   // menimpanya di atas kunjungan yang lebih baru.
   pelanggan: ['created_at', 'updated_at', 'terakhir_dilihat_pelanggan'],
   transaksi_utang: ['created_at', 'updated_at', 'status', 'total_dibayar'],
+  // subtotal adalah kolom generated di server. PostgreSQL menolak INSERT
+  // yang menyebutnya sama sekali — "cannot insert a non-DEFAULT value into
+  // column subtotal" — jadi menyertakannya menggagalkan SELURUH baris item,
+  // bukan sekadar diabaikan.
+  transaksi_item: ['created_at', 'updated_at', 'subtotal'],
   pembayaran: ['created_at', 'updated_at'],
 };
 

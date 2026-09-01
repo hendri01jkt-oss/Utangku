@@ -1,9 +1,11 @@
 import { db } from './db';
 import * as pelanggan from './repo/pelanggan';
 import * as transaksi from './repo/transaksi';
+import * as item from './repo/item';
 import * as pembayaran from './repo/pembayaran';
 import { sinkronSekarang } from './sync/mesin';
 import * as laporan from '@/fitur/laporan/dataLaporan';
+import * as ringkasan from '@/fitur/beranda/ringkasanWarung';
 import * as ekspor from '@/fitur/laporan/ekspor';
 import * as struk from '@/fitur/struk/barisStruk';
 import * as escpos from '@/fitur/struk/escpos';
@@ -27,8 +29,10 @@ export function pasangSeamDev() {
       db,
       ...pelanggan,
       ...transaksi,
+      ...item,
       ...pembayaran,
       ...laporan,
+      ...ringkasan,
       ...ekspor,
       ...struk,
       ...escpos,
