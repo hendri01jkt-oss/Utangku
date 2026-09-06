@@ -167,7 +167,8 @@ export function HalamanDetailPelanggan() {
                 <Link to={`/utang/${t.id}`} className="block">
                   <Kartu
                     padat
-                    className="flex items-center justify-between gap-3 transition-colors hover:bg-permukaan-2"
+                    dapatDitekan
+                    className="flex items-center justify-between gap-3 hover:bg-permukaan-2"
                   >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
@@ -208,7 +209,8 @@ export function HalamanDetailPelanggan() {
                 <Link to={`/utang/${t.id}`} className="block">
                   <Kartu
                     padat
-                    className="flex items-center justify-between gap-3 transition-colors hover:bg-permukaan-2"
+                    dapatDitekan
+                    className="flex items-center justify-between gap-3 hover:bg-permukaan-2"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">

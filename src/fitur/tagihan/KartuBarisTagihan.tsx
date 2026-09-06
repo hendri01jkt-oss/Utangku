@@ -29,7 +29,7 @@ export function KartuBarisTagihan({
   return (
     // Tombol WA berdiri di luar tautan: tombol di dalam tautan bukan HTML
     // yang sah, dan menekannya akan ikut menavigasi.
-    <Kartu padat className="flex items-center gap-2">
+    <Kartu padat dapatDitekan className="flex items-center gap-2">
       <Link
         to={`/utang/${baris.transaksi.id}`}
         className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-kontrol)] transition-colors hover:bg-permukaan-2"

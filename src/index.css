@@ -62,6 +62,55 @@
     background: var(--color-permukaan-2);
     border: 1px solid var(--color-garis);
   }
+
+  /*
+   * Efek tekan: elemen turun sedikit dan bayangannya memendek.
+   *
+   * Hanya transform dan box-shadow yang berubah — tidak ada filter, tidak
+   * ada perubahan ukuran yang memaksa tata letak dihitung ulang. Transisinya
+   * pendek (120ms) dan hanya menyala pada satu elemen yang sedang disentuh,
+   * jadi biayanya tetap kecil di HP kelas bawah.
+   *
+   * Pemakainya harus punya bayangan sendiri; kelas ini hanya mengurusnya
+   * saat ditekan.
+   */
+  .bisa-ditekan {
+    transition:
+      box-shadow 120ms ease,
+      transform 120ms ease;
+  }
+
+  .bisa-ditekan:active {
+    transform: translateY(2px);
+    box-shadow: var(--bayang-tekan);
+  }
+
+  /*
+   * Tombol utama: tepi bawah pekat sebagai "tebal" kartu, bukan bayangan
+   * kabur. Warnanya merah-700 yang sudah ada di palet — tidak ada warna
+   * baru, hanya dipakai sebagai sisi yang tersembunyi dari cahaya.
+   */
+  .tombol-timbul {
+    box-shadow:
+      0 2px 0 var(--color-merah-700),
+      0 4px 10px rgb(198 40 40 / 0.28);
+    transition:
+      box-shadow 120ms ease,
+      transform 120ms ease;
+  }
+
+  .tombol-timbul:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 0 0 var(--color-merah-700),
+      0 1px 3px rgb(198 40 40 / 0.3);
+  }
+
+  /* Nonaktif tidak boleh terlihat timbul — ia memang tidak bisa ditekan. */
+  .tombol-timbul:disabled {
+    box-shadow: none;
+    transform: none;
+  }
 }
 
 /* Hormati preferensi pengguna yang mematikan animasi. */

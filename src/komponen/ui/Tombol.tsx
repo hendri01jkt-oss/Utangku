@@ -15,9 +15,9 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 const gayaVarian: Record<Varian, string> = {
   /* Merah solid — hanya untuk satu aksi utama per layar. */
   utama:
-    'bg-merah-600 text-putih font-semibold hover:bg-merah-700 active:bg-merah-700',
+    'bg-merah-600 text-putih font-semibold hover:bg-merah-700 active:bg-merah-700 tombol-timbul',
   /* Putih bergaris: aksi setara yang bukan aksi utama. */
-  sekunder: 'permukaan text-teks-utama hover:bg-permukaan-2',
+  sekunder: 'permukaan text-teks-utama hover:bg-permukaan-2 bisa-ditekan',
   /* Tanpa latar, untuk aksi tersier. */
   halus: 'text-teks-redup hover:bg-permukaan-2 hover:text-teks-utama',
   /*

@@ -146,7 +146,7 @@ export function HalamanDetailUtang() {
       {pelanggan ? (
         <Link
           to={`/pelanggan/${pelanggan.id}`}
-          className="permukaan flex items-center gap-3 rounded-[var(--radius-kartu)] p-3 transition-colors hover:bg-permukaan-2"
+          className="permukaan bisa-ditekan flex items-center gap-3 rounded-[var(--radius-kartu)] p-3 hover:bg-permukaan-2"
         >
           <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={40} />
           <span className="min-w-0 flex-1">

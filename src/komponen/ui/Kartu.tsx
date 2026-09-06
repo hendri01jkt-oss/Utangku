@@ -5,14 +5,30 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   /** Bayangan lebih tegas, untuk elemen yang benar-benar terangkat (mis. bottom sheet). */
   terangkat?: boolean;
   padat?: boolean;
+  /**
+   * Kartu yang bisa disentuh: ikut turun sedikit saat ditekan.
+   *
+   * Sengaja harus diminta, bukan otomatis. Kartu ringkasan yang tidak
+   * menuju ke mana-mana tetapi ikut bergerak saat disentuh membuat
+   * pemakainya menunggu sesuatu yang tidak akan terjadi.
+   */
+  dapatDitekan?: boolean;
 }
 
-export function Kartu({ terangkat, padat, className, children, ...sisa }: Props) {
+export function Kartu({
+  terangkat,
+  padat,
+  dapatDitekan,
+  className,
+  children,
+  ...sisa
+}: Props) {
   return (
     <div
       className={cn(
         terangkat ? 'permukaan-angkat' : 'permukaan',
         'rounded-[var(--radius-kartu)]',
+        dapatDitekan && 'bisa-ditekan',
         padat ? 'p-3' : 'p-4',
         className,
       )}
