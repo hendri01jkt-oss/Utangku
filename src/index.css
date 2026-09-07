@@ -13,7 +13,19 @@
 
   body {
     min-height: 100dvh;
-    background-color: var(--color-putih);
+    /*
+     * Latar halaman abu, kartu putih di atasnya.
+     *
+     * Kartu putih di atas latar putih hanya bisa terangkat lewat bayangan,
+     * dan bayangan sehalus apa pun tetap nyaris tak terbaca di layar HP yang
+     * dilihat sambil berdiri di bawah lampu warung. Abu ini BUKAN warna
+     * baru: --color-permukaan-2 sudah dipakai sejak awal untuk kotak isian
+     * dan baris di dalam kartu, dan kontras teks terhadapnya sudah diuji
+     * cek:kontras sejak Tahap 0. Header dan navigasi bawah sengaja tetap
+     * putih supaya keduanya terbaca sebagai kerangka aplikasi, bukan bagian
+     * dari isi yang bisa digulir.
+     */
+    background-color: var(--color-permukaan-2);
     color: var(--color-teks-utama);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -61,6 +73,23 @@
   .permukaan-datar {
     background: var(--color-permukaan-2);
     border: 1px solid var(--color-garis);
+  }
+
+  /*
+   * Sorot arahkan-kursor untuk kartu yang berdiri di ATAS latar halaman.
+   *
+   * Kartu semacam ini tidak boleh diisi --color-permukaan-2 saat disorot:
+   * sejak latar halaman memakai abu yang sama, mengisinya membuat kartu
+   * LENYAP ke latar persis pada saat pengguna sedang menunjuknya. Yang
+   * dikuatkan garisnya, bukan isiannya — kartu tetap terbaca putih dan
+   * justru batasnya yang menegas.
+   */
+  .sorot-kartu {
+    transition: border-color 120ms ease;
+  }
+
+  .sorot-kartu:hover {
+    border-color: var(--color-garis-kuat);
   }
 
   /*

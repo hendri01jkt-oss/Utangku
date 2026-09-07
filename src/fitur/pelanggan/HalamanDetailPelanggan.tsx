@@ -168,7 +168,7 @@ export function HalamanDetailPelanggan() {
                   <Kartu
                     padat
                     dapatDitekan
-                    className="flex items-center justify-between gap-3 hover:bg-permukaan-2"
+                    className="sorot-kartu flex items-center justify-between gap-3"
                   >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
@@ -210,7 +210,7 @@ export function HalamanDetailPelanggan() {
                   <Kartu
                     padat
                     dapatDitekan
-                    className="flex items-center justify-between gap-3 hover:bg-permukaan-2"
+                    className="sorot-kartu flex items-center justify-between gap-3"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
