@@ -226,7 +226,6 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
               label="Nominal utang"
               nilai={nominal}
               onChange={setNominal}
-              pintasan={[5000, 10_000, 20_000, 50_000]}
               autoFocus={mode === 'baru'}
             />
           )}
