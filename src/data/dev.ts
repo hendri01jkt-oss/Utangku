@@ -5,6 +5,7 @@ import * as item from './repo/item';
 import * as pembayaran from './repo/pembayaran';
 import { sinkronSekarang } from './sync/mesin';
 import * as laporan from '@/fitur/laporan/dataLaporan';
+import * as kalender from '@/fitur/laporan/dataKalender';
 import * as ringkasan from '@/fitur/beranda/ringkasanWarung';
 import * as ekspor from '@/fitur/laporan/ekspor';
 import * as struk from '@/fitur/struk/barisStruk';
@@ -32,6 +33,7 @@ export function pasangSeamDev() {
       ...item,
       ...pembayaran,
       ...laporan,
+      ...kalender,
       ...ringkasan,
       ...ekspor,
       ...struk,

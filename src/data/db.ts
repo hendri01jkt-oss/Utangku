@@ -101,6 +101,26 @@ db.version(3).stores({
   transaksi_item: 'id, warung_id, transaksi_id, updated_at, deleted_at',
 });
 
+/**
+ * Indeks gabungan [warung_id+tanggal] untuk Riwayat Kalender (Tahap 17).
+ *
+ * Tanpa ini, menampilkan satu bulan berarti membaca SELURUH riwayat warung
+ * lalu menyaringnya di JavaScript — biaya yang naik terus seumur pemakaian
+ * warung, padahal yang digambar cuma 30 kotak. Dengan indeks ini satu bulan
+ * diambil lewat rentang kunci, jadi baris tahun lalu tidak ikut dibaca.
+ *
+ * Menambah indeks tidak mengubah maupun menghapus data: Dexie hanya
+ * mengindeks ulang baris yang sudah ada saat aplikasi diperbarui. Daftar
+ * indeks lama harus ikut ditulis lengkap di sini, karena skema versi baru
+ * MENGGANTI skema tabel yang disebut, bukan menambahinya.
+ */
+db.version(4).stores({
+  transaksi_utang:
+    'id, warung_id, pelanggan_id, status, jatuh_tempo, updated_at, deleted_at, [warung_id+tanggal]',
+  pembayaran:
+    'id, warung_id, transaksi_id, pelanggan_id, updated_at, deleted_at, [warung_id+tanggal]',
+});
+
 /** Membersihkan seluruh data lokal — dipakai saat pengguna keluar. */
 export async function kosongkanDataLokal() {
   await db.transaction(
