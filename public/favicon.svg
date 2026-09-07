@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="UtangKu">
-  <rect width="64" height="64" rx="14" fill="#c62828"/>
-  <path d="M20 17v18a12 12 0 0 0 24 0V17" fill="none" stroke="#ffffff" stroke-width="7"
-        stroke-linecap="round"/>
+  <!--
+    Versi datar dari tanda UtangKu (buku besar + panah naik). Gradasi dan
+    bayangan pada berkas Canva sengaja tidak ditiru: pada 16-32 piksel yang
+    terlihat hanya siluetnya, dan bidang warna rata jauh lebih tajam di sana.
+    Berpasangan dengan favicon-16.png / favicon-32.png untuk peramban lama.
+  -->
+  <g fill="#da0a2a">
+    <path d="M2.5 25.5 33 36.5 61.5 17.5v29A4.5 4.5 0 0 1 57 51H7a4.5 4.5 0 0 1-4.5-4.5z"/>
+    <path d="M2.5 17.2h16.2l14.6 9.6 15.9-16.4 4.6 4.6-20.5 21.2-14.6-9.6H2.5z"/>
+    <path d="M61.5 4.2 46.1 8.3l11.3 11.3z"/>
+  </g>
 </svg>
