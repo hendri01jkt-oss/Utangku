@@ -4,3 +4,4 @@ export { Input, kelasKotakInput } from './Input';
 export { InputRupiah } from './InputRupiah';
 export { StatusBadge, type Status } from './StatusBadge';
 export { BottomSheet } from './BottomSheet';
+export { Logo } from './Logo';

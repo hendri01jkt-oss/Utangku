@@ -4,6 +4,7 @@ import { LogOut, Settings } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { IndikatorSync } from './IndikatorSync';
 import { useSesi } from '@/fitur/auth/useSesi';
+import { Logo } from '@/komponen/ui';
 import { useMesinSync } from '@/data/sync/useMesinSync';
 import { perluDitagih } from '@/fitur/tagihan/daftarTagihan';
 import { useKeluar } from '@/fitur/auth/useKeluar';
@@ -36,16 +37,25 @@ export function LayoutUtama() {
       >
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold tracking-tight">
-              {warung?.nama_warung ?? (
-                <>
-                  Utang<span className="text-merah-600">Ku</span>
-                </>
-              )}
-            </p>
             {warung ? (
-              <p className="text-[11px] text-teks-samar">UtangKu</p>
-            ) : null}
+              <>
+                <p className="truncate text-base font-semibold tracking-tight">
+                  {warung.nama_warung}
+                </p>
+                {/*
+                  Baris kedua ini sengaja TETAP teks, bukan logo. Pada 11px
+                  wordmark-nya jadi sesak dan garis putih tipisnya luntur —
+                  diuji pada 14, 20, 24, 32 dan 56px, dan di bawah 20px ia
+                  hanya menambah keramaian di sebelah nama warung yang justru
+                  harus menonjol.
+                */}
+                <p className="text-[11px] text-teks-samar">UtangKu</p>
+              </>
+            ) : (
+              /* Tanpa warung, nama aplikasilah identitas utamanya — di sini
+                 logo punya ruang untuk terbaca. */
+              <Logo tinggi="h-6" />
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-3">

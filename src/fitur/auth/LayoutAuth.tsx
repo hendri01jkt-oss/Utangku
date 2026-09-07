@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Kartu } from '@/komponen/ui';
+import { Kartu, Logo } from '@/komponen/ui';
 
 /** Kerangka halaman auth: satu kartu permukaan di tengah, tanpa bottom nav. */
 export function LayoutAuth({
@@ -16,10 +16,8 @@ export function LayoutAuth({
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-5 px-4 py-8">
       <div className="text-center">
-        <p className="text-2xl font-semibold tracking-tight">
-          Utang<span className="text-merah-600">Ku</span>
-        </p>
-        <p className="mt-1 text-xs text-teks-samar">
+        <Logo tinggi="h-14" className="mx-auto" />
+        <p className="mt-2 text-xs text-teks-samar">
           Catatan utang warung yang tetap jalan tanpa sinyal
         </p>
       </div>
