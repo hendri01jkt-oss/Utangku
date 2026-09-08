@@ -39,6 +39,21 @@
   --color-peringatan: #a15c07; /* sebagian / jatuh tempo dekat */
   --color-bahaya: #c62828; /* belum lunas / lewat tempo */
 
+  /* ── Penjualan tunai ───────────────────────────────────────────────────
+     Warna sendiri, bukan menumpang --color-peringatan. Dua alasan: tunai
+     bukan peringatan apa pun, dan amber gelap milik peringatan terlihat
+     kusam sebagai warna kategori.
+
+     Ada dua nilai karena ambang WCAG-nya memang dua. Teks nominal harus
+     4.5:1 (1.4.3), dan oranye secerah itu di atas putih tidak mungkin
+     lebih terang dari ini. Titik penanda di kalender adalah elemen
+     non-teks dengan ambang 3:1 (1.4.11), jadi boleh jauh lebih cerah —
+     dan justru di titik sebesar 6 px itulah kecerahan diperlukan supaya
+     tidak tertukar dengan titik merah di sebelahnya. Keduanya diperiksa
+     `npm run cek:kontras` pada ambangnya masing-masing. */
+  --color-tunai: #c2410c; /* teks nominal penjualan tunai */
+  --color-tunai-terang: #ea580c; /* titik penanda & legenda kalender */
+
   /* ── Radius ────────────────────────────────────────────────────────────
      Dinaikkan pada Tahap 16 supaya kartu terasa lebih lembut dan modern.
      Tidak lebih dari ini: sudut yang terlalu bulat membuat kartu berisi

@@ -39,6 +39,8 @@ const T = {
   teksSamar: '#616675',
   sukses: '#137038',
   peringatan: '#A15C07',
+  tunai: '#C2410C',
+  tunaiTerang: '#EA580C',
   bahaya: '#C62828',
   tintSukses: '#ECFDF3',
   tintPeringatan: '#FEF6E7',
@@ -66,6 +68,7 @@ const teks = [
   ['merah-700', T.merah700],
   ['sukses', T.sukses],
   ['peringatan', T.peringatan],
+  ['tunai', T.tunai],
   ['bahaya', T.bahaya],
 ];
 
@@ -99,6 +102,30 @@ const solid = [
 for (const [nama, fg, bg] of solid) {
   const r = rasio(hex(fg), hex(bg));
   const lolos = r >= AMBANG;
+  if (!lolos) gagal++;
+  console.log(`${lolos ? 'LULUS' : 'GAGAL'}  ${nama.padEnd(42)} ${r.toFixed(2)}:1`);
+}
+
+/*
+ * Elemen non-teks (titik penanda kalender) — ambang WCAG 1.4.11 = 3:1.
+ *
+ * Diuji terpisah, bukan diikutkan ke daftar teks di atas: memaksa titik
+ * memenuhi 4.5:1 akan menggelapkan warnanya tanpa alasan, padahal justru
+ * kecerahannya yang membuat kategori bisa dibedakan pada ukuran 6 piksel.
+ */
+console.log('\nElemen non-teks: titik penanda kalender (ambang WCAG 1.4.11 = 3:1)');
+console.log('='.repeat(74));
+const AMBANG_NONTEKS = 3;
+const titik = [
+  ['titik utang (merah-600)', T.merah600],
+  ['titik pembayaran (sukses)', T.sukses],
+  ['titik tunai (tunai-terang)', T.tunaiTerang],
+];
+for (const [nama, warna] of titik) {
+  // Titik berdiri di atas kartu putih, dan di atas pil putih saat tanggalnya
+  // sedang dipilih — keduanya putih, jadi satu pemeriksaan sudah mewakili.
+  const r = rasio(hex(warna), hex(T.putih));
+  const lolos = r >= AMBANG_NONTEKS;
   if (!lolos) gagal++;
   console.log(`${lolos ? 'LULUS' : 'GAGAL'}  ${nama.padEnd(42)} ${r.toFixed(2)}:1`);
 }

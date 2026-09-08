@@ -17,14 +17,53 @@ interface Props {
   terpilih: string | null;
   hariIni: string;
   onPilih: (tanggal: string) => void;
-  onGeser: (langkah: number) => void;
 }
 
 const JENIS = [
   { kunci: 'utang', label: 'Utang baru', warna: 'bg-merah-600' },
   { kunci: 'bayar', label: 'Pembayaran', warna: 'bg-sukses' },
-  { kunci: 'tunai', label: 'Tunai', warna: 'bg-peringatan' },
+  { kunci: 'tunai', label: 'Tunai', warna: 'bg-tunai-terang' },
 ] as const;
+
+/**
+ * Bar pemilih bulan, dipisah dari grid-nya.
+ *
+ * Dipisah karena kartu ringkasan bulanan berdiri di ANTARA keduanya: bar ini
+ * yang menyatakan cakupan "September 2026", dan angka bulanan tepat di
+ * bawahnya adalah isi dari cakupan itu. Rincian harian baru muncul setelah
+ * grid, jadi dua cakupan data tidak pernah bersebelahan tanpa penjelas.
+ */
+export function NavigasiBulan({
+  bulan,
+  onGeser,
+}: {
+  bulan: Bulan;
+  onGeser: (langkah: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <button
+        type="button"
+        onClick={() => onGeser(-1)}
+        aria-label="Bulan sebelumnya"
+        className="permukaan bisa-ditekan grid size-10 place-items-center rounded-full text-teks-redup"
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <p aria-live="polite" className="text-[15px] font-semibold">
+        {judulBulan(bulan)}
+      </p>
+      <button
+        type="button"
+        onClick={() => onGeser(1)}
+        aria-label="Bulan berikutnya"
+        className="permukaan bisa-ditekan grid size-10 place-items-center rounded-full text-teks-redup"
+      >
+        <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+}
 
 /**
  * Kalender satu bulan dengan titik penanda pada tanggal yang punya transaksi.
@@ -33,76 +72,45 @@ const JENIS = [
  * di layar 360 px, tiga titik sudah batas yang masih terbaca, dan jumlah
  * persisnya toh dibaca di rincian harian di bawahnya.
  */
-export function KalenderBulan({
-  bulan,
-  ringkasan,
-  terpilih,
-  hariIni,
-  onPilih,
-  onGeser,
-}: Props) {
+export function KalenderBulan({ bulan, ringkasan, terpilih, hariIni, onPilih }: Props) {
   // Hanya bergantung pada bulan, jadi tidak ikut dihitung ulang saat data
   // berubah atau saat pengguna mengetuk-ngetuk tanggal.
   const sel = useMemo(() => selKalender(bulan), [bulan]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => onGeser(-1)}
-          aria-label="Bulan sebelumnya"
-          className="permukaan bisa-ditekan grid size-10 place-items-center rounded-full text-teks-redup"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <p aria-live="polite" className="text-[15px] font-semibold">
-          {judulBulan(bulan)}
-        </p>
-        <button
-          type="button"
-          onClick={() => onGeser(1)}
-          aria-label="Bulan berikutnya"
-          className="permukaan bisa-ditekan grid size-10 place-items-center rounded-full text-teks-redup"
-        >
-          <ChevronRight size={20} />
-        </button>
+    <Kartu padat>
+      <div className="grid grid-cols-7 gap-0.5">
+        {NAMA_HARI.map((h) => (
+          <div key={h} className="pb-1.5 text-center text-[11px] font-semibold text-teks-samar">
+            {h}
+          </div>
+        ))}
+
+        {sel.map((tanggal, i) =>
+          tanggal === null ? (
+            <div key={`kosong-${i}`} aria-hidden="true" />
+          ) : (
+            <SelTanggal
+              key={tanggal}
+              tanggal={tanggal}
+              isi={ringkasan?.hari.get(tanggal)}
+              dipilih={tanggal === terpilih}
+              hariIni={tanggal === hariIni}
+              onPilih={onPilih}
+            />
+          ),
+        )}
       </div>
 
-      <Kartu padat>
-        <div className="grid grid-cols-7 gap-0.5">
-          {NAMA_HARI.map((h) => (
-            <div key={h} className="pb-1.5 text-center text-[11px] font-semibold text-teks-samar">
-              {h}
-            </div>
-          ))}
-
-          {sel.map((tanggal, i) =>
-            tanggal === null ? (
-              <div key={`kosong-${i}`} aria-hidden="true" />
-            ) : (
-              <SelTanggal
-                key={tanggal}
-                tanggal={tanggal}
-                isi={ringkasan?.hari.get(tanggal)}
-                dipilih={tanggal === terpilih}
-                hariIni={tanggal === hariIni}
-                onPilih={onPilih}
-              />
-            ),
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 pt-2.5 text-[11.5px] text-teks-samar">
-          {JENIS.map((j) => (
-            <span key={j.kunci} className="flex items-center gap-1.5">
-              <i className={cn('size-[7px] rounded-full', j.warna)} aria-hidden="true" />
-              {j.label}
-            </span>
-          ))}
-        </div>
-      </Kartu>
-    </div>
+      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 pt-2.5 text-[11.5px] text-teks-samar">
+        {JENIS.map((j) => (
+          <span key={j.kunci} className="flex items-center gap-1.5">
+            <i className={cn('size-[7px] rounded-full', j.warna)} aria-hidden="true" />
+            {j.label}
+          </span>
+        ))}
+      </div>
+    </Kartu>
   );
 }
 
@@ -162,14 +170,25 @@ function SelTanggal({
       )}
     >
       <span className="angka">{nomor}</span>
-      <span className="flex h-1.5 gap-[3px]" aria-hidden="true">
+      {/*
+        Saat tanggalnya dipilih, titik TIDAK diputihkan — kalau diputihkan,
+        justru informasi kategorinya yang hilang tepat pada tanggal yang
+        sedang dilihat. Warnanya dipertahankan dan diberi alas pil putih
+        supaya tetap terbaca di atas merah pekat.
+      */}
+      <span
+        className={cn(
+          'flex items-center gap-[3px]',
+          dipilih && titik.length > 0
+            ? 'rounded-full bg-putih px-1 py-[3px]'
+            : 'h-1.5',
+        )}
+        aria-hidden="true"
+      >
         {titik.map((t) => (
           <i
             key={t}
-            className={cn(
-              'size-1.5 rounded-full',
-              dipilih ? 'bg-putih' : JENIS.find((j) => j.kunci === t)?.warna,
-            )}
+            className={cn('size-1.5 rounded-full', JENIS.find((j) => j.kunci === t)?.warna)}
           />
         ))}
       </span>

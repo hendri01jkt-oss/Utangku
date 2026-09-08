@@ -12,6 +12,7 @@ import {
   periodeBulanLalu,
   susunLaporan,
   type BarisLaporanBayar,
+  type Laporan,
   type BarisLaporanTunai,
   type BarisLaporanUtang,
   type Periode,
@@ -25,8 +26,9 @@ import {
   periodeBulan,
   susunKalender,
   type Bulan,
+  type IsiHari,
 } from './dataKalender';
-import { KalenderBulan } from './KalenderBulan';
+import { KalenderBulan, NavigasiBulan } from './KalenderBulan';
 import { unduhExcel, unduhPdf } from './ekspor';
 
 type PilihanPeriode = 'bulan-ini' | 'bulan-lalu' | 'custom';
@@ -159,14 +161,7 @@ export function HalamanLaporan() {
       </div>
 
       {modeKalender ? (
-        <KalenderBulan
-          bulan={bulan}
-          ringkasan={kalender}
-          terpilih={tanggalTerpilih}
-          hariIni={tanggalHariIni()}
-          onPilih={(t) => setTanggalTerpilih((lama) => (lama === t ? null : t))}
-          onGeser={gantiBulan}
-        />
+        <NavigasiBulan bulan={bulan} onGeser={gantiBulan} />
       ) : (
         <>
           <div className="flex flex-wrap gap-2">
@@ -216,50 +211,12 @@ export function HalamanLaporan() {
       ) : null}
       <KotakGalat pesan={galat} />
 
-      {modeKalender && tanggalTerpilih !== null ? (
-        <section aria-label="Rincian satu hari" className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="text-[15px] font-semibold">{judulHari(tanggalTerpilih)}</h2>
-              <p className="angka text-xs text-teks-samar">
-                {isiHari
-                  ? `Utang ${formatRupiah(isiHari.totalUtangBaru)} · Tunai ${formatRupiah(
-                      isiHari.totalPenjualanTunai,
-                    )} · Tertagih ${formatRupiah(isiHari.totalTertagih)}`
-                  : 'Tidak ada transaksi pada hari ini.'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setTanggalTerpilih(null)}
-              className="flex shrink-0 items-center gap-1 text-xs text-teks-samar hover:text-teks-utama"
-            >
-              <X size={14} /> Tutup
-            </button>
-          </div>
-
-          <TigaSeksi
-            utangBaru={isiHari?.utangBaru ?? []}
-            penjualanTunai={isiHari?.penjualanTunai ?? []}
-            pembayaran={isiHari?.pembayaran ?? []}
-            lingkup="hari"
-          />
-        </section>
-      ) : null}
-
-      {modeKalender && tanggalTerpilih === null ? (
-        <p className="text-center text-xs text-teks-samar">
-          Ketuk satu tanggal untuk melihat rinciannya.
-        </p>
-      ) : null}
-
+      {modeKalender ? (
+        <RingkasanBulanan bulan={bulan} laporan={laporan} />
+      ) : (
       <section aria-label="Ringkasan periode" className="flex flex-col gap-3">
         <KartuStatistik
-          label={
-            modeKalender
-              ? `Sisa piutang akhir ${judulBulan(bulan)}`
-              : 'Sisa piutang akhir periode'
-          }
+          label="Sisa piutang akhir periode"
           nilai={laporan ? formatRupiah(laporan.sisaPiutang) : '—'}
           penting
         />
@@ -283,6 +240,7 @@ export function HalamanLaporan() {
           nilai={laporan ? formatRupiah(laporan.totalPenjualanTunai) : '—'}
         />
       </section>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Tombol
@@ -303,15 +261,134 @@ export function HalamanLaporan() {
         </Tombol>
       </div>
 
-      {!modeKalender ? (
+      {modeKalender ? (
+        <>
+          <KalenderBulan
+            bulan={bulan}
+            ringkasan={kalender}
+            terpilih={tanggalTerpilih}
+            hariIni={tanggalHariIni()}
+            onPilih={(t) => setTanggalTerpilih((lama) => (lama === t ? null : t))}
+          />
+
+          {tanggalTerpilih === null ? (
+            <p className="text-center text-xs text-teks-samar">
+              Ketuk satu tanggal untuk melihat rinciannya.
+            </p>
+          ) : (
+            <PanelHari
+              tanggal={tanggalTerpilih}
+              isi={isiHari}
+              onTutup={() => setTanggalTerpilih(null)}
+            />
+          )}
+        </>
+      ) : (
         <TigaSeksi
           utangBaru={laporan?.utangBaru ?? []}
           penjualanTunai={laporan?.penjualanTunai ?? []}
           pembayaran={laporan?.pembayaran ?? []}
           lingkup="periode"
         />
-      ) : null}
+      )}
     </div>
+  );
+}
+
+/**
+ * Ringkasan bulan di tab Kalender — satu kartu padat, bukan empat kartu besar.
+ *
+ * Bentuknya sengaja berbeda dari tab Daftar. Di sini angka bulanan berperan
+ * sebagai kepala dari cakupan yang baru saja dipilih di bar bulan, bukan isi
+ * utama halaman; empat kartu penuh di posisi ini mendorong kalendernya
+ * sendiri turun sampai hampir keluar layar pada HP 390 px.
+ */
+function RingkasanBulanan({
+  bulan,
+  laporan,
+}: {
+  bulan: Bulan;
+  laporan: Laporan | undefined;
+}) {
+  const rupiah = (n: number | undefined) => (laporan ? formatRupiah(n ?? 0) : '—');
+  return (
+    <Kartu aria-label="Ringkasan bulan" className="flex flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-xs text-teks-samar">Sisa piutang akhir {judulBulan(bulan)}</p>
+        <p className="angka shrink-0 text-xl font-semibold text-merah-600">
+          {rupiah(laporan?.sisaPiutang)}
+        </p>
+      </div>
+      <div className="border-t border-garis" />
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'Utang baru', nilai: laporan?.totalUtangBaru, warna: '' },
+          { label: 'Tertagih', nilai: laporan?.totalTertagih, warna: 'text-sukses' },
+          { label: 'Penjualan tunai', nilai: laporan?.totalPenjualanTunai, warna: 'text-tunai' },
+        ].map((k) => (
+          <div key={k.label}>
+            <p className="text-[11px] leading-tight text-teks-samar">{k.label}</p>
+            <p className={cn('angka text-sm font-semibold', k.warna)}>{rupiah(k.nilai)}</p>
+          </div>
+        ))}
+      </div>
+    </Kartu>
+  );
+}
+
+/**
+ * Rincian satu hari, sengaja dibungkus kartu sendiri.
+ *
+ * Sebelumnya isinya mengalir langsung ke kartu ringkasan bulanan di
+ * bawahnya, sehingga dua cakupan data yang berbeda — satu hari dan satu
+ * bulan — terbaca seperti satu kesatuan. Sekarang cakupannya dinyatakan
+ * tiga kali: label di atas judul, tanggalnya dieja lengkap, dan barisnya
+ * memakai permukaan datar abu di dalam kartu putih — kebalikan dari daftar
+ * periode yang berupa kartu putih di atas halaman abu.
+ */
+function PanelHari({
+  tanggal,
+  isi,
+  onTutup,
+}: {
+  tanggal: string;
+  isi: IsiHari | undefined;
+  onTutup: () => void;
+}) {
+  return (
+    <Kartu aria-label="Rincian satu hari" className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 border-l-4 border-merah-600 pl-3">
+          <p className="text-[10.5px] font-semibold uppercase tracking-wider text-teks-samar">
+            Rincian harian
+          </p>
+          <h2 className="text-[15px] font-semibold">{judulHari(tanggal)}</h2>
+          <p className="angka text-xs text-teks-samar">
+            {isi
+              ? `Utang ${formatRupiah(isi.totalUtangBaru)} · Tunai ${formatRupiah(
+                  isi.totalPenjualanTunai,
+                )} · Tertagih ${formatRupiah(isi.totalTertagih)}`
+              : 'Tidak ada transaksi pada hari ini.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onTutup}
+          className="flex shrink-0 items-center gap-1 text-xs text-teks-samar hover:text-teks-utama"
+        >
+          <X size={14} /> Tutup
+        </button>
+      </div>
+
+      <div className="border-t border-garis" />
+
+      <TigaSeksi
+        utangBaru={isi?.utangBaru ?? []}
+        penjualanTunai={isi?.penjualanTunai ?? []}
+        pembayaran={isi?.pembayaran ?? []}
+        lingkup="hari"
+      />
+    </Kartu>
   );
 }
 
@@ -334,22 +411,36 @@ function TigaSeksi({
   // Di rincian harian, tanggalnya sudah tertulis besar di judul.
   const tampilkanTanggal = lingkup === 'periode';
   const kapan = lingkup === 'periode' ? 'pada periode ini' : 'pada hari ini';
+  /*
+   * Daftar periode berdiri langsung di halaman: barisnya kartu putih di atas
+   * latar abu. Rincian harian ada DI DALAM kartu putih, jadi polanya
+   * dibalik — baris abu di atas putih. Kartu putih di atas kartu putih akan
+   * saling lenyap.
+   */
+  const varian = lingkup === 'periode' ? 'kartu' : 'datar';
 
   return (
     <>
-      <Seksi judul="Utang Baru" jumlah={utangBaru.length} kosong={`Tidak ada utang baru ${kapan}.`}>
+      <Seksi
+        judul="Utang Baru"
+        varian={varian}
+        jumlah={utangBaru.length}
+        kosong={`Tidak ada utang baru ${kapan}.`}
+      >
         {utangBaru.map((t, i) => (
           <BarisNominal
             key={`${t.tanggal}-${i}`}
             nama={t.namaPelanggan}
             sub={[tampilkanTanggal ? formatTanggal(t.tanggal) : null, t.keterangan]}
             nominal={t.nominal}
+            varian={varian}
           />
         ))}
       </Seksi>
 
       <Seksi
         judul="Penjualan Tunai"
+        varian={varian}
         jumlah={penjualanTunai.length}
         kosong={`Tidak ada penjualan tunai ${kapan}.`}
       >
@@ -359,13 +450,15 @@ function TigaSeksi({
             nama={t.namaPelanggan}
             sub={[tampilkanTanggal ? formatTanggal(t.tanggal) : null, t.keterangan]}
             nominal={t.nominal}
-            warna="text-peringatan"
+            warna="text-tunai"
+            varian={varian}
           />
         ))}
       </Seksi>
 
       <Seksi
         judul="Pembayaran Diterima"
+        varian={varian}
         jumlah={pembayaran.length}
         kosong={`Belum ada pembayaran ${kapan}.`}
       >
@@ -377,6 +470,7 @@ function TigaSeksi({
             nominal={b.nominal}
             warna="text-sukses"
             kapitalSub
+            varian={varian}
           />
         ))}
       </Seksi>
@@ -388,21 +482,31 @@ function Seksi({
   judul,
   jumlah,
   kosong,
+  varian,
   children,
 }: {
   judul: string;
   jumlah: number;
   kosong: string;
+  varian: Varian;
   children: ReactNode;
 }) {
   const id = `judul-${judul.toLowerCase().replace(/\s+/g, '-')}`;
+  const datar = varian === 'datar';
+  // Di dalam panel harian, judul hari sudah memakai h2 — bagian di bawahnya
+  // jadi h3 supaya tingkatan judulnya tidak melompat.
+  const Judul = datar ? 'h3' : 'h2';
   return (
     <section aria-labelledby={id} className="flex flex-col gap-2">
-      <h2 id={id} className="text-sm font-semibold text-teks-redup">
+      <Judul id={id} className={cn('font-semibold text-teks-redup', datar ? 'text-xs' : 'text-sm')}>
         {judul} <span className="angka font-normal text-teks-samar">({jumlah})</span>
-      </h2>
+      </Judul>
       {jumlah > 0 ? (
         <ul className="flex flex-col gap-2">{children}</ul>
+      ) : datar ? (
+        <p className="permukaan-datar rounded-[var(--radius-kontrol)] p-3 text-xs text-teks-samar">
+          {kosong}
+        </p>
       ) : (
         <Kartu>
           <p className="text-sm text-teks-samar">{kosong}</p>
@@ -412,23 +516,28 @@ function Seksi({
   );
 }
 
+type Varian = 'kartu' | 'datar';
+
 function BarisNominal({
   nama,
   sub,
   nominal,
   warna,
   kapitalSub,
+  varian,
 }: {
   nama: string;
   sub: (string | null)[];
   nominal: number;
   warna?: string;
   kapitalSub?: boolean;
+  varian: Varian;
 }) {
   const keterangan = sub.filter(Boolean).join(' · ');
+  const Pembungkus = varian === 'datar' ? BarisDatar : BarisKartu;
   return (
     <li>
-      <Kartu padat className="flex items-center justify-between gap-3">
+      <Pembungkus>
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{nama}</p>
           {keterangan ? (
@@ -445,7 +554,19 @@ function BarisNominal({
         <p className={cn('angka shrink-0 text-sm font-semibold', warna)}>
           {formatRupiah(nominal)}
         </p>
-      </Kartu>
+      </Pembungkus>
     </li>
   );
 }
+
+const BarisKartu = ({ children }: { children: ReactNode }) => (
+  <Kartu padat className="flex items-center justify-between gap-3">
+    {children}
+  </Kartu>
+);
+
+const BarisDatar = ({ children }: { children: ReactNode }) => (
+  <div className="permukaan-datar flex items-center justify-between gap-3 rounded-[var(--radius-kontrol)] p-3">
+    {children}
+  </div>
+);
