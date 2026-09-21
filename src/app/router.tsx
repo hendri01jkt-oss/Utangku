@@ -6,7 +6,7 @@
  */
 /* eslint-disable react/only-export-components */
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import { HalamanTidakDitemukan } from './HalamanTidakDitemukan';
 import { LayoutUtama } from './LayoutUtama';
 import { Memuat, PenjagaOnboarding, PenjagaRute, PenjagaTamu } from './PenjagaRute';
@@ -59,10 +59,8 @@ const HalamanTagihan = lazy(() =>
 const HalamanLaporan = lazy(() =>
   import('@/fitur/laporan/HalamanLaporan').then((m) => ({ default: m.HalamanLaporan })),
 );
-const HalamanPengaturan = lazy(() =>
-  import('@/fitur/pengaturan/HalamanPengaturan').then((m) => ({
-    default: m.HalamanPengaturan,
-  })),
+const HalamanAkun = lazy(() =>
+  import('@/fitur/akun/HalamanAkun').then((m) => ({ default: m.HalamanAkun })),
 );
 
 const tunggu = (isi: ReactNode) => <Suspense fallback={<Memuat />}>{isi}</Suspense>;
@@ -108,7 +106,14 @@ const rute: RouteObject[] = [
           { path: 'utang/:id/ubah', element: tunggu(<FormUtang mode="ubah" />) },
           { path: 'tagihan', element: tunggu(<HalamanTagihan />) },
           { path: 'laporan', element: tunggu(<HalamanLaporan />) },
-          { path: 'pengaturan', element: tunggu(<HalamanPengaturan />) },
+          { path: 'akun', element: tunggu(<HalamanAkun />) },
+          /*
+           * Alamat lama dipertahankan sebagai pengalihan, bukan dihapus:
+           * halaman ini sempat berumur beberapa tahap sebagai /pengaturan,
+           * dan tautan yang sudah dipasang di layar beranda HP pemilik
+           * warung tidak boleh berubah jadi halaman 404.
+           */
+          { path: 'pengaturan', element: <Navigate to="/akun" replace /> },
           /*
            * Penampung alamat asing. Diletakkan DI DALAM penjaga rute supaya
            * pengunjung yang belum masuk tetap diarahkan ke /masuk, bukan

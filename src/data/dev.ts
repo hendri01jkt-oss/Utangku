@@ -4,6 +4,7 @@ import * as transaksi from './repo/transaksi';
 import * as item from './repo/item';
 import * as pembayaran from './repo/pembayaran';
 import { sinkronSekarang } from './sync/mesin';
+import { useSync } from './sync/useSync';
 import * as laporan from '@/fitur/laporan/dataLaporan';
 import * as kalender from '@/fitur/laporan/dataKalender';
 import * as ringkasan from '@/fitur/beranda/ringkasanWarung';
@@ -41,6 +42,12 @@ export function pasangSeamDev() {
       ...gambarStruk,
       ...dataStruk,
       sinkronSekarang,
+      /*
+       * Status sync dulu bisa dibaca dari teks header di halaman mana pun.
+       * Sejak indikatornya pindah ke halaman Akun, satu-satunya cara
+       * memeriksanya tanpa berpindah halaman adalah lewat store-nya.
+       */
+      statusSync: () => useSync.getState().status,
     },
   });
 }

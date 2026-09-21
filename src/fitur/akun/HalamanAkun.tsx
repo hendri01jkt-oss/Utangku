@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { RefreshCw, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { Input, Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo } from '@/fitur/auth/LayoutAuth';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { ubahWarung } from '@/data/repo/warung';
-import { sinkronSekarang } from '@/data/sync/mesin';
 import { contohPesan, TEMPLATE_BAWAAN } from '@/fitur/tagihan/pesanTagihan';
 import { useKeluar } from '@/fitur/auth/useKeluar';
+import { KartuSinkron } from './KartuSinkron';
 import { lebarKertasSah, UKURAN_KERTAS, type LebarKertas } from '@/fitur/struk/barisStruk';
 import { cn } from '@/lib/cn';
 
@@ -18,7 +18,7 @@ const variabel = [
   { kunci: '{jatuh_tempo}', arti: 'tempo terdekat' },
 ];
 
-export function HalamanPengaturan() {
+export function HalamanAkun() {
   const warung = useSesi((s) => s.warung);
   const setWarung = useSesi((s) => s.setWarung);
   const { mintaKeluar, dialogKeluar } = useKeluar();
@@ -76,7 +76,15 @@ export function HalamanPengaturan() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-lg font-semibold">Pengaturan</h1>
+      <h1 className="text-lg font-semibold">Akun</h1>
+
+      {/*
+        Status sinkron paling atas: inilah pertanyaan yang paling sering
+        dibawa pemilik warung ke halaman ini — "catatan saya sudah aman
+        belum?" — dan sejak ikonnya hilang dari header, halaman ini satu-
+        satunya tempat jawabannya.
+      */}
+      <KartuSinkron />
 
       <Kartu>
         <form onSubmit={simpan} className="flex flex-col gap-4" noValidate>
@@ -186,25 +194,19 @@ export function HalamanPengaturan() {
         </form>
       </Kartu>
 
-      <Kartu className="flex flex-col gap-3">
-        <p className="text-sm font-medium">Sinkronisasi</p>
-        <Tombol
-          varian="sekunder"
-          ikon={<RefreshCw size={16} />}
-          onClick={() => void sinkronSekarang('manual-pengaturan')}
-          penuh
-        >
-          Sinkronkan sekarang
-        </Tombol>
-        <p className="text-xs text-teks-samar">
-          Perubahan tersimpan di HP lebih dulu dan terkirim sendiri saat ada
-          sinyal. Tombol ini hanya untuk memaksa lebih cepat.
-        </p>
-      </Kartu>
-
+      {/*
+        Keluar tetap lewat useKeluar() yang sama: kalau masih ada catatan di
+        antrean, pemiliknya diberi tahu persis berapa yang akan hilang dan
+        bisa membatalkan. Pengaman itu justru lebih penting sekarang —
+        tombolnya pindah ke halaman yang jauh lebih sering dibuka daripada
+        ikon kecil di pojok header.
+      */}
       <Tombol varian="bahaya" onClick={() => void mintaKeluar()} penuh>
         Keluar dari akun
       </Tombol>
+      <p className="text-center text-xs text-teks-samar">
+        Keluar mengosongkan catatan di HP ini.
+      </p>
       {dialogKeluar}
     </div>
   );

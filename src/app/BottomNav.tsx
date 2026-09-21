@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FileText, House, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { CircleUser, FileText, House, Users, Wallet, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 interface ItemMenu {
@@ -15,13 +15,20 @@ const menu: ItemMenu[] = [
   { ke: '/pelanggan', label: 'Pelanggan', Ikon: Users },
   { ke: '/tagihan', label: 'Tagihan', Ikon: Wallet },
   { ke: '/laporan', label: 'Laporan', Ikon: FileText },
+  { ke: '/akun', label: 'Akun', Ikon: CircleUser },
 ];
 
 /**
  * Navigasi utama di bawah layar: semua tujuan penting berada dalam
  * jangkauan jempol. Tidak ada aksi penting di pojok atas.
  */
-export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
+export function BottomNav({
+  jumlahTagihan = 0,
+  jumlahBermasalah = 0,
+}: {
+  jumlahTagihan?: number;
+  jumlahBermasalah?: number;
+}) {
   return (
     <nav
       aria-label="Navigasi utama"
@@ -46,13 +53,28 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
                 <>
                   <span className="relative">
                     <Ikon size={21} strokeWidth={isActive ? 2.4 : 1.8} aria-hidden />
+                    {/*
+                      Dua lencana dengan arti berbeda, bentuknya sengaja sama:
+                      keduanya berarti "ada N hal yang menunggu Anda", dan
+                      tab tempatnya menempel yang membedakan apanya.
+
+                      Lencana Akun hanya menghitung entri yang DITOLAK server,
+                      bukan seluruh antrean. Antrean yang sekadar menunggu
+                      sinyal adalah keadaan normal di warung bersinyal lemah;
+                      kalau ikut dihitung, lencana merahnya menyala sepanjang
+                      hari dan berhenti berarti apa-apa.
+                    */}
                     {label === 'Tagihan' && jumlahTagihan > 0 ? (
-                      <span
-                        className="angka absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-bahaya px-1 text-center text-[10px] font-semibold text-putih"
-                        aria-label={`${jumlahTagihan} perlu ditagih`}
-                      >
-                        {jumlahTagihan}
-                      </span>
+                      <Lencana
+                        jumlah={jumlahTagihan}
+                        keterangan={`${jumlahTagihan} perlu ditagih`}
+                      />
+                    ) : null}
+                    {label === 'Akun' && jumlahBermasalah > 0 ? (
+                      <Lencana
+                        jumlah={jumlahBermasalah}
+                        keterangan={`${jumlahBermasalah} catatan perlu diperiksa`}
+                      />
                     ) : null}
                   </span>
                   {label}
@@ -63,5 +85,16 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
         ))}
       </ul>
     </nav>
+  );
+}
+
+function Lencana({ jumlah, keterangan }: { jumlah: number; keterangan: string }) {
+  return (
+    <span
+      className="angka absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-bahaya px-1 text-center text-[10px] font-semibold text-putih"
+      aria-label={keterangan}
+    >
+      {jumlah}
+    </span>
   );
 }
