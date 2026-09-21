@@ -84,7 +84,7 @@ export function PemberitahuanPwa() {
     return (
       <Panel>
         <div className="flex items-start gap-3">
-          <RefreshCw size={18} className="mt-0.5 shrink-0 text-merah-600" aria-hidden />
+          <RefreshCw size={18} className="mt-0.5 shrink-0 text-emas-700" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">Versi baru UtangKu tersedia</p>
             <p className="mt-0.5 text-xs text-teks-samar">
@@ -115,7 +115,7 @@ export function PemberitahuanPwa() {
   return (
     <Panel>
       <div className="flex items-start gap-3">
-        <Download size={18} className="mt-0.5 shrink-0 text-merah-600" aria-hidden />
+        <Download size={18} className="mt-0.5 shrink-0 text-emas-700" aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">Pasang UtangKu di layar utama</p>
           <p className="mt-0.5 text-xs text-teks-samar">

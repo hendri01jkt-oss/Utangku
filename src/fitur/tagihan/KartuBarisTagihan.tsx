@@ -45,7 +45,7 @@ export function KartuBarisTagihan({
           />
         </span>
         <span className="shrink-0 text-right">
-          <span className="angka block text-sm font-semibold text-merah-600">
+          <span className="angka block text-sm font-semibold text-bahaya">
             {formatRupiah(baris.sisa)}
           </span>
           <span className={cn('block text-xs', lewat ? 'text-bahaya' : 'text-teks-samar')}>

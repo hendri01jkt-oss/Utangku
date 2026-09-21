@@ -32,16 +32,20 @@ const rasio = (a, b) => {
 const T = {
   putih: '#FFFFFF',
   permukaan2: '#F4F4F6',
-  merah700: '#A61B14',
-  merah600: '#C62828',
-  teksUtama: '#17181C',
-  teksRedup: '#4A4F5C',
-  teksSamar: '#616675',
+  emas500: '#C9A84C',
+  emas600: '#B28C31',
+  emas700: '#7D6220',
+  navy900: '#0F1B3D',
+  navy800: '#1D2C57',
+  teksUtama: '#0F1B3D',
+  teksRedup: '#3B4668',
+  teksSamar: '#566186',
   sukses: '#137038',
   peringatan: '#A15C07',
   tunai: '#C2410C',
   tunaiTerang: '#EA580C',
   bahaya: '#C62828',
+  tintEmas: '#FBF5E6',
   tintSukses: '#ECFDF3',
   tintPeringatan: '#FEF6E7',
   tintBahaya: '#FDECEC',
@@ -55,6 +59,7 @@ const T = {
 const permukaan = [
   ['putih (halaman & kartu)', hex(T.putih)],
   ['permukaan-2 (baris/input)', hex(T.permukaan2)],
+  ['tint emas (pilihan terpilih)', hex(T.tintEmas)],
   ['tint sukses (badge lunas)', hex(T.tintSukses)],
   ['tint peringatan (badge sebagian)', hex(T.tintPeringatan)],
   ['tint bahaya (badge belum lunas)', hex(T.tintBahaya)],
@@ -64,8 +69,7 @@ const teks = [
   ['teks-utama', T.teksUtama],
   ['teks-redup', T.teksRedup],
   ['teks-samar', T.teksSamar],
-  ['merah-600', T.merah600],
-  ['merah-700', T.merah700],
+  ['emas-700 (aksen teks)', T.emas700],
   ['sukses', T.sukses],
   ['peringatan', T.peringatan],
   ['tunai', T.tunai],
@@ -92,12 +96,20 @@ for (const [namaTeks, warnaTeks] of teks) {
   );
 }
 
-// Tombol utama: emas solid dengan teks navy paling gelap.
 console.log('\nTeks di atas isian solid');
 console.log('='.repeat(74));
 const solid = [
-  ['putih di atas merah-600 (tombol utama)', T.putih, T.merah600],
-  ['putih di atas merah-700 (tombol ditekan)', T.putih, T.merah700],
+  /*
+   * Tombol utama memakai teks NAVY di atas gold, bukan putih. Putih di atas
+   * gold-500 hanya 2.29:1 — pasangan itu sengaja ikut diuji di bawah supaya
+   * kalau suatu saat ada yang menggantinya jadi teks putih, skrip ini yang
+   * menggagalkannya, bukan pengguna yang menemukannya di bawah lampu warung.
+   */
+  ['navy di atas emas-500 (tombol utama)', T.navy900, T.emas500],
+  ['navy di atas emas-600 (tombol ditekan)', T.navy900, T.emas600],
+  ['putih di atas navy-900 (header)', T.putih, T.navy900],
+  ['emas-500 di atas navy-900 (sub-judul header)', T.emas500, T.navy900],
+  ['putih di atas bahaya (badge belum lunas)', T.putih, T.bahaya],
 ];
 for (const [nama, fg, bg] of solid) {
   const r = rasio(hex(fg), hex(bg));
@@ -117,7 +129,8 @@ console.log('\nElemen non-teks: titik penanda kalender (ambang WCAG 1.4.11 = 3:1
 console.log('='.repeat(74));
 const AMBANG_NONTEKS = 3;
 const titik = [
-  ['titik utang (merah-600)', T.merah600],
+  ['tepi tombol emas-600 di atas putih', T.emas600],
+  ['titik utang (bahaya)', T.bahaya],
   ['titik pembayaran (sukses)', T.sukses],
   ['titik tunai (tunai-terang)', T.tunaiTerang],
 ];

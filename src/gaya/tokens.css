@@ -1,5 +1,5 @@
 /**
- * Token desain UtangKu — putih bersih dengan aksen merah, minimalis.
+ * Token desain UtangKu — navy & gold Adinem Tech di atas permukaan terang.
  *
  * Semua nilai warna di sini diverifikasi oleh `npm run cek:kontras`.
  * Kalau mengubah salah satu warna, jalankan skrip itu sebelum commit:
@@ -17,24 +17,47 @@
   --color-garis: #e4e4e9;
   --color-garis-kuat: #d3d3db;
 
-  /* ── Merah: aksen, CTA, angka penting, dan status belum lunas ──────────
-     Dipakai terarah. Merah di mana-mana membuat tidak ada yang terasa
-     penting, dan aplikasi utang tidak perlu terasa mengancam. */
-  --color-merah-700: #a61b14;
-  --color-merah-600: #c62828;
-  --color-merah-500: #e53935;
-  --color-merah-50: #fdecec;
+  /* ── Gold: ISIAN, bukan warna teks ─────────────────────────────────────
+     Ini pembeda terpenting dari skema merah yang lama. Merah dulu bisa
+     dipakai dua-duanya — sebagai teks di atas putih (4.92:1) sekaligus
+     sebagai isian dengan teks putih. Gold tidak bisa: #c9a84c di atas
+     putih hanya 2.29:1, gagal ambang teks (4.5:1) MAUPUN ambang elemen
+     non-teks (3:1). Jadi:
+
+       gold-500  hanya isian, selalu dengan teks navy (7.38:1), dan selalu
+                 bertepi gold-600 — tanpa tepi, batas tombolnya sendiri
+                 cuma 2.29:1 terhadap halaman dan tidak terlihat
+       gold-600  tepi tombol, cincin fokus, keadaan ditekan (navy 5.37:1,
+                 dan 3.14:1 terhadap putih sehingga sah sebagai batas)
+       gold-700  satu-satunya gold yang boleh jadi TEKS di latar terang
+
+     Semua angka di atas diverifikasi `npm run cek:kontras`. */
+  --color-emas-500: #c9a84c;
+  --color-emas-600: #b28c31;
+  --color-emas-700: #7d6220;
+
+  /* ── Navy: teks, header, dan angka penting ─────────────────────────────
+     Menggantikan hitam netral. Selain membawa identitas Adinem Tech, navy
+     pekat ini justru lebih kontras di atas putih (16.87:1) daripada abu
+     gelap yang dipakai sebelumnya. */
+  --color-navy-900: #0f1b3d;
+  --color-navy-800: #1d2c57;
 
   /* ── Teks ──────────────────────────────────────────────────────────────
-     Tiga tingkat saja. Lebih dari itu, hierarkinya jadi tidak terbaca. */
-  --color-teks-utama: #17181c;
-  --color-teks-redup: #4a4f5c;
-  --color-teks-samar: #616675;
+     Tiga tingkat saja. Lebih dari itu, hierarkinya jadi tidak terbaca.
+     Ketiganya kini bernuansa navy, bukan abu netral, supaya teks kecil
+     tidak terlihat "dingin" di sebelah header navy. */
+  --color-teks-utama: #0f1b3d;
+  --color-teks-redup: #3b4668;
+  --color-teks-samar: #566186;
 
   /* ── Status ────────────────────────────────────────────────────────────
      Nilainya jauh lebih gelap daripada warna status pada tema gelap: di
      atas putih, hijau dan jingga yang "terlihat pekat" umumnya hanya
      mencapai sekitar 3:1. */
+  /* Merah tidak hilang, hanya turun pangkat: sejak gold jadi warna aksen,
+     merah berarti BAHAYA saja — dulu warna brand dan warna bahaya kebetulan
+     hex yang sama, sehingga "lewat tempo" tidak pernah benar-benar menonjol. */
   --color-sukses: #137038; /* lunas */
   --color-peringatan: #a15c07; /* sebagian / jatuh tempo dekat */
   --color-bahaya: #c62828; /* belum lunas / lewat tempo */
@@ -100,6 +123,7 @@
     0 16px 32px rgb(23 24 28 / 0.08);
 
   /* Tint status untuk latar badge dan baris berstatus. */
+  --tint-emas: #fbf5e6;
   --tint-sukses: #ecfdf3;
   --tint-peringatan: #fef6e7;
   --tint-bahaya: #fdecec;

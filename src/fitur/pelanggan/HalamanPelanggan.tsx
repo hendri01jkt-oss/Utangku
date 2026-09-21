@@ -54,7 +54,7 @@ export function HalamanPelanggan() {
             className={cn(
               'rounded-full border px-3 py-1.5 text-xs transition-colors',
               urutan === p.nilai
-                ? 'border-merah-600 bg-merah-600 text-putih'
+                ? 'border-emas-600 bg-emas-500 font-medium text-navy-900'
                 : 'border-garis bg-putih text-teks-redup hover:bg-permukaan-2',
             )}
           >
@@ -94,7 +94,7 @@ export function HalamanPelanggan() {
                 <span
                   className={cn(
                     'angka shrink-0 text-sm font-semibold',
-                    sisaUtang > 0 ? 'text-merah-600' : 'text-teks-samar',
+                    sisaUtang > 0 ? 'text-navy-900' : 'text-teks-samar',
                   )}
                 >
                   {sisaUtang > 0 ? formatRupiah(sisaUtang) : '—'}
@@ -108,7 +108,7 @@ export function HalamanPelanggan() {
       {/* Tombol tambah mengambang, selalu dalam jangkauan jempol. */}
       <Link
         to="/pelanggan/baru"
-        className="fixed bottom-[calc(var(--tinggi-nav)+1rem)] left-1/2 z-10 flex min-h-12 -translate-x-1/2 items-center gap-2 rounded-full bg-merah-600 px-5 text-sm font-semibold text-putih shadow-[var(--bayang-angkat)] transition-colors hover:bg-merah-700"
+        className="fixed bottom-[calc(var(--tinggi-nav)+1rem)] left-1/2 z-10 flex min-h-12 -translate-x-1/2 items-center gap-2 rounded-full border border-emas-600 bg-emas-500 px-5 text-sm font-semibold text-navy-900 shadow-[var(--bayang-angkat)] transition-colors hover:bg-emas-600"
       >
         <Plus size={18} aria-hidden />
         Tambah Pelanggan

@@ -47,7 +47,7 @@ export function HalamanDetailPelanggan() {
     return (
       <Kartu className="flex flex-col items-center gap-3 py-8 text-center">
         <p className="text-sm text-teks-redup">Pelanggan tidak ditemukan.</p>
-        <Link to="/pelanggan" className="text-sm text-merah-600 underline underline-offset-4">
+        <Link to="/pelanggan" className="text-sm text-emas-700 underline underline-offset-4">
           Kembali ke daftar pelanggan
         </Link>
       </Kartu>
@@ -91,7 +91,7 @@ export function HalamanDetailPelanggan() {
 
         <div className="rounded-[var(--radius-kontrol)] bg-permukaan-2 p-3">
           <p className="text-xs text-teks-samar">Sisa utang</p>
-          <p className="angka mt-1 text-2xl font-semibold text-merah-600">
+          <p className="angka mt-1 text-2xl font-semibold text-emas-700">
             {formatRupiah(totalSisa)}
           </p>
           <p className="mt-1 text-xs text-teks-samar">
@@ -180,7 +180,7 @@ export function HalamanDetailPelanggan() {
                   <div className="shrink-0 text-right">
                     <p className="angka text-sm font-semibold">{formatRupiah(t.nominal)}</p>
                     {sisaUtang(t) > 0 ? (
-                      <p className="angka text-xs text-merah-600">
+                      <p className="angka text-xs text-emas-700">
                         sisa {formatRupiah(sisaUtang(t))}
                       </p>
                     ) : null}

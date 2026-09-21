@@ -13,9 +13,15 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const gayaVarian: Record<Varian, string> = {
-  /* Merah solid — hanya untuk satu aksi utama per layar. */
+  /*
+   * Gold solid dengan teks NAVY — hanya untuk satu aksi utama per layar.
+   *
+   * Teksnya navy, bukan putih: putih di atas gold cuma 2.29:1. Tepinya
+   * gold-600 wajib ada — isian gold polos hanya 2.29:1 terhadap halaman,
+   * jadi tanpa tepi itu batas tombolnya sendiri tidak terlihat.
+   */
   utama:
-    'bg-merah-600 text-putih font-semibold hover:bg-merah-700 active:bg-merah-700 tombol-timbul',
+    'bg-emas-500 text-navy-900 font-semibold border border-emas-600 hover:bg-emas-600 active:bg-emas-600 tombol-timbul',
   /* Putih bergaris: aksi setara yang bukan aksi utama. */
   sekunder: 'permukaan text-teks-utama sorot-kartu bisa-ditekan',
   /* Tanpa latar, untuk aksi tersier. */
@@ -92,7 +98,7 @@ export function Tombol({
         penuh,
         cn(
           /* Nonaktif dibuat pudar dengan mengganti warnanya, bukan dengan
-             opacity: teks putih di atas merah yang ditipiskan hanya mencapai
+             opacity: teks di atas gold yang ditipiskan hanya mencapai
              sekitar 2:1, dan malah masih terlihat seperti tombol aktif. */
           'disabled:cursor-not-allowed disabled:border-garis disabled:bg-permukaan-2',
           'disabled:text-teks-samar disabled:shadow-none disabled:hover:bg-permukaan-2',

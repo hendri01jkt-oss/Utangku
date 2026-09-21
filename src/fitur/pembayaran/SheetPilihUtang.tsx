@@ -54,7 +54,7 @@ export function SheetPilihUtang({
                 />
               </span>
               <span className="shrink-0 text-right">
-                <span className="angka block text-sm font-semibold text-merah-600">
+                <span className="angka block text-sm font-semibold text-navy-900">
                   {formatRupiah(sisaUtang(t))}
                 </span>
                 <span className="text-xs text-teks-samar">sisa</span>

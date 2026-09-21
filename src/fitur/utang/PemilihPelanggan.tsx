@@ -96,7 +96,7 @@ export function PemilihPelanggan({
       <label htmlFor="cari-pelanggan" className="text-sm text-teks-redup">
         Pelanggan
       </label>
-      <div className="flex items-center gap-2 rounded-[var(--radius-kontrol)] border border-garis bg-putih px-3 transition-colors focus-within:border-merah-600">
+      <div className="flex items-center gap-2 rounded-[var(--radius-kontrol)] border border-garis bg-putih px-3 transition-colors focus-within:border-emas-600">
         <Search size={16} className="text-teks-samar" aria-hidden />
         <input
           id="cari-pelanggan"
@@ -136,7 +136,7 @@ export function PemilihPelanggan({
           disabled={sedangBuat}
           className={cn(
             'flex items-center gap-2 rounded-[var(--radius-kontrol)] border border-dashed',
-            'border-merah-600/50 p-2.5 text-left text-sm text-merah-600',
+            'border-emas-600/70 p-2.5 text-left text-sm text-emas-700',
             'transition-colors hover:bg-[var(--tint-bahaya)] disabled:opacity-60',
           )}
         >

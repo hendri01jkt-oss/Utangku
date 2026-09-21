@@ -20,7 +20,7 @@ interface Props {
 }
 
 const JENIS = [
-  { kunci: 'utang', label: 'Utang baru', warna: 'bg-merah-600' },
+  { kunci: 'utang', label: 'Utang baru', warna: 'bg-bahaya' },
   { kunci: 'bayar', label: 'Pembayaran', warna: 'bg-sukses' },
   { kunci: 'tunai', label: 'Tunai', warna: 'bg-tunai-terang' },
 ] as const;
@@ -163,9 +163,9 @@ function SelTanggal({
         'flex aspect-square flex-col items-center justify-center gap-1 rounded-xl',
         'text-[15px] transition-colors',
         dipilih
-          ? 'bg-merah-600 font-bold text-putih'
+          ? 'bg-navy-900 font-bold text-putih'
           : hariIni
-            ? 'font-bold text-teks-utama inset-ring-2 inset-ring-merah-600'
+            ? 'font-bold text-teks-utama inset-ring-2 inset-ring-emas-600'
             : 'text-teks-utama hover:bg-permukaan-2',
       )}
     >

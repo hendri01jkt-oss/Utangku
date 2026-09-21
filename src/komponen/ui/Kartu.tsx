@@ -49,7 +49,7 @@ export function KartuStatistik({
   label: string;
   nilai: ReactNode;
   ikon?: ReactNode;
-  /** Angka paling penting di layar — inilah tempat emas dipakai. */
+  /** Angka paling penting di layar — dibedakan lewat ukuran, bukan warna. */
   penting?: boolean;
 }) {
   return (
@@ -63,7 +63,7 @@ export function KartuStatistik({
       <p
         className={cn(
           'angka mt-auto pt-2 text-xl font-semibold',
-          penting ? 'text-merah-600' : 'text-teks-utama',
+          penting ? 'text-navy-900' : 'text-teks-utama',
         )}
       >
         {nilai}

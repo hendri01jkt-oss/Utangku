@@ -12,7 +12,7 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
 /** Kelas dasar kotak input — dipakai ulang oleh InputRupiah. */
 export const kelasKotakInput =
   'flex items-center gap-2 rounded-[var(--radius-kontrol)] border border-garis bg-putih px-3 ' +
-  'min-h-11 transition-colors focus-within:border-merah-600';
+  'min-h-11 transition-colors focus-within:border-emas-600';
 
 export function Input({
   label,

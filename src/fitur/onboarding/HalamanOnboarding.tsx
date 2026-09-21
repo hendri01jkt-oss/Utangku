@@ -64,7 +64,7 @@ export function HalamanOnboarding() {
       <form onSubmit={kirim} className="flex flex-col gap-4" noValidate>
         <KotakGalat pesan={galat} />
         <div className="flex justify-center py-1">
-          <Store size={36} className="text-merah-600" aria-hidden />
+          <Store size={36} className="text-emas-700" aria-hidden />
         </div>
         <Input
           label="Nama warung"

@@ -116,7 +116,7 @@ export function HalamanPengaturan() {
                   className={cn(
                     'flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-kontrol)] border px-3 py-2.5 text-sm transition-colors',
                     lebarStruk === mm
-                      ? 'border-merah-600 bg-[var(--tint-bahaya)] font-semibold text-teks-utama'
+                      ? 'border-emas-600 bg-[var(--tint-emas)] font-semibold text-teks-utama'
                       : 'border-garis bg-putih text-teks-redup hover:bg-permukaan-2',
                   )}
                 >
@@ -148,7 +148,7 @@ export function HalamanPengaturan() {
               value={template}
               onChange={(e) => setTemplate(e.target.value)}
               rows={9}
-              className="rounded-[var(--radius-kontrol)] border border-garis bg-putih px-3 py-2.5 text-sm text-teks-utama outline-none transition-colors focus:border-merah-600"
+              className="rounded-[var(--radius-kontrol)] border border-garis bg-putih px-3 py-2.5 text-sm text-teks-utama outline-none transition-colors focus:border-emas-600"
             />
             <div className="flex flex-wrap gap-1.5 pt-1">
               {variabel.map((v) => (

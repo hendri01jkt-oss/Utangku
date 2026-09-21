@@ -123,7 +123,7 @@ export function TombolTagihWa({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={ikonSaja ? `${label} untuk ${namaPelanggan}` : undefined}
-      className={cn(kelasDasar, 'bg-merah-600 text-putih hover:bg-merah-700')}
+      className={cn(kelasDasar, 'border border-emas-600 bg-emas-500 text-navy-900 hover:bg-emas-600')}
     >
       <Send size={ukuran === 'besar' ? 17 : 16} aria-hidden />
       {ikonSaja ? null : label}

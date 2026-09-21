@@ -31,8 +31,12 @@ export function LayoutUtama() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
+      {/*
+        Header navy pekat: putih di atasnya 16.87:1, dan bilah status HP
+        ikut menyatu dengannya lewat theme-color yang sama.
+      */}
       <header
-        className="sticky top-0 z-10 border-b border-garis bg-putih px-4 py-3"
+        className="sticky top-0 z-10 bg-navy-900 px-4 py-3 text-putih"
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
       >
         <div className="flex items-center justify-between gap-3">
@@ -49,12 +53,19 @@ export function LayoutUtama() {
                   hanya menambah keramaian di sebelah nama warung yang justru
                   harus menonjol.
                 */}
-                <p className="text-[11px] text-teks-samar">UtangKu</p>
+                <p className="text-[11px] text-emas-500">UtangKu</p>
               </>
             ) : (
-              /* Tanpa warung, nama aplikasilah identitas utamanya — di sini
-                 logo punya ruang untuk terbaca. */
-              <Logo tinggi="h-6" />
+              /*
+                Tanpa warung, nama aplikasilah identitas utamanya.
+                Logonya masih tanda merah yang lama (penggantinya menyusul),
+                dan merah di atas navy nyaris tidak terbaca — jadi untuk
+                sementara ia berdiri di atas kepingan putih. Begitu logo
+                navy/gold datang, kepingan ini dibuang.
+              */
+              <span className="inline-flex rounded-lg bg-putih px-2 py-1">
+                <Logo tinggi="h-6" />
+              </span>
             )}
           </div>
 
@@ -64,7 +75,7 @@ export function LayoutUtama() {
               to="/pengaturan"
               aria-label="Pengaturan"
               title="Pengaturan"
-              className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-permukaan-2 hover:text-teks-utama"
+              className="flex size-9 items-center justify-center rounded-full text-putih/75 transition-colors hover:bg-navy-800 hover:text-putih"
             >
               <Settings size={18} aria-hidden />
             </Link>
@@ -73,7 +84,7 @@ export function LayoutUtama() {
               onClick={() => void mintaKeluar()}
               aria-label="Keluar"
               title="Keluar"
-              className="flex size-9 items-center justify-center rounded-full text-teks-samar transition-colors hover:bg-permukaan-2 hover:text-teks-utama"
+              className="flex size-9 items-center justify-center rounded-full text-putih/75 transition-colors hover:bg-navy-800 hover:text-putih"
             >
               <LogOut size={18} aria-hidden />
             </button>

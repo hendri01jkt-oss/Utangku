@@ -62,7 +62,17 @@ export function IndikatorSync() {
         aria-haspopup={adaMasalah ? 'dialog' : undefined}
         aria-expanded={adaMasalah ? panelTerbuka : undefined}
         className={cn(
-          'flex items-center gap-1.5 rounded-full px-2 py-1 text-xs transition-colors hover:bg-permukaan-2',
+          /*
+           * Kepingan putih, bukan warna status versi terang.
+           *
+           * Indikator ini berdiri di header navy, sedangkan hijau/jingga/
+           * merah status semuanya warna gelap yang diuji terhadap latar
+           * TERANG. Memberi mereka latar putih membuat satu set warna
+           * status tetap berlaku di seluruh aplikasi; membuat versi
+           * terang khusus header berarti dua sumber kebenaran yang bisa
+           * berbeda arti.
+           */
+          'flex items-center gap-1.5 rounded-full bg-putih px-2 py-1 text-xs transition-colors hover:bg-permukaan-2',
           kelas,
         )}
         aria-live="polite"

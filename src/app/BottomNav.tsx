@@ -38,7 +38,7 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
                 cn(
                   'relative flex min-h-16 flex-col items-center justify-center gap-1',
                   'text-[11px] transition-colors',
-                  isActive ? 'text-merah-600' : 'text-teks-samar hover:text-teks-redup',
+                  isActive ? 'text-emas-700' : 'text-teks-samar hover:text-teks-redup',
                 )
               }
             >
@@ -48,7 +48,7 @@ export function BottomNav({ jumlahTagihan = 0 }: { jumlahTagihan?: number }) {
                     <Ikon size={21} strokeWidth={isActive ? 2.4 : 1.8} aria-hidden />
                     {label === 'Tagihan' && jumlahTagihan > 0 ? (
                       <span
-                        className="angka absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-merah-600 px-1 text-center text-[10px] font-semibold text-putih"
+                        className="angka absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-bahaya px-1 text-center text-[10px] font-semibold text-putih"
                         aria-label={`${jumlahTagihan} perlu ditagih`}
                       >
                         {jumlahTagihan}

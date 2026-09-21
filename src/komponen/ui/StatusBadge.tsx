@@ -32,7 +32,7 @@ const konfigurasi = {
   lewat_tempo: {
     label: 'Lewat Tempo',
     ikon: TriangleAlert,
-    kelas: 'bg-merah-600 text-putih border-merah-600',
+    kelas: 'bg-bahaya text-putih border-bahaya',
   },
 } as const;
 

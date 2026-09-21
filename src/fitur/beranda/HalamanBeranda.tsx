@@ -124,7 +124,7 @@ export function HalamanBeranda() {
         {sisaBaris > 0 ? (
           <Link
             to="/tagihan"
-            className="flex items-center justify-center gap-1 py-2 text-sm text-merah-600 underline underline-offset-4"
+            className="flex items-center justify-center gap-1 py-2 text-sm text-emas-700 underline underline-offset-4"
           >
             Lihat {sisaBaris} lainnya
           </Link>

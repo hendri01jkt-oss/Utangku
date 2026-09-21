@@ -91,7 +91,7 @@ export function HalamanDetailUtang() {
     return (
       <Kartu className="flex flex-col items-center gap-3 py-8 text-center">
         <p className="text-sm text-teks-redup">Utang ini tidak ditemukan.</p>
-        <Link to="/pelanggan" className="text-sm text-merah-600 underline underline-offset-4">
+        <Link to="/pelanggan" className="text-sm text-emas-700 underline underline-offset-4">
           Kembali ke daftar pelanggan
         </Link>
       </Kartu>
@@ -164,7 +164,7 @@ export function HalamanDetailUtang() {
             </p>
             <p
               className={`angka mt-1 text-3xl font-semibold ${
-                utang.jenis === 'tunai' ? 'text-sukses' : 'text-merah-600'
+                utang.jenis === 'tunai' ? 'text-sukses' : 'text-emas-700'
               }`}
             >
               {formatRupiah(utang.jenis === 'tunai' ? nominal : sisa)}

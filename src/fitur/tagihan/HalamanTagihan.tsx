@@ -34,7 +34,7 @@ function Kelompok({
           {judul}
           <span className="angka font-normal text-teks-samar">({baris.length})</span>
         </h2>
-        <span className="angka text-xs font-semibold text-merah-600">
+        <span className="angka text-xs font-semibold text-bahaya">
           {formatRupiah(total)}
         </span>
       </div>

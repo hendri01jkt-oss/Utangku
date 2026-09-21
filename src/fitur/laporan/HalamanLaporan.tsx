@@ -178,7 +178,7 @@ function RingkasanBulanan({
     <Kartu aria-label="Ringkasan bulan" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-xs text-teks-samar">Sisa piutang akhir {judulBulan(bulan)}</p>
-        <p className="angka shrink-0 text-xl font-semibold text-merah-600">
+        <p className="angka shrink-0 text-xl font-semibold text-navy-900">
           {rupiah(laporan?.sisaPiutang)}
         </p>
       </div>
@@ -322,7 +322,7 @@ function PanelEkspor({
 function DaftarBulan({ bulan, laporan }: { bulan: Bulan; laporan: Laporan | undefined }) {
   return (
     <section aria-label="Transaksi sebulan" className="flex flex-col gap-3">
-      <div className="border-l-4 border-merah-600 pl-3">
+      <div className="border-l-4 border-emas-600 pl-3">
         <p className="text-[10.5px] font-semibold tracking-wider text-teks-samar uppercase">
           Rincian sebulan
         </p>
@@ -362,7 +362,7 @@ function PanelHari({
   return (
     <Kartu aria-label="Rincian satu hari" className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 border-l-4 border-merah-600 pl-3">
+        <div className="min-w-0 border-l-4 border-emas-600 pl-3">
           <p className="text-[10.5px] font-semibold tracking-wider text-teks-samar uppercase">
             Rincian harian
           </p>

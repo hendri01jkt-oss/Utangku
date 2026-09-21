@@ -78,7 +78,7 @@ export function FormPembayaran({
 
         <div className="rounded-[var(--radius-kontrol)] bg-permukaan-2 p-3">
           <p className="text-xs text-teks-samar">Sisa utang</p>
-          <p className="angka mt-0.5 text-xl font-semibold text-merah-600">
+          <p className="angka mt-0.5 text-xl font-semibold text-navy-900">
             {formatRupiah(sisa)}
           </p>
         </div>
@@ -123,7 +123,7 @@ export function FormPembayaran({
                 className={cn(
                   'min-h-9 rounded-full border px-3.5 text-sm transition-colors',
                   metode === m.nilai
-                    ? 'border-merah-600 bg-merah-600 text-putih'
+                    ? 'border-emas-600 bg-emas-500 font-medium text-navy-900'
                     : 'border-garis bg-putih text-teks-redup hover:bg-permukaan-2',
                 )}
               >

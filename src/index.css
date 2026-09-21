@@ -39,12 +39,12 @@
 
   /* Fokus keyboard selalu terlihat — jangan pernah dimatikan. */
   :focus-visible {
-    outline: 2px solid var(--color-merah-600);
+    outline: 2px solid var(--color-emas-600);
     outline-offset: 2px;
   }
 
   ::selection {
-    background: var(--color-merah-600);
+    background: var(--color-navy-900);
     color: var(--color-putih);
   }
 }
@@ -116,13 +116,13 @@
 
   /*
    * Tombol utama: tepi bawah pekat sebagai "tebal" kartu, bukan bayangan
-   * kabur. Warnanya merah-700 yang sudah ada di palet — tidak ada warna
+   * kabur. Warnanya gold-700 yang sudah ada di palet — tidak ada warna
    * baru, hanya dipakai sebagai sisi yang tersembunyi dari cahaya.
    */
   .tombol-timbul {
     box-shadow:
-      0 2px 0 var(--color-merah-700),
-      0 4px 10px rgb(198 40 40 / 0.28);
+      0 2px 0 var(--color-emas-700),
+      0 4px 10px rgb(125 98 32 / 0.30);
     transition:
       box-shadow 120ms ease,
       transform 120ms ease;
@@ -131,8 +131,8 @@
   .tombol-timbul:active {
     transform: translateY(2px);
     box-shadow:
-      0 0 0 var(--color-merah-700),
-      0 1px 3px rgb(198 40 40 / 0.3);
+      0 0 0 var(--color-emas-700),
+      0 1px 3px rgb(125 98 32 / 0.32);
   }
 
   /* Nonaktif tidak boleh terlihat timbul — ia memang tidak bisa ditekan. */
