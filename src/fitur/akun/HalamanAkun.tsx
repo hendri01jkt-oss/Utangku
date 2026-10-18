@@ -4,7 +4,7 @@ import { Input, Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo } from '@/fitur/auth/LayoutAuth';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { ubahWarung } from '@/data/repo/warung';
-import { contohPesan, TEMPLATE_BAWAAN } from '@/fitur/tagihan/pesanTagihan';
+import { contohPesan, TEMPLATE_BAWAAN, templateAktif } from '@/fitur/tagihan/pesanTagihan';
 import { useKeluar } from '@/fitur/auth/useKeluar';
 import { KartuSinkron } from './KartuSinkron';
 import { lebarKertasSah, UKURAN_KERTAS, type LebarKertas } from '@/fitur/struk/barisStruk';
@@ -39,7 +39,7 @@ export function HalamanAkun() {
     setNamaWarung(warung.nama_warung);
     setNoWa(warung.no_wa_warung ?? '');
     setTempo(String(warung.tempo_default_hari));
-    setTemplate(warung.template_pesan_tagihan || TEMPLATE_BAWAAN);
+    setTemplate(templateAktif(warung.template_pesan_tagihan));
     setLebarStruk(lebarKertasSah(warung.lebar_struk));
   }, [warung]);
 
