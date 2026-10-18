@@ -80,25 +80,23 @@ export function HalamanDetailPelanggan() {
 
       <Kartu className="flex flex-col gap-3">
         {/* Nama sudah ada di judul halaman; tidak diulang di sini. */}
-        <div className="flex items-center gap-3">
-          <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={44} />
-          <div className="min-w-0">
-            <p className="text-sm text-teks-redup">
-              {pelanggan.no_wa ? pelanggan.no_wa : 'Nomor WA belum diisi'}
-            </p>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={36} />
+          <p className="text-sm text-teks-redup">
+            {pelanggan.no_wa ? pelanggan.no_wa : 'Nomor WA belum diisi'}
+          </p>
         </div>
 
-        <div className="rounded-[var(--radius-kontrol)] bg-permukaan-2 p-3">
-          <p className="text-xs text-teks-samar">Sisa utang</p>
-          <p className="angka mt-1 text-2xl font-semibold text-emas-700">
-            {formatRupiah(totalSisa)}
-          </p>
-          <p className="mt-1 text-xs text-teks-samar">
-            {belumLunas.length > 0
-              ? `${belumLunas.length} transaksi belum lunas`
-              : 'Semua utang sudah lunas'}
-          </p>
+        <div className="flex items-center justify-between gap-3 rounded-[var(--radius-kontrol)] bg-permukaan-2 px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-xs text-teks-samar">Sisa utang</p>
+            <p className="text-xs text-teks-samar">
+              {belumLunas.length > 0
+                ? `${belumLunas.length} transaksi belum lunas`
+                : 'Semua utang sudah lunas'}
+            </p>
+          </div>
+          <p className="angka text-xl font-semibold text-emas-700">{formatRupiah(totalSisa)}</p>
         </div>
 
         {pelanggan.catatan ? (
@@ -113,7 +111,6 @@ export function HalamanDetailPelanggan() {
             namaWarung={warung?.nama_warung ?? 'Warung'}
             template={warung?.template_pesan_tagihan ?? null}
             utangBelumLunas={belumLunas}
-            ukuran="besar"
             penuh
           />
           <div className="grid grid-cols-2 gap-2">

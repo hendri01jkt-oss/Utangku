@@ -73,24 +73,24 @@ export function KartuLinkPantau({
   };
 
   return (
-    <div className="rounded-[var(--radius-kontrol)] border border-garis p-3">
+    <div className="rounded-[var(--radius-kontrol)] border border-garis p-2.5">
       <div className="flex items-center gap-2">
         <Eye size={15} className="shrink-0 text-teks-redup" aria-hidden />
         <p className="text-sm font-medium text-teks-utama">Link pantau pelanggan</p>
       </div>
 
-      <p className="mt-1 text-xs text-teks-samar">
+      <p className="mt-0.5 text-xs leading-snug text-teks-samar">
         Pelanggan bisa melihat riwayat dan sisa utangnya sendiri, tanpa perlu akun.
         Halaman itu hanya bisa dibaca, tidak bisa diubah.
       </p>
 
       {/* Alamatnya ditampilkan, bukan disembunyikan di balik tombol: kalau
           penyalinan otomatis gagal, ini satu-satunya jalan keluar. */}
-      <p className="mt-2 rounded bg-permukaan-2 px-2 py-1.5 text-xs break-all text-teks-redup">
+      <p className="mt-1.5 rounded bg-permukaan-2 px-2 py-1 text-[11px] leading-snug break-all text-teks-redup">
         {alamat}
       </p>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-1.5 grid grid-cols-2 gap-2">
         <Tombol
           varian="sekunder"
           onClick={() => void salin()}
@@ -105,7 +105,7 @@ export function KartuLinkPantau({
 
       {galat ? <p className="mt-2 text-xs text-bahaya">{galat}</p> : null}
 
-      <p className="mt-2 text-xs text-teks-samar">
+      <p className="mt-1.5 text-xs text-teks-samar">
         {terakhirDilihat
           ? `Terakhir dibuka pelanggan: ${formatWaktu(terakhirDilihat)}`
           : 'Belum pernah dibuka pelanggan.'}
@@ -130,7 +130,7 @@ export function KartuLinkPantau({
         <button
           type="button"
           onClick={() => setKonfirmasiGanti(true)}
-          className="mt-2 flex min-h-11 items-center gap-1.5 text-xs text-teks-redup underline underline-offset-4"
+          className="flex min-h-9 items-center gap-1.5 text-xs text-teks-redup underline underline-offset-4"
         >
           <RefreshCw size={13} aria-hidden />
           Ganti link (kalau link lama bocor)
