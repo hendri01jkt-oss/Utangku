@@ -120,7 +120,15 @@
    * baru, hanya dipakai sebagai sisi yang tersembunyi dari cahaya.
    */
   .tombol-timbul {
+    /*
+     * Gradasi emas halus dari atas (lebih terang) ke bawah (gold-500).
+     * Bagian terangnya hanya membuat latar LEBIH terang, jadi kontras teks
+     * navy di atasnya naik, bukan turun dari 7.38:1. Kilau 1px di tepi atas
+     * memberi kesan permukaan logam tanpa filter atau blur.
+     */
+    background-image: linear-gradient(180deg, #dcc273 0%, var(--color-emas-500) 100%);
     box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
       0 2px 0 var(--color-emas-700),
       0 4px 10px rgb(125 98 32 / 0.30);
     transition:
@@ -128,15 +136,22 @@
       transform 120ms ease;
   }
 
+  .tombol-timbul:hover {
+    background-image: linear-gradient(180deg, #e3cb85 0%, #d0b055 100%);
+  }
+
   .tombol-timbul:active {
+    background-image: linear-gradient(180deg, var(--color-emas-500) 0%, var(--color-emas-600) 100%);
     transform: translateY(2px);
     box-shadow:
+      inset 0 1px 2px rgb(125 98 32 / 0.35),
       0 0 0 var(--color-emas-700),
       0 1px 3px rgb(125 98 32 / 0.32);
   }
 
   /* Nonaktif tidak boleh terlihat timbul — ia memang tidak bisa ditekan. */
   .tombol-timbul:disabled {
+    background-image: none;
     box-shadow: none;
     transform: none;
   }

@@ -21,9 +21,9 @@ const gayaVarian: Record<Varian, string> = {
    * jadi tanpa tepi itu batas tombolnya sendiri tidak terlihat.
    */
   utama:
-    'bg-emas-500 text-navy-900 font-semibold border border-emas-600 hover:bg-emas-600 active:bg-emas-600 tombol-timbul',
+    'bg-emas-500 text-navy-900 font-semibold border border-emas-600 tombol-timbul',
   /* Putih bergaris: aksi setara yang bukan aksi utama. */
-  sekunder: 'permukaan text-teks-utama sorot-kartu bisa-ditekan',
+  sekunder: 'permukaan text-navy-900 font-medium border border-emas-600/50 sorot-kartu bisa-ditekan',
   /* Tanpa latar, untuk aksi tersier. */
   halus: 'text-teks-redup hover:bg-permukaan-2 hover:text-teks-utama',
   /*
