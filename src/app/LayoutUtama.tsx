@@ -50,9 +50,9 @@ export function LayoutUtama() {
         menyatu lewat theme-color yang sama.
       */}
       <header
-        className="sticky top-0 z-10 border-b border-emas-500/40 px-4 py-3 text-navy-900"
+        className="sticky top-0 z-10 border-b border-emas-500/40 px-4 py-2 text-navy-900"
         style={{
-          paddingTop: 'max(0.75rem, env(safe-area-inset-top))',
+          paddingTop: 'max(0.5rem, env(safe-area-inset-top))',
           backgroundColor: '#fffdf6',
         }}
       >
@@ -87,7 +87,7 @@ export function LayoutUtama() {
       </header>
 
       <main
-        className="flex-1 px-4 py-4"
+        className="flex-1 px-4 pb-4 pt-3"
         style={{ paddingBottom: 'calc(var(--tinggi-nav) + 1.5rem)' }}
       >
         <Outlet />

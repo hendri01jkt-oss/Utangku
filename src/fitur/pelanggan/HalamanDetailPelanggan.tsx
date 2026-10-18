@@ -58,7 +58,7 @@ export function HalamanDetailPelanggan() {
   const belumLunas = utang.filter((t) => t.status !== 'lunas');
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -78,12 +78,12 @@ export function HalamanDetailPelanggan() {
         </Link>
       </div>
 
-      <Kartu className="flex flex-col gap-4">
+      <Kartu className="flex flex-col gap-3">
+        {/* Nama sudah ada di judul halaman; tidak diulang di sini. */}
         <div className="flex items-center gap-3">
-          <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={56} />
+          <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={44} />
           <div className="min-w-0">
-            <p className="truncate font-medium">{pelanggan.nama}</p>
-            <p className="text-xs text-teks-samar">
+            <p className="text-sm text-teks-redup">
               {pelanggan.no_wa ? pelanggan.no_wa : 'Nomor WA belum diisi'}
             </p>
           </div>
