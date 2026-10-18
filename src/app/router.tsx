@@ -50,9 +50,6 @@ const FormUtang = lazy(() =>
 const HalamanDetailUtang = lazy(() =>
   import('@/fitur/utang/HalamanDetailUtang').then((m) => ({ default: m.HalamanDetailUtang })),
 );
-const FormTunai = lazy(() =>
-  import('@/fitur/tunai/FormTunai').then((m) => ({ default: m.FormTunai })),
-);
 const HalamanTagihan = lazy(() =>
   import('@/fitur/tagihan/HalamanTagihan').then((m) => ({ default: m.HalamanTagihan })),
 );
@@ -100,7 +97,6 @@ const rute: RouteObject[] = [
           { path: 'pelanggan/:id/bayar', element: tunggu(<HalamanDetailPelanggan />) },
           { path: 'pelanggan/:id/ubah', element: tunggu(<FormPelanggan mode="ubah" />) },
           { path: 'utang/baru', element: tunggu(<FormUtang mode="baru" />) },
-          { path: 'tunai/baru', element: tunggu(<FormTunai />) },
           { path: 'utang/:id', element: tunggu(<HalamanDetailUtang />) },
           { path: 'utang/:id/bayar', element: tunggu(<HalamanDetailUtang />) },
           { path: 'utang/:id/ubah', element: tunggu(<FormUtang mode="ubah" />) },

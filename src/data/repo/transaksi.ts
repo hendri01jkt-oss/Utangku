@@ -16,17 +16,6 @@ export interface DataUtangBaru {
   item?: readonly ItemBaru[];
 }
 
-export interface DataTunaiBaru {
-  warung_id: string;
-  /** Boleh null: pembeli lewat yang tidak perlu dicatat identitasnya. */
-  pelanggan_id?: string | null;
-  nominal: number;
-  keterangan?: string | null;
-  tanggal?: string;
-  dibuat_oleh?: string | null;
-  item?: readonly ItemBaru[];
-}
-
 /**
  * Tanggal hari ini menurut Waktu Indonesia Barat, format YYYY-MM-DD.
  *
@@ -117,44 +106,6 @@ export async function catatUtang(data: DataUtangBaru) {
     status: 'belum_lunas',
     total_dibayar: 0,
     reminder_hari_sebelum: data.reminder_hari_sebelum ?? 3,
-    reminder_terkirim_untuk: null,
-    dibuat_oleh: data.dibuat_oleh ?? null,
-    created_at: waktu,
-    updated_at: waktu,
-    deleted_at: null,
-  };
-  return simpanTransaksi(baris, item);
-}
-
-/**
- * Penjualan tunai: uangnya diterima di tempat, jadi ini BUKAN piutang.
- *
- * status dan total_dibayar diisi lunas secara lokal supaya beranda dan
- * halaman tagihan langsung benar sebelum sync. Di server, trigger
- * fn_status_utang() memaksa nilai yang sama — jadi kalaupun nilai lokal ini
- * salah, ia tidak akan pernah sampai ke sana.
- *
- * Sengaja TIDAK membuat baris `pembayaran`. Kalau dibuat, "Tertagih bulan
- * ini" — yang artinya utang yang berhasil ditagih — akan ikut membengkak,
- * sekaligus terhitung dua kali terhadap angka penjualan tunai.
- */
-export async function catatTunai(data: DataTunaiBaru) {
-  const waktu = sekarang();
-  const item = data.item ?? [];
-  const { nominal, keterangan } = dariItem(item, data.nominal, data.keterangan);
-
-  const baris: BarisTransaksi = {
-    id: idBaru(),
-    warung_id: data.warung_id,
-    pelanggan_id: data.pelanggan_id ?? null,
-    jenis: 'tunai',
-    tanggal: data.tanggal ?? tanggalHariIni(),
-    nominal,
-    keterangan,
-    jatuh_tempo: null,
-    status: 'lunas',
-    total_dibayar: nominal,
-    reminder_hari_sebelum: 3,
     reminder_terkirim_untuk: null,
     dibuat_oleh: data.dibuat_oleh ?? null,
     created_at: waktu,

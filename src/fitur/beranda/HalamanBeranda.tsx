@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Banknote, Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { Kartu, KartuStatistik, TombolTautan } from '@/komponen/ui';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { formatRupiah } from '@/lib/uang';
@@ -63,15 +63,6 @@ export function HalamanBeranda() {
             ikon={<Plus size={18} />}
           >
             Catat Utang
-          </TombolTautan>
-          {/*
-            Penjualan tunai diletakkan sebagai tombol kedua, bukan disamakan
-            besarnya dengan Catat Utang: mencatat utang adalah alasan
-            aplikasi ini dipasang, dan tombolnya harus tetap yang paling
-            gampang dikenai jempol.
-          */}
-          <TombolTautan to="/tunai/baru" varian="sekunder" penuh ikon={<Banknote size={16} />}>
-            Catat Penjualan Tunai
           </TombolTautan>
         </div>
       </section>
