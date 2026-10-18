@@ -244,14 +244,18 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
             />
           )}
 
-          <button
-            type="button"
-            onClick={() => setPakaiItem(!pakaiItem)}
-            className="flex min-h-11 items-center gap-1.5 self-start text-sm text-emas-700 underline underline-offset-4"
-          >
-            <ListPlus size={16} aria-hidden />
-            {pakaiItem ? 'Pakai keterangan biasa saja' : 'Tambah isi belanjaan'}
-          </button>
+          {/* Tombol kembali ke keterangan biasa sudah dihapus. Tombol ini hanya
+              muncul untuk utang lama tanpa rincian yang sedang diubah. */}
+          {pakaiItem ? null : (
+            <button
+              type="button"
+              onClick={() => setPakaiItem(true)}
+              className="flex min-h-11 items-center gap-1.5 self-start text-sm text-emas-700 underline underline-offset-4"
+            >
+              <ListPlus size={16} aria-hidden />
+              Tambah isi belanjaan
+            </button>
+          )}
 
           <Input
             label="Tanggal"
