@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowDownLeft, ArrowUpRight, FileSpreadsheet, FileText, Wallet, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, CalendarRange, FileSpreadsheet, FileText, Wallet, X } from 'lucide-react';
 import { Input, Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat } from '@/fitur/auth/LayoutAuth';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -66,11 +66,25 @@ export function HalamanLaporan() {
    * berhenti di hari ini akan bertentangan dengan apa yang terlihat: ada
    * tanggal bertitik di kalender yang nominalnya tidak ikut terhitung.
    */
-  const periode: Periode = periodeBulan(bulan);
+  /*
+   * Rentang tanggal pilihan sendiri. Kalau diisi, ia MENGGANTIKAN bulan untuk
+   * seluruh layar — ringkasan, daftar, dan berkas simpanan memakai rentang
+   * yang sama — dan kalender disembunyikan supaya tidak ada dua cakupan yang
+   * tampil bersamaan. Kosong = tampilan kalender sebulan seperti biasa.
+   */
+  const [rentang, setRentang] = useState<Periode | null>(null);
+  const periode: Periode = rentang ?? periodeBulan(bulan);
+  const rentangSah =
+    periode.mulai !== '' && periode.sampai !== '' && periode.mulai <= periode.sampai;
+  const label = rentang
+    ? rentangSah
+      ? `${formatTanggal(periode.mulai)} – ${formatTanggal(periode.sampai)}`
+      : 'Rentang tanggal'
+    : judulBulan(bulan);
 
   const laporan = useLiveQuery(
-    async () => (warung ? await susunLaporan(warung.id, periode) : undefined),
-    [warung?.id, periode.mulai, periode.sampai],
+    async () => (warung && rentangSah ? await susunLaporan(warung.id, periode) : undefined),
+    [warung?.id, periode.mulai, periode.sampai, rentangSah],
   );
 
   /*
@@ -94,7 +108,7 @@ export function HalamanLaporan() {
     setTanggalTerpilih(null);
   }
 
-  async function ekspor(jenis: 'pdf' | 'excel', rentang: Periode) {
+  async function ekspor(jenis: 'pdf' | 'excel') {
     if (!warung) return;
     setGalat(null);
     setSedangEkspor(jenis);
@@ -105,10 +119,7 @@ export function HalamanLaporan() {
        * untuknya akan membaca ulang IndexedDB setiap ketikan di kotak
        * tanggal — pekerjaan yang hasilnya hampir selalu dibuang.
        */
-      const data =
-        rentang.mulai === periode.mulai && rentang.sampai === periode.sampai && laporan
-          ? laporan
-          : await susunLaporan(warung.id, rentang);
+      const data = laporan ?? (await susunLaporan(warung.id, periode));
       if (jenis === 'pdf') await unduhPdf(data, warung.nama_warung);
       else await unduhExcel(data, warung.nama_warung);
     } catch (err) {
@@ -122,21 +133,45 @@ export function HalamanLaporan() {
     <div className="flex flex-col gap-4">
       <h1 className="text-lg font-semibold">Laporan</h1>
 
-      <NavigasiBulan bulan={bulan} onGeser={gantiBulan} />
+      {rentang ? (
+        <PilihRentang
+          rentang={rentang}
+          sah={rentangSah}
+          onUbah={setRentang}
+          onTutup={() => setRentang(null)}
+        />
+      ) : (
+        <>
+          <NavigasiBulan bulan={bulan} onGeser={gantiBulan} />
+          <button
+            type="button"
+            onClick={() => {
+              setTanggalTerpilih(null);
+              setRentang(periodeBulan(bulan));
+            }}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] border border-emas-600/50 bg-putih px-4 text-sm font-medium text-navy-900"
+          >
+            <CalendarRange size={18} aria-hidden />
+            Pilih tanggal sendiri
+          </button>
+        </>
+      )}
 
-      <RingkasanBulanan bulan={bulan} laporan={laporan} />
+      <RingkasanBulanan label={label} laporan={laporan} />
 
-      <KalenderBulan
-        bulan={bulan}
-        ringkasan={kalender}
-        terpilih={tanggalTerpilih}
-        hariIni={tanggalHariIni()}
-        onPilih={(t) => setTanggalTerpilih((lama) => (lama === t ? null : t))}
-      />
+      {rentang ? null : (
+        <KalenderBulan
+          bulan={bulan}
+          ringkasan={kalender}
+          terpilih={tanggalTerpilih}
+          hariIni={tanggalHariIni()}
+          onPilih={(t) => setTanggalTerpilih((lama) => (lama === t ? null : t))}
+        />
+      )}
 
-      {/* Tidak ada tanggal terpilih = cakupan sebulan penuh, keadaan bawaan. */}
-      {tanggalTerpilih === null ? (
-        <DaftarBulan bulan={bulan} laporan={laporan} />
+      {/* Tidak ada tanggal terpilih = cakupan penuh (sebulan atau rentang pilihan). */}
+      {tanggalTerpilih === null || rentang ? (
+        <DaftarBulan label={label} laporan={laporan} bisaKetuk={!rentang} />
       ) : (
         <PanelHari
           tanggal={tanggalTerpilih}
@@ -148,11 +183,10 @@ export function HalamanLaporan() {
       <KotakGalat pesan={galat} />
 
       <PanelEkspor
-        bulan={bulan}
-        periodeBulanAktif={periode}
-        siap={laporan !== undefined}
+        label={label}
+        siap={laporan !== undefined && rentangSah}
         sedang={sedangEkspor}
-        onEkspor={(jenis, rentang) => void ekspor(jenis, rentang)}
+        onEkspor={(jenis) => void ekspor(jenis)}
       />
     </div>
   );
@@ -167,10 +201,10 @@ export function HalamanLaporan() {
  * 390 px.
  */
 function RingkasanBulanan({
-  bulan,
+  label,
   laporan,
 }: {
-  bulan: Bulan;
+  label: string;
   laporan: Laporan | undefined;
 }) {
   const rupiah = (n: number | undefined) => (laporan ? formatRupiah(n ?? 0) : '—');
@@ -200,106 +234,82 @@ function RingkasanBulanan({
           <span className="angka text-lg font-bold text-sukses">{rupiah(laporan?.totalTertagih)}</span>
         </Kartu>
       </div>
-      <p className="text-center text-xs text-teks-samar">{judulBulan(bulan)}</p>
+      <p className="text-center text-xs text-teks-samar">{label}</p>
     </section>
   );
 }
 
 /**
- * Ekspor, dengan pemilih rentangnya sendiri.
- *
- * Rentang khusus ditaruh DI SINI, bukan sebagai chip periode di atas halaman,
- * supaya ia tidak pernah menjadi pengendali periode kedua: yang tampil di
- * layar tetap sepenuhnya ditentukan kalender, dan rentang bebas hanya
- * memengaruhi berkas yang diunduh. Laporan setahun atau per kuartal tetap
- * bisa diambil tanpa membuat pemilik warung menebak-nebak angka mana yang
- * sedang dilihatnya.
- *
- * Bentuknya sengaja setipis mungkin — satu baris keterangan di atas dua
- * tombol. Kalender adalah isi utama halaman ini, dan setiap piksel yang
- * dipakai di atasnya mendorong kalender itu keluar dari layar pertama.
+ * Pemilih tanggal sendiri. Yang dipilih di sini menentukan SELURUH layar dan
+ * berkas yang disimpan — tidak ada rentang kedua yang tersembunyi.
  */
+function PilihRentang({
+  rentang,
+  sah,
+  onUbah,
+  onTutup,
+}: {
+  rentang: Periode;
+  sah: boolean;
+  onUbah: (r: Periode) => void;
+  onTutup: () => void;
+}) {
+  return (
+    <Kartu className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold">Pilih tanggal</p>
+        <button
+          type="button"
+          onClick={onTutup}
+          className="flex min-h-9 items-center gap-1 text-sm text-teks-redup underline underline-offset-2"
+        >
+          <X size={14} aria-hidden /> Kembali ke kalender
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Dari tanggal"
+          type="date"
+          value={rentang.mulai}
+          onChange={(e) => onUbah({ ...rentang, mulai: e.target.value })}
+        />
+        <Input
+          label="Sampai tanggal"
+          type="date"
+          value={rentang.sampai}
+          onChange={(e) => onUbah({ ...rentang, sampai: e.target.value })}
+        />
+      </div>
+      {!sah ? (
+        <KotakGalat pesan="Isi kedua tanggal. Tanggal akhir tidak boleh lebih awal dari tanggal mulai." />
+      ) : null}
+    </Kartu>
+  );
+}
+
+/** Simpan laporan: berkasnya persis yang sedang tampil di layar. */
 function PanelEkspor({
-  bulan,
-  periodeBulanAktif,
+  label,
   siap,
   sedang,
   onEkspor,
 }: {
-  bulan: Bulan;
-  periodeBulanAktif: Periode;
+  label: string;
   siap: boolean;
   sedang: 'pdf' | 'excel' | null;
-  onEkspor: (jenis: 'pdf' | 'excel', rentang: Periode) => void;
+  onEkspor: (jenis: 'pdf' | 'excel') => void;
 }) {
-  const [pakaiRentang, setPakaiRentang] = useState(false);
-  const [rentang, setRentang] = useState<Periode>(periodeBulanAktif);
-
-  /*
-   * Dibuka = kotak tanggalnya disemai dari bulan yang SEDANG dilihat. Kalau
-   * hanya diisi sekali saat komponen dipasang, pemilik warung yang menggeser
-   * ke Agustus lalu menekan "pilih rentang lain" akan menemukan September di
-   * sana tanpa sebab yang terlihat.
-   */
-  function togelRentang() {
-    if (!pakaiRentang) setRentang(periodeBulanAktif);
-    setPakaiRentang(!pakaiRentang);
-  }
-
-  const dipakai = pakaiRentang ? rentang : periodeBulanAktif;
-  const sah = dipakai.mulai <= dipakai.sampai;
-  const bisa = siap && sah && sedang === null;
-
+  const bisa = siap && sedang === null;
   return (
-    <section aria-label="Ekspor laporan" className="flex flex-col gap-2">
-      {/*
-        Cakupan yang akan diekspor selalu dieja di sini. Tanpa ini, satu-satunya
-        petunjuk adalah kotak tanggal yang mungkin sedang tertutup — dan berkas
-        yang isinya bukan yang dikira baru ketahuan setelah dibuka.
-      */}
+    <section aria-label="Simpan laporan" className="flex flex-col gap-2">
       <p className="text-xs text-teks-samar">
-        Simpan laporan{' '}
-        <span className="font-medium text-teks-redup">
-          {pakaiRentang
-            ? `${formatTanggal(dipakai.mulai)} – ${formatTanggal(dipakai.sampai)}`
-            : judulBulan(bulan)}
-        </span>{' '}
-        ·{' '}
-        <button
-          type="button"
-          onClick={togelRentang}
-          className="underline underline-offset-2 hover:text-teks-utama"
-        >
-          {pakaiRentang ? `pakai ${judulBulan(bulan)}` : 'pilih tanggal lain'}
-        </button>
+        Simpan laporan <span className="font-medium text-teks-redup">{label}</span>
       </p>
-
-      {pakaiRentang ? (
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Dari tanggal"
-            type="date"
-            value={rentang.mulai}
-            onChange={(e) => setRentang((r) => ({ ...r, mulai: e.target.value }))}
-          />
-          <Input
-            label="Sampai tanggal"
-            type="date"
-            value={rentang.sampai}
-            onChange={(e) => setRentang((r) => ({ ...r, sampai: e.target.value }))}
-          />
-        </div>
-      ) : null}
-
-      {!sah ? (
-        <KotakGalat pesan="Tanggal akhir tidak boleh lebih awal dari tanggal mulai." />
-      ) : null}
-
       <div className="grid grid-cols-2 gap-3">
         <Tombol
           varian="sekunder"
           ikon={<FileText size={16} />}
-          onClick={() => onEkspor('pdf', dipakai)}
+          onClick={() => onEkspor('pdf')}
           disabled={!bisa}
         >
           {sedang === 'pdf' ? 'Menyiapkan…' : 'Simpan PDF'}
@@ -307,7 +317,7 @@ function PanelEkspor({
         <Tombol
           varian="sekunder"
           ikon={<FileSpreadsheet size={16} />}
-          onClick={() => onEkspor('excel', dipakai)}
+          onClick={() => onEkspor('excel')}
           disabled={!bisa}
         >
           {sedang === 'excel' ? 'Menyiapkan…' : 'Simpan Excel'}
@@ -325,17 +335,27 @@ function PanelEkspor({
  * sebagai dua isi dari satu tempat, bukan dua bagian halaman yang kebetulan
  * bertumpuk.
  */
-function DaftarBulan({ bulan, laporan }: { bulan: Bulan; laporan: Laporan | undefined }) {
+function DaftarBulan({
+  label,
+  laporan,
+  bisaKetuk,
+}: {
+  label: string;
+  laporan: Laporan | undefined;
+  bisaKetuk: boolean;
+}) {
   return (
     <section aria-label="Transaksi sebulan" className="flex flex-col gap-3">
       <div className="border-l-4 border-emas-600 pl-3">
         <p className="text-[10.5px] font-semibold tracking-wider text-teks-samar uppercase">
-          Satu bulan
+          {bisaKetuk ? 'Satu bulan' : 'Rentang tanggal'}
         </p>
-        <h2 className="text-[15px] font-semibold">{judulBulan(bulan)}</h2>
-        <p className="text-xs text-teks-samar">
-          Ketuk satu tanggal di kalender untuk melihat hari itu saja.
-        </p>
+        <h2 className="text-[15px] font-semibold">{label}</h2>
+        {bisaKetuk ? (
+          <p className="text-xs text-teks-samar">
+            Ketuk satu tanggal di kalender untuk melihat hari itu saja.
+          </p>
+        ) : null}
       </div>
 
       <TigaSeksi
