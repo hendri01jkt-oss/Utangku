@@ -39,12 +39,11 @@ export default defineConfig({
         orientation: 'portrait',
         background_color: '#f4f4f6',
         /*
-         * Navy, bukan gold. Bilah status Android menggambar ikonnya putih di
-         * atas theme_color, dan putih di atas gold #c9a84c hanya 2.29:1 —
-         * jamnya sendiri jadi tidak terbaca. Nilai ini juga sengaja sama
-         * dengan warna header aplikasi supaya keduanya menyatu.
+         * Sama dengan ujung atas gradasi header (#dcc273) supaya bilah status
+         * menyatu dengannya. Android memilih ikon gelap otomatis di atas warna
+         * terang, jadi jam tetap terbaca.
          */
-        theme_color: '#0f1b3d',
+        theme_color: '#dcc273',
         icons: [
           { src: 'ikon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'ikon-512.png', sizes: '512x512', type: 'image/png' },
