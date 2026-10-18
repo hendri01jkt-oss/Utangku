@@ -1,43 +1,18 @@
 import { barisStruk, UKURAN_KERTAS, type DataStruk, type LebarKertas } from './barisStruk';
 
 /*
- * Struk digambar untuk PRINTER SATU-BIT, bukan untuk layar.
+ * Gambar struk ini untuk DISIMPAN dan DIBAGIKAN (galeri, WhatsApp), bukan
+ * untuk printer — pencetakan Bluetooth memakai byteStruk() yang terpisah.
  *
- * Printer thermal tidak punya abu-abu: setiap titik hanya dipanaskan atau
- * tidak. Canvas, sebaliknya, menggambar huruf dengan antialias — tepinya
- * abu-abu. Ketika aplikasi cetak mengambangkan gambar itu menjadi satu bit,
- * seluruh tepi abu-abu itu hilang, dan yang tersisa adalah batang huruf yang
- * lebih kurus dan patah-patah daripada yang terlihat di layar.
- *
- * Karena itu pengambangannya dikerjakan DI SINI, bukan diserahkan ke
- * aplikasi cetak yang ambangnya tidak kita ketahui:
- *
- *   1. digambar pada kanvas 3x lipat, supaya bentuk hurufnya utuh
- *   2. diperkecil ke grid titik printer yang sebenarnya (384 atau 576)
- *   3. diambangkan menjadi hitam pekat atau putih murni — tidak ada abu-abu
- *      yang tersisa untuk ditafsirkan siapa pun
- *   4. diperbesar kembali dengan kelipatan BULAT tanpa penghalusan
- *
- * Langkah 4 itu yang membuat gambarnya tetap tajam saat diperbesar di layar
- * atau dikirim lewat WhatsApp, tanpa mengubah apa pun bagi printer: satu
- * titik printer tetap satu blok utuh, dan pengecilan 2:1 di aplikasi cetak
- * mengembalikannya persis seperti semula.
+ * Dulu gambarnya dibuat 1-bit selebar grid printer (384/576 titik) lalu
+ * diperbesar 2x tanpa penghalusan. Di layar HP hasilnya bergerigi dan
+ * huruf-hurufnya pecah. Sekarang digambar langsung pada resolusi tinggi
+ * (1152 piksel lebar) dengan antialias biasa, jadi tajam di layar dan tetap
+ * jelas saat diperbesar atau dikirim lewat WhatsApp.
  */
 
-/** Piksel keluaran per titik printer. Harus bilangan bulat. */
-const SKALA_KELUARAN = 2;
-
-/** Faktor gambar sementara sebelum diperkecil ke grid titik. */
-const SUPERSAMPLE = 3;
-
-/**
- * Ambang hitam-putih, 0..1 terhadap luminans.
- *
- * Sengaja tinggi. Titik yang tertutup tinta separuh pun dijadikan hitam
- * penuh, sehingga batang huruf menebal sedikit alih-alih menipis — persis
- * lawan dari yang terjadi kalau pengambangan diserahkan ke aplikasi cetak.
- */
-const AMBANG = 0.55;
+/** Lebar gambar keluaran dalam piksel. */
+const LEBAR_KELUARAN = 1152;
 
 const TINGGI_PISAH = 20;
 const TINGGI_KOSONG = 14;
@@ -88,33 +63,7 @@ function buatKanvas(lebar: number, tinggi: number): CanvasRenderingContext2D {
 }
 
 /**
- * Membuang seluruh abu-abu: setiap piksel jadi hitam pekat atau putih murni.
- *
- * Alfa ikut dipenuhkan. PNG dengan piksel tembus pandang tercetak sebagai
- * bidang hitam pekat di sebagian aplikasi cetak — boros kertas sekaligus
- * tidak terbaca.
- */
-function ambangkan(ctx: CanvasRenderingContext2D, lebar: number, tinggi: number): void {
-  const gambar = ctx.getImageData(0, 0, lebar, tinggi);
-  const p = gambar.data;
-  const batas = AMBANG * 255;
-
-  for (let i = 0; i < p.length; i += 4) {
-    // Luminans perseptual: huruf hitam di atas putih, jadi bobot kanalnya
-    // hampir tidak berpengaruh — tapi memakai rumus yang benar membuat
-    // ambangnya tetap masuk akal kalau kelak ada logo berwarna.
-    const lum = 0.299 * (p[i] ?? 0) + 0.587 * (p[i + 1] ?? 0) + 0.114 * (p[i + 2] ?? 0);
-    const nilai = lum < batas ? 0 : 255;
-    p[i] = nilai;
-    p[i + 1] = nilai;
-    p[i + 2] = nilai;
-    p[i + 3] = 255;
-  }
-  ctx.putImageData(gambar, 0, 0);
-}
-
-/**
- * Menggambar struk sebagai PNG hitam-putih murni selebar kertasnya.
+ * Menggambar struk sebagai PNG beresolusi tinggi dengan tata letak sesuai lebar kertasnya.
  *
  * Digambar langsung di canvas, bukan lewat html2canvas: lebar keluarannya
  * harus tepat kelipatan 384 atau 576 titik, dan menyalin tata letak DOM
@@ -137,9 +86,9 @@ export async function gambarStruk(data: DataStruk, lebarMm: LebarKertas): Promis
     baris.reduce((jumlah, b) => jumlah + tinggiBaris(b.jenis, tinggiTeks), 0) +
     PADDING_BAWAH;
 
-  // ── 1. Gambar pada kanvas berlipat ───────────────────────────────────────
-  const kerja = buatKanvas(titik * SUPERSAMPLE, tinggi * SUPERSAMPLE);
-  kerja.scale(SUPERSAMPLE, SUPERSAMPLE);
+  const skala = LEBAR_KELUARAN / titik;
+  const kerja = buatKanvas(LEBAR_KELUARAN, Math.round(tinggi * skala));
+  kerja.scale(skala, skala);
   kerja.fillStyle = '#ffffff';
   kerja.fillRect(0, 0, titik, tinggi);
   kerja.fillStyle = '#000000';
@@ -177,28 +126,8 @@ export async function gambarStruk(data: DataStruk, lebarMm: LebarKertas): Promis
     y += tinggiIni;
   }
 
-  // ── 2. Perkecil ke grid titik printer yang sebenarnya ────────────────────
-  const titikCtx = buatKanvas(titik, tinggi);
-  titikCtx.imageSmoothingEnabled = true;
-  titikCtx.imageSmoothingQuality = 'high';
-  titikCtx.drawImage(kerja.canvas, 0, 0, titik, tinggi);
-
-  // ── 3. Buang seluruh abu-abu ─────────────────────────────────────────────
-  ambangkan(titikCtx, titik, tinggi);
-
-  // ── 4. Perbesar kelipatan bulat, tanpa penghalusan ───────────────────────
-  const keluar = buatKanvas(titik * SKALA_KELUARAN, tinggi * SKALA_KELUARAN);
-  keluar.imageSmoothingEnabled = false;
-  keluar.drawImage(
-    titikCtx.canvas,
-    0,
-    0,
-    titik * SKALA_KELUARAN,
-    tinggi * SKALA_KELUARAN,
-  );
-
   const blob = await new Promise<Blob | null>((selesai) =>
-    keluar.canvas.toBlob(selesai, 'image/png'),
+    kerja.canvas.toBlob(selesai, 'image/png'),
   );
   if (!blob) throw new Error('Gagal membuat gambar struk.');
   return blob;

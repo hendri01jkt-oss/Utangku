@@ -132,7 +132,6 @@ export function PanelStruk({
                 src={pratinjau}
                 alt="Pratinjau struk"
                 className="w-48 max-w-full"
-                style={{ imageRendering: 'pixelated' }}
               />
             </div>
           </div>
