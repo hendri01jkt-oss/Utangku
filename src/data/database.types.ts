@@ -565,6 +565,10 @@ export type Database = {
       }
     }
     Functions: {
+      reset_data_warung: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       buat_warung: {
         Args: {
           p_alamat?: string

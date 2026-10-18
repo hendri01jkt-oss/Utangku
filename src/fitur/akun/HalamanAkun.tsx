@@ -7,6 +7,7 @@ import { ubahWarung } from '@/data/repo/warung';
 import { contohPesan, TEMPLATE_BAWAAN, templateAktif } from '@/fitur/tagihan/pesanTagihan';
 import { useKeluar } from '@/fitur/auth/useKeluar';
 import { KartuSinkron } from './KartuSinkron';
+import { ResetData } from './ResetData';
 import { lebarKertasSah, UKURAN_KERTAS, type LebarKertas } from '@/fitur/struk/barisStruk';
 import { cn } from '@/lib/cn';
 
@@ -201,6 +202,7 @@ export function HalamanAkun() {
         tombolnya pindah ke halaman yang jauh lebih sering dibuka daripada
         ikon kecil di pojok header.
       */}
+      <ResetData />
       <Tombol varian="bahaya" onClick={() => void mintaKeluar()} penuh>
         Keluar dari akun
       </Tombol>
