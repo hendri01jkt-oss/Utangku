@@ -49,7 +49,9 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
   const [keterangan, setKeterangan] = useState('');
   // Bawaannya tetap teks bebas. Isi belanjaan adalah pilihan, bukan jalur
   // yang harus dilewati setiap kali mencatat utang sambil melayani pembeli.
-  const [pakaiItem, setPakaiItem] = useState(false);
+  // Catat utang baru langsung membuka isian per item; keterangan biasa tinggal
+  // dipilih lewat tombol di bawah. Mengubah utang lama tetap mengikuti isinya.
+  const [pakaiItem, setPakaiItem] = useState(mode === 'baru');
   const [item, setItem] = useState<ItemBaru[]>([itemKosong()]);
   const [tanggal, setTanggal] = useState(tanggalHariIni());
   const [pakaiTempo, setPakaiTempo] = useState(false);
