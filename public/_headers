@@ -1,0 +1,24 @@
+# Header untuk Cloudflare Pages (netlify.toml tidak dibaca di sana).
+# Isinya sama dengan netlify.toml; Netlify juga membaca berkas ini.
+
+# Berkas hasil build Vite namanya mengandung hash isi, aman di-cache selamanya.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Service worker dan halaman utama TIDAK boleh di-cache lama, kalau tidak
+# pengguna tertahan di versi lama berhari-hari.
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Type: application/manifest+json; charset=utf-8
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), interest-cohort=()
