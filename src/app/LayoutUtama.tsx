@@ -45,15 +45,15 @@ export function LayoutUtama() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
       {/*
-        Header gradasi emas: teks navy-900 di atasnya >=7.38:1 (ujung gelap
-        #c9a84c), dan bilah status HP menyatu lewat theme-color #dcc273.
+        Header krem terang ala AwetKu dengan garis emas tipis; emas hanya jadi
+        aksen. Teks navy-900 di atas #fffdf6 >16:1, dan bilah status HP
+        menyatu lewat theme-color yang sama.
       */}
       <header
-        className="sticky top-0 z-10 px-4 py-3 text-navy-900"
+        className="sticky top-0 z-10 border-b border-emas-500/40 px-4 py-3 text-navy-900"
         style={{
           paddingTop: 'max(0.75rem, env(safe-area-inset-top))',
-          backgroundImage: 'linear-gradient(180deg, #dcc273 0%, #c9a84c 100%)',
-          boxShadow: '0 1px 0 #b28c31, 0 2px 8px rgb(125 98 32 / 0.25)',
+          backgroundColor: '#fffdf6',
         }}
       >
         <div className="min-w-0">
@@ -69,7 +69,7 @@ export function LayoutUtama() {
                 hanya menambah keramaian di sebelah nama warung yang justru
                 harus menonjol.
               */}
-              <p className="text-[11px] font-medium text-navy-800">UtangKu</p>
+              <p className="text-[11px] font-medium text-emas-700">UtangKu</p>
             </>
           ) : (
             /*

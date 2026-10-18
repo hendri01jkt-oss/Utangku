@@ -25,7 +25,11 @@
      * putih supaya keduanya terbaca sebagai kerangka aplikasi, bukan bagian
      * dari isi yang bisa digulir.
      */
-    background-color: var(--color-permukaan-2);
+    background-color: #fffaf0;
+    /* Gradasi krem-kuning lembut ala AwetKu: kuning di atas, memudar ke
+       krem. Teks navy di atas ujung tergelapnya (#f6e6a8) masih >12:1. */
+    background-image: linear-gradient(180deg, #f6e6a8 0%, #fbf1cc 30%, #fffaf0 70%);
+    background-repeat: no-repeat;
     color: var(--color-teks-utama);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
