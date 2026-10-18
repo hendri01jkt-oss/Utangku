@@ -73,14 +73,12 @@ export function FormPembayaran({
 
   return (
     <BottomSheet judul="Terima Pembayaran" onTutup={onTutup}>
-      <form onSubmit={kirim} className="flex flex-col gap-4" noValidate>
+      <form onSubmit={kirim} className="flex flex-col gap-3" noValidate>
         <KotakGalat pesan={galat} />
 
-        <div className="rounded-[var(--radius-kontrol)] bg-permukaan-2 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-[var(--radius-kontrol)] bg-permukaan-2 px-3 py-2">
           <p className="text-xs text-teks-samar">Sisa utang</p>
-          <p className="angka mt-0.5 text-xl font-semibold text-navy-900">
-            {formatRupiah(sisa)}
-          </p>
+          <p className="angka text-xl font-semibold text-navy-900">{formatRupiah(sisa)}</p>
         </div>
 
         <InputRupiah
@@ -142,16 +140,18 @@ export function FormPembayaran({
         />
 
         <Input
-          label="Catatan"
+          label="Catatan (opsional)"
           value={catatan}
           onChange={(e) => setCatatan(e.target.value)}
           placeholder="mis. dibayar lewat anaknya"
-          bantuan="Opsional."
         />
 
-        <Tombol type="submit" varian="utama" ukuran="besar" penuh disabled={sedangSimpan}>
-          {sedangSimpan ? 'Menyimpan…' : 'Simpan pembayaran'}
-        </Tombol>
+        {/* Menempel di dasar panel: selalu terlihat walau isiannya digulir. */}
+        <div className="sticky bottom-0 -mx-4 bg-putih px-4 pb-1 pt-2">
+          <Tombol type="submit" varian="utama" ukuran="besar" penuh disabled={sedangSimpan}>
+            {sedangSimpan ? 'Menyimpan…' : 'Simpan pembayaran'}
+          </Tombol>
+        </div>
       </form>
     </BottomSheet>
   );
