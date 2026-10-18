@@ -20,8 +20,9 @@ interface Props {
 }
 
 const JENIS = [
-  { kunci: 'utang', label: 'Utang baru', warna: 'bg-bahaya' },
-  { kunci: 'bayar', label: 'Pembayaran', warna: 'bg-sukses' },
+  { kunci: 'utang', label: 'Berutang', warna: 'bg-bahaya' },
+  { kunci: 'bayar', label: 'Bayar', warna: 'bg-sukses' },
+  // Hanya untuk catatan tunai lama; tidak ditampilkan di legenda.
   { kunci: 'tunai', label: 'Tunai', warna: 'bg-tunai-terang' },
 ] as const;
 
@@ -103,7 +104,7 @@ export function KalenderBulan({ bulan, ringkasan, terpilih, hariIni, onPilih }: 
       </div>
 
       <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 pt-2.5 text-[11.5px] text-teks-samar">
-        {JENIS.map((j) => (
+        {JENIS.filter((j) => j.kunci !== 'tunai').map((j) => (
           <span key={j.kunci} className="flex items-center gap-1.5">
             <i className={cn('size-[7px] rounded-full', j.warna)} aria-hidden="true" />
             {j.label}
@@ -188,7 +189,7 @@ function SelTanggal({
         {titik.map((t) => (
           <i
             key={t}
-            className={cn('size-1.5 rounded-full', JENIS.find((j) => j.kunci === t)?.warna)}
+            className={cn('size-2 rounded-full', JENIS.find((j) => j.kunci === t)?.warna)}
           />
         ))}
       </span>

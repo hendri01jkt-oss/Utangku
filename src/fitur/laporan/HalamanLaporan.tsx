@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { FileSpreadsheet, FileText, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, FileSpreadsheet, FileText, Wallet, X } from 'lucide-react';
 import { Input, Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat } from '@/fitur/auth/LayoutAuth';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -126,16 +126,6 @@ export function HalamanLaporan() {
 
       <RingkasanBulanan bulan={bulan} laporan={laporan} />
 
-      <KotakGalat pesan={galat} />
-
-      <PanelEkspor
-        bulan={bulan}
-        periodeBulanAktif={periode}
-        siap={laporan !== undefined}
-        sedang={sedangEkspor}
-        onEkspor={(jenis, rentang) => void ekspor(jenis, rentang)}
-      />
-
       <KalenderBulan
         bulan={bulan}
         ringkasan={kalender}
@@ -154,6 +144,16 @@ export function HalamanLaporan() {
           onTutup={() => setTanggalTerpilih(null)}
         />
       )}
+
+      <KotakGalat pesan={galat} />
+
+      <PanelEkspor
+        bulan={bulan}
+        periodeBulanAktif={periode}
+        siap={laporan !== undefined}
+        sedang={sedangEkspor}
+        onEkspor={(jenis, rentang) => void ekspor(jenis, rentang)}
+      />
     </div>
   );
 }
@@ -175,27 +175,33 @@ function RingkasanBulanan({
 }) {
   const rupiah = (n: number | undefined) => (laporan ? formatRupiah(n ?? 0) : '—');
   return (
-    <Kartu aria-label="Ringkasan bulan" className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-xs text-teks-samar">Sisa piutang akhir {judulBulan(bulan)}</p>
-        <p className="angka shrink-0 text-xl font-semibold text-navy-900">
-          {rupiah(laporan?.sisaPiutang)}
-        </p>
+    <section aria-label="Ringkasan bulan" className="flex flex-col gap-2">
+      {/* Satu angka besar yang paling penting; dua lainnya berwarna dan berikon. */}
+      <Kartu className="flex items-center gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-emas-500 text-navy-900">
+          <Wallet size={22} aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm text-teks-redup">Uang yang belum dibayar</p>
+          <p className="angka text-2xl font-bold text-navy-900">{rupiah(laporan?.sisaPiutang)}</p>
+        </div>
+      </Kartu>
+      <div className="grid grid-cols-2 gap-2">
+        <Kartu padat className="flex flex-col gap-1">
+          <span className="flex items-center gap-1.5 text-sm text-teks-redup">
+            <ArrowUpRight size={18} className="text-bahaya" aria-hidden /> Utang baru
+          </span>
+          <span className="angka text-lg font-bold text-bahaya">{rupiah(laporan?.totalUtangBaru)}</span>
+        </Kartu>
+        <Kartu padat className="flex flex-col gap-1">
+          <span className="flex items-center gap-1.5 text-sm text-teks-redup">
+            <ArrowDownLeft size={18} className="text-sukses" aria-hidden /> Sudah dibayar
+          </span>
+          <span className="angka text-lg font-bold text-sukses">{rupiah(laporan?.totalTertagih)}</span>
+        </Kartu>
       </div>
-      <div className="border-t border-garis" />
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          { label: 'Utang baru', nilai: laporan?.totalUtangBaru, warna: '' },
-          { label: 'Tertagih', nilai: laporan?.totalTertagih, warna: 'text-sukses' },
-          { label: 'Penjualan tunai', nilai: laporan?.totalPenjualanTunai, warna: 'text-tunai' },
-        ].map((k) => (
-          <div key={k.label}>
-            <p className="text-[11px] leading-tight text-teks-samar">{k.label}</p>
-            <p className={cn('angka text-sm font-semibold', k.warna)}>{rupiah(k.nilai)}</p>
-          </div>
-        ))}
-      </div>
-    </Kartu>
+      <p className="text-center text-xs text-teks-samar">{judulBulan(bulan)}</p>
+    </section>
   );
 }
 
@@ -252,7 +258,7 @@ function PanelEkspor({
         yang isinya bukan yang dikira baru ketahuan setelah dibuka.
       */}
       <p className="text-xs text-teks-samar">
-        Ekspor{' '}
+        Simpan laporan{' '}
         <span className="font-medium text-teks-redup">
           {pakaiRentang
             ? `${formatTanggal(dipakai.mulai)} – ${formatTanggal(dipakai.sampai)}`
@@ -264,7 +270,7 @@ function PanelEkspor({
           onClick={togelRentang}
           className="underline underline-offset-2 hover:text-teks-utama"
         >
-          {pakaiRentang ? `pakai ${judulBulan(bulan)}` : 'pilih rentang lain'}
+          {pakaiRentang ? `pakai ${judulBulan(bulan)}` : 'pilih tanggal lain'}
         </button>
       </p>
 
@@ -296,7 +302,7 @@ function PanelEkspor({
           onClick={() => onEkspor('pdf', dipakai)}
           disabled={!bisa}
         >
-          {sedang === 'pdf' ? 'Menyiapkan…' : 'Export PDF'}
+          {sedang === 'pdf' ? 'Menyiapkan…' : 'Simpan PDF'}
         </Tombol>
         <Tombol
           varian="sekunder"
@@ -304,7 +310,7 @@ function PanelEkspor({
           onClick={() => onEkspor('excel', dipakai)}
           disabled={!bisa}
         >
-          {sedang === 'excel' ? 'Menyiapkan…' : 'Export Excel'}
+          {sedang === 'excel' ? 'Menyiapkan…' : 'Simpan Excel'}
         </Tombol>
       </div>
     </section>
@@ -324,11 +330,11 @@ function DaftarBulan({ bulan, laporan }: { bulan: Bulan; laporan: Laporan | unde
     <section aria-label="Transaksi sebulan" className="flex flex-col gap-3">
       <div className="border-l-4 border-emas-600 pl-3">
         <p className="text-[10.5px] font-semibold tracking-wider text-teks-samar uppercase">
-          Rincian sebulan
+          Satu bulan
         </p>
         <h2 className="text-[15px] font-semibold">{judulBulan(bulan)}</h2>
         <p className="text-xs text-teks-samar">
-          Ketuk satu tanggal di kalender untuk mempersempit ke satu hari.
+          Ketuk satu tanggal di kalender untuk melihat hari itu saja.
         </p>
       </div>
 
@@ -364,15 +370,13 @@ function PanelHari({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 border-l-4 border-emas-600 pl-3">
           <p className="text-[10.5px] font-semibold tracking-wider text-teks-samar uppercase">
-            Rincian harian
+            Satu hari
           </p>
           <h2 className="text-[15px] font-semibold">{judulHari(tanggal)}</h2>
           <p className="angka text-xs text-teks-samar">
             {isi
-              ? `Utang ${formatRupiah(isi.totalUtangBaru)} · Tunai ${formatRupiah(
-                  isi.totalPenjualanTunai,
-                )} · Tertagih ${formatRupiah(isi.totalTertagih)}`
-              : 'Tidak ada transaksi pada hari ini.'}
+              ? `Utang ${formatRupiah(isi.totalUtangBaru)} · Dibayar ${formatRupiah(isi.totalTertagih)}`
+              : 'Tidak ada catatan pada hari ini.'}
           </p>
         </div>
         {/* Menutup rincian hari = kembali ke cakupan sebulan penuh. */}
@@ -427,10 +431,10 @@ function TigaSeksi({
   return (
     <>
       <Seksi
-        judul="Utang Baru"
+        judul="Yang berutang"
         varian={varian}
         jumlah={utangBaru.length}
-        kosong={`Tidak ada utang baru ${kapan}.`}
+        kosong={`Belum ada yang berutang ${kapan}.`}
       >
         {utangBaru.map((t, i) => (
           <BarisNominal
@@ -443,6 +447,8 @@ function TigaSeksi({
         ))}
       </Seksi>
 
+      {/* Fitur catat tunai sudah dihapus; bagian ini hanya muncul untuk catatan lama. */}
+      {penjualanTunai.length > 0 ? (
       <Seksi
         judul="Penjualan Tunai"
         varian={varian}
@@ -460,12 +466,13 @@ function TigaSeksi({
           />
         ))}
       </Seksi>
+      ) : null}
 
       <Seksi
-        judul="Pembayaran Diterima"
+        judul="Yang membayar"
         varian={varian}
         jumlah={pembayaran.length}
-        kosong={`Belum ada pembayaran ${kapan}.`}
+        kosong={`Belum ada yang membayar ${kapan}.`}
       >
         {pembayaran.map((b, i) => (
           <BarisNominal
