@@ -85,7 +85,6 @@ export function FormPembayaran({
           label="Nominal dibayar"
           nilai={nominal}
           onChange={setNominal}
-          pintasan={[5000, 10_000, 20_000, 50_000]}
           autoFocus
         />
 
