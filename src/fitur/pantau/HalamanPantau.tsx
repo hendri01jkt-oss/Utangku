@@ -7,6 +7,7 @@ import {
   ambilPantau,
   TokenTidakDikenal,
   type DataPantau,
+  type PembayaranPantau,
   type TransaksiPantau,
 } from './ambilPantau';
 
@@ -175,22 +176,7 @@ export function HalamanPantau({ token }: { token: string }) {
           <ul className="flex flex-col gap-2">
             {pembayaran.map((b, i) => (
               <li key={`${b.tanggal}-${i}`}>
-                <Kartu padat>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <CircleCheck size={15} className="shrink-0 text-sukses" aria-hidden />
-                      <span className="text-sm text-teks-utama">
-                        {formatTanggal(b.tanggal)}
-                      </span>
-                      <span className="text-xs text-teks-samar">
-                        {LABEL_METODE[b.metode] ?? b.metode}
-                      </span>
-                    </div>
-                    <p className="shrink-0 text-sm font-semibold tabular-nums text-sukses">
-                      {formatRupiah(b.nominal)}
-                    </p>
-                  </div>
-                </Kartu>
+                <KartuBayar b={b} />
               </li>
             ))}
           </ul>
@@ -314,6 +300,57 @@ function KartuUtang({ t }: { t: TransaksiPantau }) {
             ) : null}
           </dl>
         </div>
+      ) : null}
+    </Kartu>
+  );
+}
+
+/** Satu pembayaran yang bisa dibuka: utang mana yang dibayar . */
+function KartuBayar({ b }: { b: PembayaranPantau }) {
+  const [buka, setBuka] = useState(false);
+  const untuk = b.untuk_keterangan?.trim();
+
+  return (
+    <Kartu padat className="p-0">
+      <button
+        type="button"
+        onClick={() => setBuka((x) => !x)}
+        aria-expanded={buka}
+        className="flex w-full items-center justify-between gap-3 rounded-[inherit] p-3 text-left"
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <CircleCheck size={15} className="shrink-0 text-sukses" aria-hidden />
+          <span className="text-sm text-teks-utama">{formatTanggal(b.tanggal)}</span>
+          <span className="text-xs text-teks-samar">{LABEL_METODE[b.metode] ?? b.metode}</span>
+        </div>
+        <span className="flex shrink-0 items-center gap-1">
+          <span className="text-sm font-semibold tabular-nums text-sukses">
+            {formatRupiah(b.nominal)}
+          </span>
+          <ChevronDown
+            size={16}
+            aria-hidden
+            className={
+              buka ? 'rotate-180 text-teks-redup transition-transform' : 'text-teks-redup transition-transform'
+            }
+          />
+        </span>
+      </button>
+
+      {buka ? (
+        <dl className="flex flex-col gap-1 border-t border-garis px-3 pb-3 pt-2 text-xs">
+          <div className="flex justify-between gap-3">
+            <dt className="text-teks-samar">Untuk utang</dt>
+            <dd className="text-right text-teks-utama">
+              {untuk || 'Tanpa keterangan'}
+              {b.untuk_tanggal ? ` (${formatTanggal(b.untuk_tanggal)})` : ''}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-teks-samar">Metode</dt>
+            <dd className="text-teks-utama">{LABEL_METODE[b.metode] ?? b.metode}</dd>
+          </div>
+        </dl>
       ) : null}
     </Kartu>
   );

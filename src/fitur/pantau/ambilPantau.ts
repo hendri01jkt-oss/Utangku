@@ -35,6 +35,8 @@ export interface PembayaranPantau {
   tanggal: string;
   nominal: number;
   metode: Enums<'metode_bayar'>;
+  untuk_keterangan?: string | null;
+  untuk_tanggal?: string | null;
 }
 
 export interface DataPantau {
