@@ -278,6 +278,12 @@ function KartuUtang({ t }: { t: TransaksiPantau }) {
           )}
 
           <dl className="mt-2 flex flex-col gap-1 border-t border-garis pt-2 text-xs">
+            {t.nomor_struk ? (
+              <div className="flex justify-between gap-3">
+                <dt className="text-teks-samar">No. struk</dt>
+                <dd className="tabular-nums text-teks-utama">{t.nomor_struk}</dd>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-3">
               <dt className="text-teks-samar">Total</dt>
               <dd className="tabular-nums text-teks-utama">{formatRupiah(t.nominal)}</dd>

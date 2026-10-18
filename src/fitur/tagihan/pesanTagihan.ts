@@ -103,6 +103,7 @@ export function contohPesan(template: string, namaWarung: string): string {
     status: 'belum_lunas',
     total_dibayar: 0,
     reminder_hari_sebelum: 3,
+    nomor_struk: null,
     reminder_terkirim_untuk: null,
     dibuat_oleh: null,
     created_at: hariIni,

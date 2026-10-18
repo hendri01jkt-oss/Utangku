@@ -39,6 +39,8 @@ export interface DataStruk {
   /** Sisa utang SELURUH transaksi pelanggan ini, termasuk yang baru dicatat. */
   sisaUtangPelanggan: number;
   jenis: 'utang' | 'tunai';
+  /** Mis. UK-261018-007; null untuk catatan yang belum bernomor. */
+  nomorStruk: string | null;
   /** Kosong bila pemiliknya memilih keterangan teks bebas. */
   item: readonly ItemStruk[];
 }
@@ -114,6 +116,9 @@ export function barisStruk(data: DataStruk, lebar: number): BarisStruk[] {
 
   const tunai = data.jenis === 'tunai';
 
+  if (data.nomorStruk) {
+    for (const b of duaKolom('No. Struk', data.nomorStruk, lebar)) baris.push(teks(b));
+  }
   for (const b of duaKolom('Tanggal', `${data.tanggal} ${data.waktu}`, lebar)) baris.push(teks(b));
   // Pembeli tanpa nama tidak diberi baris kosong "Pelanggan: -": pada kertas
   // 32 kolom setiap baris yang tidak berguna terasa mahal.

@@ -21,6 +21,7 @@ export interface ItemPantau {
 }
 
 export interface TransaksiPantau {
+  nomor_struk?: string | null;
   /** Rincian belanjaan; kosong untuk utang yang dicatat tanpa rincian. */
   item?: ItemPantau[];
   tanggal: string;

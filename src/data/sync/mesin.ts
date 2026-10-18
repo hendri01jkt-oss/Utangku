@@ -91,8 +91,9 @@ const KOLOM_TETAP_UMUM = ['id', 'warung_id', 'created_at', 'dibuat_oleh'] as con
 const KOLOM_TETAP: Record<NamaEntitas, ReadonlySet<string>> = {
   warung: new Set(KOLOM_TETAP_UMUM),
   pelanggan: new Set(KOLOM_TETAP_UMUM),
-  // jenis: hak UPDATE-nya sengaja tidak diberikan (migrasi 0013).
-  transaksi_utang: new Set([...KOLOM_TETAP_UMUM, 'jenis']),
+  // jenis dan nomor_struk: hak UPDATE-nya sengaja tidak diberikan
+  // (migrasi 0013 dan 0015).
+  transaksi_utang: new Set([...KOLOM_TETAP_UMUM, 'jenis', 'nomor_struk']),
   // transaksi_id: sebuah item maupun cicilan tidak boleh berpindah ke
   // transaksi lain lewat sinkronisasi — itu memindahkan uang tanpa jejak.
   transaksi_item: new Set([...KOLOM_TETAP_UMUM, 'transaksi_id']),

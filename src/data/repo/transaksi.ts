@@ -86,6 +86,29 @@ function dariItem(item: readonly ItemBaru[], nominal: number, keterangan?: strin
   return { nominal: totalItem(item), keterangan: ringkasanItem(item) || null };
 }
 
+/**
+ * Nomor struk berikutnya: UK-YYMMDD-NNN, urutan per hari per warung.
+ *
+ * Dibuat di perangkat karena aplikasi ini jalan tanpa sinyal. Dua HP yang
+ * offline bersamaan di warung yang sama bisa kebetulan mengambil nomor yang
+ * sama; itu langka dan sengaja tidak ditolak database, karena menolak
+ * transaksi lebih buruk daripada dua struk bernomor kembar.
+ */
+export async function nomorStrukBaru(warungId: string, tanggal = tanggalHariIni()): Promise<string> {
+  const awalan = `UK-${tanggal.slice(2, 4)}${tanggal.slice(5, 7)}${tanggal.slice(8, 10)}-`;
+  let terbesar = 0;
+  await db.transaksi_utang
+    .where('warung_id')
+    .equals(warungId)
+    .each((t) => {
+      if (t.nomor_struk?.startsWith(awalan)) {
+        const n = Number.parseInt(t.nomor_struk.slice(awalan.length), 10);
+        if (Number.isFinite(n) && n > terbesar) terbesar = n;
+      }
+    });
+  return `${awalan}${String(terbesar + 1).padStart(3, '0')}`;
+}
+
 export async function catatUtang(data: DataUtangBaru) {
   const waktu = sekarang();
   const item = data.item ?? [];
@@ -96,6 +119,7 @@ export async function catatUtang(data: DataUtangBaru) {
     warung_id: data.warung_id,
     pelanggan_id: data.pelanggan_id,
     jenis: 'utang',
+    nomor_struk: await nomorStrukBaru(data.warung_id),
     tanggal: data.tanggal ?? tanggalHariIni(),
     nominal,
     keterangan,

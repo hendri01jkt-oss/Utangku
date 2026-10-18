@@ -195,6 +195,12 @@ export function HalamanDetailUtang() {
         </div>
 
         <dl className="flex flex-col gap-2 border-t border-garis pt-3 text-sm">
+          {utang.nomor_struk ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-teks-samar">No. struk</dt>
+              <dd className="tabular-nums">{utang.nomor_struk}</dd>
+            </div>
+          ) : null}
           <div className="flex justify-between gap-3">
             <dt className="text-teks-samar">Tanggal</dt>
             <dd>{formatTanggal(utang.tanggal)}</dd>

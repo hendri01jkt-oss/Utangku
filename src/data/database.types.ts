@@ -345,6 +345,7 @@ export type Database = {
           jenis: Database["public"]["Enums"]["jenis_transaksi"]
           keterangan: string | null
           nominal: number
+          nomor_struk: string | null
           pelanggan_id: string | null
           reminder_hari_sebelum: number
           reminder_terkirim_untuk: string | null
@@ -363,6 +364,7 @@ export type Database = {
           jenis?: Database["public"]["Enums"]["jenis_transaksi"]
           keterangan?: string | null
           nominal: number
+          nomor_struk?: string | null
           pelanggan_id?: string | null
           reminder_hari_sebelum?: number
           reminder_terkirim_untuk?: string | null
@@ -381,6 +383,7 @@ export type Database = {
           jenis?: Database["public"]["Enums"]["jenis_transaksi"]
           keterangan?: string | null
           nominal?: number
+          nomor_struk?: string | null
           pelanggan_id?: string | null
           reminder_hari_sebelum?: number
           reminder_terkirim_untuk?: string | null
