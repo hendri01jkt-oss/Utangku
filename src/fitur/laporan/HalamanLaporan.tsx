@@ -130,7 +130,7 @@ export function HalamanLaporan() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <h1 className="text-lg font-semibold">Laporan</h1>
 
       {rentang ? (
@@ -149,7 +149,7 @@ export function HalamanLaporan() {
               setTanggalTerpilih(null);
               setRentang(periodeBulan(bulan));
             }}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] border border-emas-600/50 bg-putih px-4 text-sm font-medium text-navy-900"
+            className="flex min-h-9 items-center justify-center gap-2 rounded-[var(--radius-kontrol)] border border-emas-600/50 bg-putih px-4 text-sm font-medium text-navy-900"
           >
             <CalendarRange size={18} aria-hidden />
             Pilih tanggal sendiri
@@ -209,33 +209,37 @@ function RingkasanBulanan({
 }) {
   const rupiah = (n: number | undefined) => (laporan ? formatRupiah(n ?? 0) : '—');
   return (
-    <section aria-label="Ringkasan bulan" className="flex flex-col gap-2">
-      {/* Satu angka besar yang paling penting; dua lainnya berwarna dan berikon. */}
-      <Kartu className="flex items-center gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-emas-500 text-navy-900">
-          <Wallet size={22} aria-hidden />
+    <Kartu padat aria-label={`Ringkasan ${label}`} className="flex flex-col gap-2">
+      <div className="flex items-center gap-2.5">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emas-500 text-navy-900">
+          <Wallet size={17} aria-hidden />
         </span>
-        <div className="min-w-0">
-          <p className="text-sm text-teks-redup">Uang yang belum dibayar</p>
-          <p className="angka text-2xl font-bold text-navy-900">{rupiah(laporan?.sisaPiutang)}</p>
-        </div>
-      </Kartu>
-      <div className="grid grid-cols-2 gap-2">
-        <Kartu padat className="flex flex-col gap-1">
-          <span className="flex items-center gap-1.5 text-sm text-teks-redup">
-            <ArrowUpRight size={18} className="text-bahaya" aria-hidden /> Utang baru
-          </span>
-          <span className="angka text-lg font-bold text-bahaya">{rupiah(laporan?.totalUtangBaru)}</span>
-        </Kartu>
-        <Kartu padat className="flex flex-col gap-1">
-          <span className="flex items-center gap-1.5 text-sm text-teks-redup">
-            <ArrowDownLeft size={18} className="text-sukses" aria-hidden /> Sudah dibayar
-          </span>
-          <span className="angka text-lg font-bold text-sukses">{rupiah(laporan?.totalTertagih)}</span>
-        </Kartu>
+        <p className="min-w-0 flex-1 text-xs leading-tight text-teks-redup">
+          Uang yang belum dibayar
+        </p>
+        <p className="angka shrink-0 text-xl font-bold text-navy-900">
+          {rupiah(laporan?.sisaPiutang)}
+        </p>
       </div>
-      <p className="text-center text-xs text-teks-samar">{label}</p>
-    </section>
+      <div className="grid grid-cols-2 gap-2 border-t border-garis pt-2">
+        <div>
+          <span className="flex items-center gap-1 text-xs text-teks-redup">
+            <ArrowUpRight size={14} className="text-bahaya" aria-hidden /> Utang baru
+          </span>
+          <span className="angka text-base font-bold text-bahaya">
+            {rupiah(laporan?.totalUtangBaru)}
+          </span>
+        </div>
+        <div>
+          <span className="flex items-center gap-1 text-xs text-teks-redup">
+            <ArrowDownLeft size={14} className="text-sukses" aria-hidden /> Sudah dibayar
+          </span>
+          <span className="angka text-base font-bold text-sukses">
+            {rupiah(laporan?.totalTertagih)}
+          </span>
+        </div>
+      </div>
+    </Kartu>
   );
 }
 
