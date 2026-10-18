@@ -13,7 +13,16 @@ import type { Enums } from '@/data/database.types';
 const URL_SUPABASE = import.meta.env.VITE_SUPABASE_URL;
 const KUNCI = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+export interface ItemPantau {
+  nama_item: string;
+  qty: number;
+  harga_satuan: number;
+  subtotal: number;
+}
+
 export interface TransaksiPantau {
+  /** Rincian belanjaan; kosong untuk utang yang dicatat tanpa rincian. */
+  item?: ItemPantau[];
   tanggal: string;
   keterangan: string | null;
   nominal: number;
