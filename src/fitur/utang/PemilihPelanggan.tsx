@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Check, Search, UserPlus, X } from 'lucide-react';
+import { Search, UserPlus, X } from 'lucide-react';
 import { db, type BarisPelanggan } from '@/data/db';
 import { buatPelanggan } from '@/data/repo/pelanggan';
 import { FotoPelanggan } from '@/fitur/pelanggan/FotoPelanggan';
@@ -27,6 +27,8 @@ export function PemilihPelanggan({
 }) {
   const [kueri, setKueri] = useState('');
   const [sedangBuat, setSedangBuat] = useState(false);
+  // Daftar hanya muncul saat kolom dipakai (dropdown), tidak terpampang terus.
+  const [buka, setBuka] = useState(false);
 
   const pelanggan = useLiveQuery(
     async () =>
@@ -61,6 +63,7 @@ export function PemilihPelanggan({
     try {
       onPilih(await buatPelanggan({ warung_id: warungId, nama }));
       setKueri('');
+      setBuka(false);
     } finally {
       setSedangBuat(false);
     }
@@ -92,7 +95,7 @@ export function PemilihPelanggan({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="relative flex flex-col gap-1.5">
       <label htmlFor="cari-pelanggan" className="text-sm text-teks-redup">
         Pelanggan
       </label>
@@ -101,19 +104,30 @@ export function PemilihPelanggan({
         <input
           id="cari-pelanggan"
           value={kueri}
-          onChange={(e) => setKueri(e.target.value)}
+          onChange={(e) => {
+            setKueri(e.target.value);
+            setBuka(true);
+          }}
+          onFocus={() => setBuka(true)}
+          onBlur={() => setBuka(false)}
           placeholder="Ketik nama pelanggan"
           autoComplete="off"
           className="w-full bg-transparent py-2.5 text-teks-utama outline-none placeholder:text-teks-samar"
         />
       </div>
 
+      {buka && (cocok.length > 0 || (q !== '' && !adaNamaSamaPersis)) ? (
+        <div className="absolute inset-x-0 top-full z-20 mt-1 flex max-h-64 flex-col gap-1 overflow-y-auto rounded-[var(--radius-kontrol)] border border-garis bg-putih p-1 shadow-lg">
       <ul className="flex flex-col gap-1">
         {cocok.map((p) => (
           <li key={p.id}>
             <button
               type="button"
-              onClick={() => onPilih(p)}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onPilih(p);
+                setBuka(false);
+              }}
               className="flex w-full items-center gap-3 rounded-[var(--radius-kontrol)] p-2 text-left transition-colors hover:bg-permukaan-2"
             >
               <FotoPelanggan pelangganId={p.id} nama={p.nama} ukuran={32} />
@@ -123,7 +137,6 @@ export function PemilihPelanggan({
                   <span className="block text-xs text-teks-samar">{p.no_wa}</span>
                 ) : null}
               </span>
-              <Check size={16} className="text-teks-samar" aria-hidden />
             </button>
           </li>
         ))}
@@ -132,6 +145,7 @@ export function PemilihPelanggan({
       {q !== '' && !adaNamaSamaPersis ? (
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => void buatCepat()}
           disabled={sedangBuat}
           className={cn(
@@ -143,6 +157,9 @@ export function PemilihPelanggan({
           <UserPlus size={16} aria-hidden />
           {sedangBuat ? 'Membuat…' : `Buat pelanggan baru "${kueri.trim()}"`}
         </button>
+      ) : null}
+
+        </div>
       ) : null}
 
       {pelanggan.length === 0 ? (

@@ -287,9 +287,15 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
             )}
           </div>
 
-          <Tombol type="submit" varian="utama" ukuran="besar" penuh disabled={sedangSimpan}>
-            {sedangSimpan ? 'Menyimpan…' : 'Simpan'}
-          </Tombol>
+          {/* Menempel di atas navigasi bawah supaya tidak terpotong. */}
+          <div
+            className="sticky z-10 -mx-4 bg-putih px-4 pb-1 pt-2"
+            style={{ bottom: 'calc(var(--tinggi-nav) + 0.5rem)' }}
+          >
+            <Tombol type="submit" varian="utama" ukuran="besar" penuh disabled={sedangSimpan}>
+              {sedangSimpan ? 'Menyimpan…' : 'Simpan'}
+            </Tombol>
+          </div>
         </form>
       </Kartu>
     </div>
