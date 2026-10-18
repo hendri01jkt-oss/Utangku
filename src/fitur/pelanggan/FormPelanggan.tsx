@@ -122,7 +122,7 @@ export function FormPelanggan({ mode }: { mode: 'baru' | 'ubah' }) {
   const pratinjauUrl = fotoBaru ? URL.createObjectURL(fotoBaru) : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -138,25 +138,25 @@ export function FormPelanggan({ mode }: { mode: 'baru' | 'ubah' }) {
       </div>
 
       <Kartu>
-        <form onSubmit={kirim} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={kirim} className="flex flex-col gap-3" noValidate>
           <KotakGalat pesan={galat} />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {pratinjauUrl ? (
               <img
                 src={pratinjauUrl}
                 alt="Pratinjau foto"
-                width={64}
-                height={64}
-                className="size-16 shrink-0 rounded-full border border-garis object-cover"
+                width={48}
+                height={48}
+                className="size-12 shrink-0 rounded-full border border-garis object-cover"
               />
             ) : fotoDihapus || !id ? (
-              <FotoPelanggan pelangganId="tidak-ada" nama={nama || '?'} ukuran={64} />
+              <FotoPelanggan pelangganId="tidak-ada" nama={nama || '?'} ukuran={48} />
             ) : (
-              <FotoPelanggan pelangganId={id} nama={nama || '?'} ukuran={64} />
+              <FotoPelanggan pelangganId={id} nama={nama || '?'} ukuran={48} />
             )}
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <Tombol
                 type="button"
                 varian="sekunder"
@@ -190,31 +190,37 @@ export function FormPelanggan({ mode }: { mode: 'baru' | 'ubah' }) {
             placeholder="mis. Bu Siti"
           />
           <Input
-            label="Nomor WhatsApp"
+            label="Nomor WhatsApp (opsional)"
             type="tel"
             inputMode="tel"
             value={noWa}
             onChange={(e) => setNoWa(e.target.value)}
             placeholder="08xxxxxxxxxx"
-            bantuan="Opsional. Dipakai untuk mengirim tagihan."
           />
           <Input
-            label="Alamat"
+            label="Alamat (opsional)"
             value={alamat}
             onChange={(e) => setAlamat(e.target.value)}
-            bantuan="Opsional."
           />
           <Input
-            label="Catatan"
+            label="Catatan (opsional)"
             value={catatan}
             onChange={(e) => setCatatan(e.target.value)}
             placeholder="mis. tetangga sebelah warung"
-            bantuan="Opsional."
           />
 
-          <Tombol type="submit" varian="utama" ukuran="besar" penuh disabled={sedangSimpan}>
-            {sedangSimpan ? 'Menyimpan…' : 'Simpan'}
-          </Tombol>
+          {/*
+            Menempel tepat di atas navigasi bawah: di HP berlayar pendek
+            tombol Simpan tidak pernah terpotong atau tertutup nav.
+          */}
+          <div
+            className="sticky z-10 -mx-4 bg-putih px-4 pb-1 pt-2"
+            style={{ bottom: 'calc(var(--tinggi-nav) + 0.5rem)' }}
+          >
+            <Tombol type="submit" varian="utama" ukuran="besar" penuh disabled={sedangSimpan}>
+              {sedangSimpan ? 'Menyimpan…' : 'Simpan'}
+            </Tombol>
+          </div>
         </form>
       </Kartu>
 
