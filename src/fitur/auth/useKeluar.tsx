@@ -58,7 +58,7 @@ export function useKeluar() {
           </div>
           <p className="text-sm text-teks-redup">
             Sambungkan ke internet dan tunggu indikator di header berubah menjadi
-            &ldquo;Tersinkron&rdquo; lebih dulu, lalu keluar dengan aman.
+            &ldquo;Sudah aman&rdquo; lebih dulu, lalu keluar dengan aman.
           </p>
           <Tombol varian="sekunder" penuh onClick={() => setTertunda(null)}>
             Batal, saya tunggu dulu

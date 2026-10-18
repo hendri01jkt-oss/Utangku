@@ -47,7 +47,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
   const [pelanggan, setPelanggan] = useState<BarisPelanggan | null>(null);
   const [nominal, setNominal] = useState(0);
   const [keterangan, setKeterangan] = useState('');
-  // Bawaannya tetap teks bebas. Rincian item adalah pilihan, bukan jalur
+  // Bawaannya tetap teks bebas. Isi belanjaan adalah pilihan, bukan jalur
   // yang harus dilewati setiap kali mencatat utang sambil melayani pembeli.
   const [pakaiItem, setPakaiItem] = useState(false);
   const [item, setItem] = useState<ItemBaru[]>([itemKosong()]);
@@ -117,7 +117,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
     }
     const daftarItem = pakaiItem ? itemTerisi(item) : [];
     if (pakaiItem && daftarItem.length === 0) {
-      setGalat('Isi minimal satu item, atau matikan rincian item.');
+      setGalat('Isi minimal satu item, atau matikan isi belanjaan.');
       return;
     }
 
@@ -129,7 +129,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
       return;
     }
     if (pakaiTempo && jatuhTempo !== '' && jatuhTempo < tanggal) {
-      setGalat('Jatuh tempo tidak boleh lebih awal dari tanggal utang.');
+      setGalat('Batas bayar tidak boleh lebih awal dari tanggal utang.');
       return;
     }
 
@@ -218,7 +218,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
                 {formatRupiah(totalItem(itemTerisi(item)))}
               </p>
               <p className="text-xs text-teks-samar">
-                Dihitung otomatis dari rincian item di bawah.
+                Dihitung otomatis dari isi belanjaan di bawah.
               </p>
             </div>
           ) : (
@@ -248,7 +248,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
             className="flex min-h-11 items-center gap-1.5 self-start text-sm text-emas-700 underline underline-offset-4"
           >
             <ListPlus size={16} aria-hidden />
-            {pakaiItem ? 'Pakai keterangan biasa saja' : 'Tambah rincian item'}
+            {pakaiItem ? 'Pakai keterangan biasa saja' : 'Tambah isi belanjaan'}
           </button>
 
           <Input
@@ -268,11 +268,11 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
                 className="size-4 accent-navy-900"
               />
               <CalendarClock size={16} aria-hidden />
-              Pakai jatuh tempo
+              Pakai batas bayar
             </label>
             {pakaiTempo ? (
               <Input
-                aria-label="Tanggal jatuh tempo"
+                aria-label="Tanggal batas bayar"
                 type="date"
                 value={jatuhTempo}
                 min={tanggal}

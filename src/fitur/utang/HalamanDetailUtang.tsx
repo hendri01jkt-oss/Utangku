@@ -37,8 +37,8 @@ function selisihHari(target: string): number {
 
 function keteranganTempo(tempo: string): string {
   const hari = selisihHari(tempo);
-  if (hari === 0) return 'Jatuh tempo hari ini';
-  if (hari > 0) return `Jatuh tempo ${hari} hari lagi`;
+  if (hari === 0) return 'Batas bayar hari ini';
+  if (hari > 0) return `Batas bayar ${hari} hari lagi`;
   return `Lewat tempo ${Math.abs(hari)} hari`;
 }
 
@@ -206,7 +206,7 @@ export function HalamanDetailUtang() {
             <dd>{formatTanggal(utang.tanggal)}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-teks-samar">Jatuh tempo</dt>
+            <dt className="text-teks-samar">Batas bayar</dt>
             <dd className={utang.jatuh_tempo ? '' : 'text-teks-samar'}>
               {utang.jatuh_tempo ? (
                 <>
@@ -227,14 +227,14 @@ export function HalamanDetailUtang() {
         </dl>
 
         {/*
-          Rincian item ditampilkan sebagai daftar, bukan sebagai satu teks
+          Isi belanjaan ditampilkan sebagai daftar, bukan sebagai satu teks
           gabungan seperti di kolom Keterangan di atas. Keduanya memang
           menyebut isi yang sama — teks gabungan itulah yang dibaca permukaan
           lama seperti pesan tagihan WhatsApp dan ekspor laporan.
         */}
         {item.length > 0 ? (
           <div className="border-t border-garis pt-3">
-            <p className="mb-2 text-xs text-teks-samar">Rincian item</p>
+            <p className="mb-2 text-xs text-teks-samar">Isi belanjaan</p>
             <ul className="flex flex-col gap-1.5 text-sm">
               {item.map((i) => (
                 <li key={i.id} className="flex items-baseline justify-between gap-3">
@@ -261,7 +261,7 @@ export function HalamanDetailUtang() {
             penuh
             ikon={<Wallet size={17} />}
           >
-            Terima Pembayaran
+            Terima Uang
           </TombolTautan>
         ) : (
           <p className="rounded-[var(--radius-kontrol)] bg-[var(--tint-sukses)] px-3 py-2.5 text-center text-sm text-sukses">

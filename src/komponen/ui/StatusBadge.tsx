@@ -30,7 +30,7 @@ const konfigurasi = {
    * dengan buta warna.
    */
   lewat_tempo: {
-    label: 'Lewat Tempo',
+    label: 'Lewat Batas',
     ikon: TriangleAlert,
     kelas: 'bg-bahaya text-putih border-bahaya',
   },

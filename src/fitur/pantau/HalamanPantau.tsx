@@ -216,7 +216,7 @@ export function HalamanPantau({ token }: { token: string }) {
 
 /**
  * Satu catatan utang yang bisa dibuka: ketuk untuk melihat rincian belanjaan,
- * yang sudah dibayar, dan jatuh tempo. Tetap hanya-baca — membuka tidak
+ * yang sudah dibayar, dan batas bayar. Tetap hanya-baca — membuka tidak
  * mengubah apa pun dan tidak mengirim permintaan baru (datanya sudah ada).
  */
 function KartuUtang({ t }: { t: TransaksiPantau }) {
@@ -274,7 +274,7 @@ function KartuUtang({ t }: { t: TransaksiPantau }) {
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-teks-samar">Utang ini dicatat tanpa rincian item.</p>
+            <p className="text-xs text-teks-samar">Utang ini dicatat tanpa isi belanjaan.</p>
           )}
 
           <dl className="mt-2 flex flex-col gap-1 border-t border-garis pt-2 text-xs">
@@ -300,7 +300,7 @@ function KartuUtang({ t }: { t: TransaksiPantau }) {
             </div>
             {t.jatuh_tempo ? (
               <div className="flex justify-between gap-3">
-                <dt className="text-teks-samar">Jatuh tempo</dt>
+                <dt className="text-teks-samar">Batas bayar</dt>
                 <dd className="text-teks-utama">{formatTanggal(t.jatuh_tempo)}</dd>
               </div>
             ) : null}

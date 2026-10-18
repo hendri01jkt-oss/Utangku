@@ -72,7 +72,7 @@ export function FormPembayaran({
   }
 
   return (
-    <BottomSheet judul="Terima Pembayaran" onTutup={onTutup}>
+    <BottomSheet judul="Terima Uang" onTutup={onTutup}>
       <form onSubmit={kirim} className="flex flex-col gap-3" noValidate>
         <KotakGalat pesan={galat} />
 

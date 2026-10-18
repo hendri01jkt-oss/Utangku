@@ -8,7 +8,7 @@ export interface BarisTagihan {
   namaPelanggan: string;
   noWa: string | null;
   sisa: number;
-  /** Selisih hari menuju jatuh tempo; negatif berarti lewat, null bila tanpa tempo. */
+  /** Selisih hari menuju batas bayar; negatif berarti lewat, null bila tanpa tempo. */
   hariKeTempo: number | null;
   /**
    * SELURUH utang pelanggan ini yang belum lunas, bukan hanya baris ini.
@@ -22,7 +22,7 @@ export interface BarisTagihan {
 export interface KelompokTagihan {
   lewatTempo: BarisTagihan[];
   mendekatiTempo: BarisTagihan[];
-  /** Tanpa jatuh tempo sama sekali, diurutkan dari yang paling lama. */
+  /** Tanpa batas bayar sama sekali, diurutkan dari yang paling lama. */
   terlama: BarisTagihan[];
 }
 
@@ -116,11 +116,11 @@ export async function perluDitagih(warungId: string): Promise<BarisTagihan[]> {
   return [...lewatTempo, ...mendekatiTempo];
 }
 
-/** "Lewat tempo 3 hari" / "Jatuh tempo hari ini" / "3 hari lagi" / "Tanpa tempo". */
+/** "Lewat tempo 3 hari" / "Batas bayar hari ini" / "3 hari lagi" / "Tanpa tempo". */
 export function labelTempo(hariKeTempo: number | null): string {
-  if (hariKeTempo === null) return 'Tanpa tempo';
-  if (hariKeTempo < 0) return `Lewat tempo ${Math.abs(hariKeTempo)} hari`;
-  if (hariKeTempo === 0) return 'Jatuh tempo hari ini';
+  if (hariKeTempo === null) return 'Tanpa batas bayar';
+  if (hariKeTempo < 0) return `Lewat batas ${Math.abs(hariKeTempo)} hari`;
+  if (hariKeTempo === 0) return 'Batas bayar hari ini';
   return `${hariKeTempo} hari lagi`;
 }
 

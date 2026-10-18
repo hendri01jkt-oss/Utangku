@@ -123,7 +123,7 @@ export function HalamanDetailPelanggan() {
             </TombolTautan>
             {belumLunas.length === 0 ? (
               <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
-                Terima Bayar
+                Terima Uang
               </Tombol>
             ) : (
               <TombolTautan
@@ -137,7 +137,7 @@ export function HalamanDetailPelanggan() {
                 varian="sekunder"
                 ikon={<Wallet size={16} />}
               >
-                Terima Bayar
+                Terima Uang
               </TombolTautan>
             )}
           </div>

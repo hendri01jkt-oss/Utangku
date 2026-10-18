@@ -82,7 +82,7 @@ export function HalamanTagihan() {
       ) : (
         <>
           <Kelompok
-            judul="Lewat Tempo"
+            judul="Lewat Batas"
             penjelasan="Sudah melewati tanggal yang dijanjikan."
             ikon={<TriangleAlert size={14} className="text-bahaya" aria-hidden />}
             baris={kelompok.lewatTempo}

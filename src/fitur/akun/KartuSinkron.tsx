@@ -50,7 +50,7 @@ export function KartuSinkron() {
             keterangan: 'Sedang mengirim catatan yang menunggu.',
           }
         : {
-            label: 'Tersinkron',
+            label: 'Sudah aman',
             Ikon: Check,
             kelas: 'text-sukses',
             keterangan:

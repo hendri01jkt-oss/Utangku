@@ -33,7 +33,7 @@ export function HalamanBeranda() {
 
       <section aria-label="Ringkasan warung" className="flex flex-col gap-3">
         <KartuStatistik
-          label="Total Piutang"
+          label="Uang yang belum dibayar"
           nilai={ringkasan ? formatRupiah(ringkasan.totalPiutang) : '—'}
           ikon={<Wallet size={16} />}
           penting
@@ -41,14 +41,14 @@ export function HalamanBeranda() {
 
         <div className="grid grid-cols-2 gap-3">
           <KartuStatistik
-            label="Pelanggan Berutang"
+            label="Yang berutang"
             nilai={
               <span className="angka">{ringkasan ? ringkasan.jumlahPelangganBerutang : '—'}</span>
             }
             ikon={<Users size={16} />}
           />
           <KartuStatistik
-            label="Tertagih Bulan Ini"
+            label="Sudah dibayar bulan ini"
             nilai={ringkasan ? formatRupiah(ringkasan.tertagihBulanIni) : '—'}
             ikon={<TrendingUp size={16} />}
           />
@@ -94,7 +94,7 @@ export function HalamanBeranda() {
           <Kartu>
             <p className="text-sm text-teks-samar">
               {ringkasan?.adaPelanggan
-                ? 'Tidak ada utang yang mendekati atau melewati jatuh tempo.'
+                ? 'Tidak ada utang yang mendekati atau melewati batas bayar.'
                 : 'Belum ada yang perlu ditagih.'}
             </p>
           </Kartu>
