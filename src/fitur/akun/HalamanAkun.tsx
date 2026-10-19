@@ -8,6 +8,7 @@ import { contohPesan, TEMPLATE_BAWAAN, templateAktif } from '@/fitur/tagihan/pes
 import { useKeluar } from '@/fitur/auth/useKeluar';
 import { KartuSinkron } from './KartuSinkron';
 import { ResetData } from './ResetData';
+import { KartuLangganan } from './KartuLangganan';
 import { lebarKertasSah, UKURAN_KERTAS, type LebarKertas } from '@/fitur/struk/barisStruk';
 import { cn } from '@/lib/cn';
 
@@ -86,6 +87,8 @@ export function HalamanAkun() {
         satunya tempat jawabannya.
       */}
       <KartuSinkron />
+
+      <KartuLangganan />
 
       <Kartu>
         <form onSubmit={simpan} className="flex flex-col gap-4" noValidate>
