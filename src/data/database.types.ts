@@ -238,6 +238,7 @@ export type Database = {
           tanggal_expired: string | null
           tanggal_mulai_langganan: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
+          trial_sampai: string
           updated_at: string
           warung_id: string
         }
@@ -248,6 +249,7 @@ export type Database = {
           tanggal_expired?: string | null
           tanggal_mulai_langganan?: string | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_sampai?: string
           updated_at?: string
           warung_id: string
         }
@@ -258,6 +260,7 @@ export type Database = {
           tanggal_expired?: string | null
           tanggal_mulai_langganan?: string | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_sampai?: string
           updated_at?: string
           warung_id?: string
         }
