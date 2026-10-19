@@ -1,3 +1,4 @@
+import ikonUtangku from '@/aset/ikon-utangku.png';
 import { Outlet } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { BottomNav } from './BottomNav';
@@ -56,29 +57,23 @@ export function LayoutUtama() {
           backgroundColor: '#fffdf6',
         }}
       >
-        <div className="min-w-0">
+        {/*
+          Kiri: ikon logo UtangKu. Kanan: nama warung, rata kanan. Nama
+          warung dipotong dengan elipsis kalau terlalu panjang, ikon tetap.
+        */}
+        <div className="flex items-center justify-between gap-3">
+          <img
+            src={ikonUtangku}
+            alt="UtangKu"
+            width={36}
+            height={36}
+            className="size-9 shrink-0 object-contain"
+          />
           {warung ? (
-            <>
-              <p className="truncate text-base font-semibold tracking-tight">
-                {warung.nama_warung}
-              </p>
-              {/*
-                Baris kedua ini sengaja TETAP teks, bukan logo. Pada 11px
-                wordmark-nya jadi sesak dan garis putih tipisnya luntur —
-                diuji pada 14, 20, 24, 32 dan 56px, dan di bawah 20px ia
-                hanya menambah keramaian di sebelah nama warung yang justru
-                harus menonjol.
-              */}
-              <p className="text-[11px] font-medium text-emas-700">UtangKu</p>
-            </>
+            <p className="min-w-0 truncate text-right text-base font-semibold tracking-tight">
+              {warung.nama_warung}
+            </p>
           ) : (
-            /*
-              Tanpa warung, nama aplikasilah identitas utamanya.
-              Logonya masih tanda merah yang lama (penggantinya menyusul),
-              dan merah di atas navy nyaris tidak terbaca — jadi untuk
-              sementara ia berdiri di atas kepingan putih. Begitu logo
-              navy/gold datang, kepingan ini dibuang.
-            */
             <span className="inline-flex rounded-lg bg-putih px-2 py-1">
               <Logo tinggi="h-6" />
             </span>

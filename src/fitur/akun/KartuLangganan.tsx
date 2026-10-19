@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Check, CreditCard, Crown } from 'lucide-react';
-import { Logo } from '@/komponen/ui';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { ambilSupabase } from '@/lib/supabase';
 
@@ -133,12 +132,6 @@ export function KartuLangganan() {
             {lencana}
           </span>
         </div>
-        <span
-          className="rounded-lg px-2.5 py-1.5 shadow-sm"
-          style={{ background: 'linear-gradient(180deg,#fffdf6,#f6e6a8)' }}
-        >
-          <Logo tinggi="h-5" />
-        </span>
       </div>
 
       <p className="mt-4 flex items-baseline gap-1">
