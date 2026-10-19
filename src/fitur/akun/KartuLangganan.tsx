@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BadgeCheck, Clock, CreditCard } from 'lucide-react';
-import { Kartu, Tombol } from '@/komponen/ui';
-import { KotakGalat } from '@/fitur/auth/LayoutAuth';
+import { Check, CreditCard, Crown } from 'lucide-react';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { ambilSupabase } from '@/lib/supabase';
 
@@ -94,35 +92,96 @@ export function KartuLangganan() {
     }
   }
 
-  const judul =
+  const lencana =
     keadaan.jenis === 'aktif'
-      ? 'Langganan aktif'
+      ? 'AKTIF'
       : keadaan.jenis === 'percobaan'
-        ? 'Masa percobaan gratis'
-        : 'Masa percobaan selesai';
-  const Ikon = keadaan.jenis === 'aktif' ? BadgeCheck : keadaan.jenis === 'percobaan' ? Clock : CreditCard;
+        ? 'COBA GRATIS'
+        : 'BERAKHIR';
   const keterangan =
     keadaan.jenis === 'habis'
-      ? 'Catatan kamu aman dan tetap bisa dibuka.'
-      : `Sampai ${tanggal(keadaan.sampai)} (${sisaHari(keadaan.sampai)} hari lagi).`;
+      ? 'Masa percobaan selesai. Catatanmu tetap aman dan bisa dibuka.'
+      : `Berlaku sampai ${tanggal(keadaan.sampai)} · ${sisaHari(keadaan.sampai)} hari lagi`;
+  const manfaat = [
+    'Catat utang tanpa batas, tetap jalan tanpa sinyal',
+    'Link pantau untuk pelanggan & tagih via WhatsApp',
+    'Laporan PDF dan Excel, struk siap cetak',
+  ];
 
   return (
-    <Kartu>
-      <div className="flex items-start gap-3">
-        <Ikon className="mt-0.5 size-5 shrink-0 text-emas-700" aria-hidden />
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold">{judul}</p>
-          <p className="text-sm text-navy/70">{keterangan}</p>
+    <section
+      className="relative overflow-hidden rounded-2xl border border-emas-500/60 p-5 text-white shadow-lg"
+      style={{
+        background:
+          'radial-gradient(120% 90% at 100% 0%, rgba(201,168,76,0.35) 0%, rgba(201,168,76,0) 55%), linear-gradient(160deg,#16275a 0%,#0f1b3d 55%,#0a1330 100%)',
+      }}
+    >
+      <div
+        className="pointer-events-none absolute -right-10 -top-10 size-36 rounded-full border border-emas-500/30"
+        aria-hidden
+      />
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex size-9 items-center justify-center rounded-full"
+            style={{ background: 'linear-gradient(135deg,#f6e6a8,#c9a84c)' }}
+          >
+            <Crown className="size-5 text-[#0f1b3d]" aria-hidden />
+          </span>
+          <span className="text-sm font-semibold tracking-wide text-[#f6e6a8]">UtangKu Pro</span>
         </div>
+        <span className="rounded-full border border-emas-500/60 px-2.5 py-0.5 text-[11px] font-semibold tracking-widest text-[#f6e6a8]">
+          {lencana}
+        </span>
       </div>
-      <KotakGalat pesan={galat} />
-      <Tombol penuh onClick={bayar} disabled={sedang}>
+
+      <p className="mt-4 flex items-baseline gap-1">
+        <span
+          className="text-4xl font-bold tracking-tight"
+          style={{
+            background: 'linear-gradient(180deg,#fff3c4,#c9a84c)',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
+          {HARGA_TAMPIL}
+        </span>
+        <span className="text-sm text-white/70">/ bulan</span>
+      </p>
+      <p className="mt-1 text-sm text-white/75">{keterangan}</p>
+
+      <ul className="mt-4 flex flex-col gap-2">
+        {manfaat.map((m) => (
+          <li key={m} className="flex items-start gap-2 text-sm text-white/90">
+            <Check className="mt-0.5 size-4 shrink-0 text-[#e8c766]" aria-hidden />
+            {m}
+          </li>
+        ))}
+      </ul>
+
+      {galat ? (
+        <p role="alert" className="mt-4 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-100">
+          {galat}
+        </p>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={bayar}
+        disabled={sedang}
+        className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#a8872f] px-4 font-semibold text-[#0f1b3d] shadow-md transition active:scale-[0.98] disabled:opacity-60"
+        style={{ background: 'linear-gradient(180deg,#f6e6a8 0%,#d9b957 55%,#c9a84c 100%)' }}
+      >
+        <CreditCard className="size-5" aria-hidden />
         {sedang
           ? 'Membuka halaman bayar…'
           : keadaan.jenis === 'aktif'
-            ? `Perpanjang 1 bulan · ${HARGA_TAMPIL}`
-            : `Bayar ${HARGA_TAMPIL} / bulan`}
-      </Tombol>
-    </Kartu>
+            ? 'Perpanjang 1 bulan'
+            : 'Berlangganan sekarang'}
+      </button>
+      <p className="mt-2 text-center text-xs text-white/55">
+        Bayar lewat QRIS, e-wallet, atau transfer bank · aman via Midtrans
+      </p>
+    </section>
   );
 }
