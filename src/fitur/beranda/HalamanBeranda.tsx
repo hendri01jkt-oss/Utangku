@@ -1,15 +1,9 @@
-import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Plus, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { Kartu, KartuStatistik, TombolTautan } from '@/komponen/ui';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { formatRupiah } from '@/lib/uang';
-import { KartuBarisTagihan } from '@/fitur/tagihan/KartuBarisTagihan';
-import { perluDitagih } from '@/fitur/tagihan/daftarTagihan';
 import { ringkasanWarung } from './ringkasanWarung';
-
-/** Beranda hanya menampilkan yang paling mendesak; sisanya di tab Tagihan. */
-const BATAS_TAMPIL = 5;
 
 export function HalamanBeranda() {
   const warung = useSesi((s) => s.warung);
@@ -18,15 +12,6 @@ export function HalamanBeranda() {
     async () => (warung ? await ringkasanWarung(warung.id) : undefined),
     [warung?.id],
   );
-  const ditagih = useLiveQuery(
-    async () => (warung ? await perluDitagih(warung.id) : []),
-    [warung?.id],
-    [],
-  );
-
-  const teratas = ditagih.slice(0, BATAS_TAMPIL);
-  const sisaBaris = ditagih.length - teratas.length;
-
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-lg font-semibold">Beranda</h1>
@@ -79,48 +64,6 @@ export function HalamanBeranda() {
           </TombolTautan>
         </Kartu>
       ) : null}
-
-      <section aria-labelledby="judul-ditagih" className="flex flex-col gap-2">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 id="judul-ditagih" className="text-sm font-semibold text-teks-redup">
-            Perlu Ditagih
-          </h2>
-          {ditagih.length > 0 ? (
-            <span className="angka text-xs text-teks-samar">{ditagih.length} utang</span>
-          ) : null}
-        </div>
-
-        {teratas.length === 0 ? (
-          <Kartu>
-            <p className="text-sm text-teks-samar">
-              {ringkasan?.adaPelanggan
-                ? 'Tidak ada utang yang mendekati atau melewati batas bayar.'
-                : 'Belum ada yang perlu ditagih.'}
-            </p>
-          </Kartu>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {teratas.map((baris) => (
-              <li key={baris.transaksi.id}>
-                <KartuBarisTagihan
-                  baris={baris}
-                  namaWarung={warung?.nama_warung ?? 'Warung'}
-                  template={warung?.template_pesan_tagihan ?? null}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {sisaBaris > 0 ? (
-          <Link
-            to="/tagihan"
-            className="flex items-center justify-center gap-1 py-2 text-sm text-emas-700 underline underline-offset-4"
-          >
-            Lihat {sisaBaris} lainnya
-          </Link>
-        ) : null}
-      </section>
     </div>
   );
 }
