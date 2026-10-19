@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, CreditCard, Crown } from 'lucide-react';
+import { Logo } from '@/komponen/ui';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { ambilSupabase } from '@/lib/supabase';
 
@@ -128,10 +129,15 @@ export function KartuLangganan() {
           >
             <Crown className="size-5 text-[#0f1b3d]" aria-hidden />
           </span>
-          <span className="text-sm font-semibold tracking-wide text-[#f6e6a8]">UtangKu Pro</span>
+          <span className="rounded-full border border-emas-500/60 px-2.5 py-0.5 text-[11px] font-semibold tracking-widest text-[#f6e6a8]">
+            {lencana}
+          </span>
         </div>
-        <span className="rounded-full border border-emas-500/60 px-2.5 py-0.5 text-[11px] font-semibold tracking-widest text-[#f6e6a8]">
-          {lencana}
+        <span
+          className="rounded-lg px-2.5 py-1.5 shadow-sm"
+          style={{ background: 'linear-gradient(180deg,#fffdf6,#f6e6a8)' }}
+        >
+          <Logo tinggi="h-5" />
         </span>
       </div>
 
