@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BadgeCheck, Clock, CreditCard } from 'lucide-react';
 import { Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat } from '@/fitur/auth/LayoutAuth';
@@ -46,24 +46,29 @@ export function KartuLangganan() {
   const [sedang, setSedang] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
 
-  const muat = useCallback(async () => {
-    if (!warung) return;
-    try {
-      const sb = await ambilSupabase();
-      const { data } = await sb
-        .from('subscriptions')
-        .select('tier, tanggal_expired, trial_sampai')
-        .eq('warung_id', warung.id)
-        .maybeSingle();
-      if (data) setKeadaan(tentukan(data));
-    } catch {
-      // Offline: kartu cukup tidak tampil, tidak perlu menakut-nakuti.
-    }
-  }, [warung]);
+  const warungId = warung?.id;
 
   useEffect(() => {
-    void muat();
-  }, [muat]);
+    if (!warungId) return;
+    let batal = false;
+    ambilSupabase()
+      .then((sb) =>
+        sb
+          .from('subscriptions')
+          .select('tier, tanggal_expired, trial_sampai')
+          .eq('warung_id', warungId)
+          .maybeSingle(),
+      )
+      .then(({ data }) => {
+        if (!batal && data) setKeadaan(tentukan(data));
+      })
+      .catch(() => {
+        // Offline: kartu cukup tidak tampil, tidak perlu menakut-nakuti.
+      });
+    return () => {
+      batal = true;
+    };
+  }, [warungId]);
 
   if (!warung || !keadaan) return null;
 
