@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ChevronDown, CircleCheck, Lock, MessageCircle, TriangleAlert } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { ChevronDown, CircleCheck, KeyRound, Lock, MessageCircle, TriangleAlert } from 'lucide-react';
 import { Kartu, StatusBadge, type Status } from '@/komponen/ui';
 import { formatRupiah } from '@/lib/uang';
 import { normalisasiNomorWa, tautanWa } from '@/lib/wa';
@@ -38,8 +38,32 @@ const LABEL_METODE: Record<string, string> = {
 type Keadaan =
   | { jenis: 'memuat' }
   | { jenis: 'siap'; data: DataPantau }
+  | { jenis: 'pin'; namaWarung: string; sisaPercobaan: number | null }
+  | { jenis: 'terkunci'; sisaDetik: number }
   | { jenis: 'tidak-dikenal' }
   | { jenis: 'galat'; pesan: string };
+
+/*
+ * PIN diingat di perangkat pelanggan supaya tidak perlu mengetik ulang tiap
+ * kali link dibuka. Dibungkus try/catch: penyimpanan bisa kosong atau
+ * ditolak (mode privat), dan halaman harus tetap jalan tanpanya.
+ */
+const kunciPin = (token: string) => `utangku-pin:${token}`;
+const bacaPin = (token: string): string | null => {
+  try {
+    return localStorage.getItem(kunciPin(token));
+  } catch {
+    return null;
+  }
+};
+const simpanPin = (token: string, pin: string | null) => {
+  try {
+    if (pin) localStorage.setItem(kunciPin(token), pin);
+    else localStorage.removeItem(kunciPin(token));
+  } catch {
+    /* tidak apa-apa */
+  }
+};
 
 /**
  * Halaman publik: pelanggan memeriksa sendiri catatan utangnya.
@@ -50,36 +74,66 @@ type Keadaan =
  * izin apa pun (lokasi, kamera, notifikasi) yang bisa membuat pelanggan
  * curiga balik.
  *
+ * Link saja tidak cukup untuk membukanya: pelanggan harus memasukkan PIN 6
+ * angka yang diberikan warung. Pemeriksaannya di database, bukan di sini.
+ *
  * Sengaja tidak menyentuh Dexie, mesin sync, maupun store sesi: yang membuka
  * ini bukan pemilik warung, tidak memasang aplikasinya, dan tidak perlu
  * mengunduh apa pun selain halaman ini.
  *
  * Token diterima sebagai prop, bukan lewat useParams. Halaman ini dipasang
- * langsung dari titik masuk tanpa react-router — lihat main.tsx. Satu
- * ketergantungan yang tidak dipakai pun ikut menarik seluruh cabang impornya
- * ke dalam unduhan pelanggan.
+ * langsung dari titik masuk tanpa react-router — lihat main.tsx.
  */
 export function HalamanPantau({ token }: { token: string }) {
-  const [hasil, setHasil] = useState<{ token: string; keadaan: Keadaan } | null>(null);
+  const [hasil, setHasil] = useState<{ token: string; n: number; keadaan: Keadaan } | null>(
+    null,
+  );
+  // n naik setiap PIN dikirim; pin null = belum diisi.
+  const [masukan, setMasukan] = useState<{ pin: string | null; n: number }>(() => ({
+    pin: bacaPin(token),
+    n: 0,
+  }));
+  const [ketikan, setKetikan] = useState('');
 
   /*
    * Keadaan diturunkan saat render, bukan disetel ulang dari dalam effect.
-   *
-   * Kalau tokennya berganti, hasil yang tersimpan langsung dianggap basi dan
-   * layarnya kembali ke "memuat" pada render yang sama — tanpa satu putaran
-   * render tambahan, dan tanpa celah sempit tempat data pelanggan lama masih
-   * terlihat di bawah token yang baru.
+   * Kalau tokennya berganti, hasil yang tersimpan langsung dianggap basi.
    */
   const keadaan: Keadaan = hasil?.token === token ? hasil.keadaan : { jenis: 'memuat' };
+  const mengirim = hasil?.token !== token || hasil.n !== masukan.n;
+
+  useEffect(() => {
+    // Halaman berisi data utang orang: jangan sampai masuk mesin pencari.
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
 
   useEffect(() => {
     const kendali = new AbortController();
     const simpan = (k: Keadaan) => {
-      if (!kendali.signal.aborted) setHasil({ token, keadaan: k });
+      if (!kendali.signal.aborted) setHasil({ token, n: masukan.n, keadaan: k });
     };
 
-    ambilPantau(token, kendali.signal)
-      .then((data) => simpan({ jenis: 'siap', data }))
+    ambilPantau(token, masukan.pin, kendali.signal)
+      .then((jawab) => {
+        if (jawab.status === 'ok') {
+          simpanPin(token, masukan.pin);
+          simpan({ jenis: 'siap', data: jawab.data });
+        } else if (jawab.status === 'terkunci') {
+          simpan({ jenis: 'terkunci', sisaDetik: jawab.sisa_detik });
+        } else {
+          // PIN yang tersimpan sudah tidak cocok (diganti warung): lupakan.
+          if (masukan.pin) simpanPin(token, null);
+          simpan({
+            jenis: 'pin',
+            namaWarung: jawab.nama_warung,
+            sisaPercobaan: jawab.status === 'pin_salah' ? jawab.sisa_percobaan : null,
+          });
+        }
+      })
       .catch((galat: unknown) => {
         if (galat instanceof TokenTidakDikenal) {
           simpan({ jenis: 'tidak-dikenal' });
@@ -92,12 +146,79 @@ export function HalamanPantau({ token }: { token: string }) {
       });
 
     return () => kendali.abort();
-  }, [token]);
+  }, [token, masukan]);
+
+  function kirimPin(e: FormEvent) {
+    e.preventDefault();
+    if (ketikan.length !== 6 || mengirim) return;
+    setMasukan((m) => ({ pin: ketikan, n: m.n + 1 }));
+    setKetikan('');
+  }
 
   if (keadaan.jenis === 'memuat') {
     return (
       <Bingkai>
         <p className="py-16 text-center text-sm text-teks-redup">Memuat catatan utang…</p>
+      </Bingkai>
+    );
+  }
+
+  if (keadaan.jenis === 'terkunci') {
+    const menit = Math.max(1, Math.ceil(keadaan.sisaDetik / 60));
+    return (
+      <Bingkai>
+        <Kartu className="mt-8 text-center">
+          <Lock size={28} className="mx-auto text-peringatan" aria-hidden />
+          <h1 className="mt-3 text-lg font-semibold text-teks-utama">Dikunci sementara</h1>
+          <p className="mt-2 text-sm text-teks-redup">
+            PIN salah beberapa kali. Coba lagi sekitar {menit} menit lagi, atau minta PIN
+            yang benar ke warung.
+          </p>
+        </Kartu>
+      </Bingkai>
+    );
+  }
+
+  if (keadaan.jenis === 'pin') {
+    return (
+      <Bingkai>
+        <header className="pt-6 pb-2 text-center">
+          <p className="text-xs tracking-wide text-teks-samar uppercase">Catatan utang di</p>
+          <h1 className="text-xl font-semibold text-teks-utama">{keadaan.namaWarung}</h1>
+        </header>
+        <Kartu>
+          <form onSubmit={kirimPin} className="flex flex-col gap-3 text-center">
+            <KeyRound size={28} className="mx-auto text-emas-700" aria-hidden />
+            <label htmlFor="pin-pantau" className="text-sm text-teks-redup">
+              Masukkan PIN 6 angka dari warung
+            </label>
+            <input
+              id="pin-pantau"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={ketikan}
+              onChange={(e) => setKetikan(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="••••••"
+              className="min-h-14 w-full rounded-[var(--radius-kontrol)] border border-garis bg-putih px-3 text-center text-2xl font-bold tracking-[0.4em] text-teks-utama outline-none focus:border-emas-600"
+            />
+            {keadaan.sisaPercobaan !== null ? (
+              <p role="alert" className="text-sm text-bahaya">
+                PIN salah. Sisa {keadaan.sisaPercobaan} kali coba.
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={ketikan.length !== 6 || mengirim}
+              className="min-h-12 rounded-[var(--radius-kontrol)] border border-emas-600 bg-emas-500 px-4 font-semibold text-navy-900 disabled:opacity-50"
+            >
+              {mengirim ? 'Memeriksa…' : 'Buka catatan'}
+            </button>
+            <p className="text-xs text-teks-samar">
+              Tidak punya PIN? Tanyakan ke {keadaan.namaWarung}.
+            </p>
+          </form>
+        </Kartu>
       </Bingkai>
     );
   }

@@ -147,6 +147,7 @@ export function HalamanDetailPelanggan() {
           pelangganId={pelanggan.id}
           namaPelanggan={pelanggan.nama}
           token={pelanggan.token_pantau}
+          pin={pelanggan.pin_pantau}
           terakhirDilihat={pelanggan.terakhir_dilihat_pelanggan}
         />
       </Kartu>

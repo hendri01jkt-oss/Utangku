@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Check, Copy, Eye, RefreshCw, Share2 } from 'lucide-react';
+import { Check, Copy, Eye, KeyRound, RefreshCw, Share2 } from 'lucide-react';
 import { Tombol } from '@/komponen/ui';
-import { gantiTokenPantau } from '@/data/repo/pelanggan';
+import { gantiPinPantau, gantiTokenPantau } from '@/data/repo/pelanggan';
 import { alamatAplikasi } from '@/lib/alamat';
 
 const formatWaktu = (iso: string) =>
@@ -23,14 +23,19 @@ export function KartuLinkPantau({
   pelangganId,
   namaPelanggan,
   token,
+  pin,
   terakhirDilihat,
 }: {
   pelangganId: string;
   namaPelanggan: string;
   token: string;
+  /** Kosong hanya pada pelanggan lama yang belum sempat menerima PIN dari server. */
+  pin: string | null | undefined;
   terakhirDilihat: string | null;
 }) {
   const [tersalin, setTersalin] = useState(false);
+  const [pinTersalin, setPinTersalin] = useState(false);
+  const [konfirmasiPin, setKonfirmasiPin] = useState(false);
   const [konfirmasiGanti, setKonfirmasiGanti] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
 
@@ -53,7 +58,7 @@ export function KartuLinkPantau({
   const bagikan = async () => {
     const pesan =
       `Halo ${namaPelanggan}, ini link untuk melihat catatan utang Anda ` +
-      `kapan saja:\n${alamat}`;
+      `kapan saja:\n${alamat}\n\nPIN-nya saya kirim terpisah.`;
     if (navigator.share) {
       try {
         await navigator.share({ text: pesan });
@@ -64,6 +69,36 @@ export function KartuLinkPantau({
       }
     }
     void salin();
+  };
+
+  // PIN sengaja dikirim lewat pesan TERPISAH dari link: kalau keduanya
+  // menumpuk di satu pesan, siapa pun yang mendapat teruskan pesan itu
+  // memegang kunci sekaligus gemboknya.
+  const bagikanPin = async () => {
+    if (!pin) return;
+    const pesan =
+      `PIN untuk membuka catatan utang Anda: ${pin}\n` +
+      `Jangan dibagikan ke orang lain.`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: pesan });
+        return;
+      } catch (kegagalan) {
+        if (kegagalan instanceof DOMException && kegagalan.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(pesan);
+      setPinTersalin(true);
+      setTimeout(() => setPinTersalin(false), 2000);
+    } catch {
+      setGalat('Tidak bisa menyalin otomatis. Sebutkan PIN-nya langsung ke pelanggan.');
+    }
+  };
+
+  const gantiPin = async () => {
+    await gantiPinPantau(pelangganId);
+    setKonfirmasiPin(false);
   };
 
   const ganti = async () => {
@@ -80,8 +115,8 @@ export function KartuLinkPantau({
       </div>
 
       <p className="mt-0.5 text-xs leading-snug text-teks-samar">
-        Pelanggan bisa melihat riwayat dan sisa utangnya sendiri, tanpa perlu akun.
-        Halaman itu hanya bisa dibaca, tidak bisa diubah.
+        Pelanggan melihat riwayat dan sisa utangnya sendiri dengan link dan PIN
+        ini, tanpa perlu akun. Halaman itu hanya bisa dibaca, tidak bisa diubah.
       </p>
 
       {/* Alamatnya ditampilkan, bukan disembunyikan di balik tombol: kalau
@@ -104,6 +139,60 @@ export function KartuLinkPantau({
       </div>
 
       {galat ? <p className="mt-2 text-xs text-bahaya">{galat}</p> : null}
+
+      <div className="mt-2 rounded-[var(--radius-kontrol)] border border-garis bg-permukaan-2 p-2.5">
+        <div className="flex items-center gap-2">
+          <KeyRound size={15} className="shrink-0 text-teks-redup" aria-hidden />
+          <p className="text-sm font-medium text-teks-utama">PIN pelanggan</p>
+        </div>
+        {pin ? (
+          <>
+            <p className="angka mt-1 text-2xl font-bold tracking-[0.3em] text-teks-utama">
+              {pin.slice(0, 3)} {pin.slice(3)}
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-teks-samar">
+              Kirim terpisah dari link, atau sebutkan langsung. Salah 5 kali, link
+              terkunci 15 menit.
+            </p>
+            <div className="mt-1.5 grid grid-cols-2 gap-2">
+              <Tombol
+                varian="sekunder"
+                onClick={() => void bagikanPin()}
+                ikon={pinTersalin ? <Check size={16} /> : <Share2 size={16} />}
+              >
+                {pinTersalin ? 'Tersalin' : 'Kirim PIN'}
+              </Tombol>
+              <Tombol varian="sekunder" onClick={() => setKonfirmasiPin(true)}>
+                Ganti PIN
+              </Tombol>
+            </div>
+            {konfirmasiPin ? (
+              <div className="mt-2 rounded-[var(--radius-kontrol)] bg-[var(--tint-peringatan)] p-3">
+                <p className="text-xs text-teks-utama">
+                  PIN lama langsung tidak berlaku. Pelanggan harus diberi PIN yang baru.
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <Tombol varian="sekunder" onClick={() => setKonfirmasiPin(false)}>
+                    Batal
+                  </Tombol>
+                  <Tombol varian="utama" onClick={() => void gantiPin()}>
+                    Ya, ganti PIN
+                  </Tombol>
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className="mt-1.5">
+            <p className="text-xs text-teks-samar">
+              PIN belum tersedia di perangkat ini. Buat sekarang.
+            </p>
+            <Tombol className="mt-1.5" varian="sekunder" onClick={() => void gantiPin()}>
+              Buat PIN
+            </Tombol>
+          </div>
+        )}
+      </div>
 
       <p className="mt-1.5 text-xs text-teks-samar">
         {terakhirDilihat

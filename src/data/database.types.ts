@@ -74,6 +74,7 @@ export type Database = {
           no_wa: string | null
           status: Database["public"]["Enums"]["pelanggan_status"]
           terakhir_dilihat_pelanggan: string | null
+          pin_pantau: string
           token_pantau: string
           updated_at: string
           warung_id: string
@@ -89,6 +90,7 @@ export type Database = {
           no_wa?: string | null
           status?: Database["public"]["Enums"]["pelanggan_status"]
           terakhir_dilihat_pelanggan?: string | null
+          pin_pantau?: string
           token_pantau?: string
           updated_at?: string
           warung_id: string
@@ -104,6 +106,7 @@ export type Database = {
           no_wa?: string | null
           status?: Database["public"]["Enums"]["pelanggan_status"]
           terakhir_dilihat_pelanggan?: string | null
+          pin_pantau?: string
           token_pantau?: string
           updated_at?: string
           warung_id?: string
@@ -600,7 +603,7 @@ export type Database = {
         }
       }
       hari_ini: { Args: never; Returns: string }
-      pantau_utang: { Args: { p_token: string }; Returns: Json }
+      pantau_utang: { Args: { p_token: string; p_pin?: string }; Returns: Json }
       hitung_ulang_utang: { Args: { p_transaksi: string }; Returns: undefined }
       warung_saya: { Args: never; Returns: string[] }
     }

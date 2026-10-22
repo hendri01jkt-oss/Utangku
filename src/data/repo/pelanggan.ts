@@ -1,6 +1,12 @@
 import { db, type BarisPelanggan } from '@/data/db';
 import { idBaru, sekarang, simpanDanAntre } from './dasar';
 
+/** PIN 6 angka acak dari CSPRNG; tidak diturunkan dari data pelanggan mana pun. */
+export function pinBaru(): string {
+  const [angka] = crypto.getRandomValues(new Uint32Array(1));
+  return String((angka ?? 0) % 1_000_000).padStart(6, '0');
+}
+
 export interface DataPelangganBaru {
   warung_id: string;
   nama: string;
@@ -27,6 +33,7 @@ export async function buatPelanggan(data: DataPelangganBaru) {
     // yang dicatat tanpa sinyal harus langsung punya link pantau yang bisa
     // disalin, bukan link yang baru ada setelah warung dapat sinyal.
     token_pantau: idBaru(),
+    pin_pantau: pinBaru(),
     terakhir_dilihat_pelanggan: null,
     created_at: waktu,
     updated_at: waktu,
@@ -57,6 +64,11 @@ export async function ubahPelanggan(
  */
 export async function gantiTokenPantau(id: string) {
   return ubahPelanggan(id, { token_pantau: idBaru() });
+}
+
+/** PIN baru untuk link pantau. PIN lama langsung berhenti berlaku. */
+export async function gantiPinPantau(id: string) {
+  return ubahPelanggan(id, { pin_pantau: pinBaru() });
 }
 
 /** Hapus = soft delete, supaya penghapusan ikut tersinkron dan tidak hidup lagi. */

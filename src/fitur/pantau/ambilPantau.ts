@@ -50,10 +50,24 @@ export interface DataPantau {
 
 export class TokenTidakDikenal extends Error {}
 
+/**
+ * Jawaban server. Selalu ada `status`: halaman tidak pernah menebak dari ada
+ * tidaknya data. Hanya status 'ok' yang membawa catatan utang.
+ */
+export type HasilPantau =
+  | { status: 'ok'; data: DataPantau }
+  | { status: 'butuh_pin'; nama_warung: string }
+  | { status: 'pin_salah'; nama_warung: string; sisa_percobaan: number }
+  | { status: 'terkunci'; sisa_detik: number };
+
 /** Bentuk UUID; token yang jelas-jelas salah bentuk tidak perlu dikirim. */
 const POLA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function ambilPantau(token: string, sinyal?: AbortSignal): Promise<DataPantau> {
+export async function ambilPantau(
+  token: string,
+  pin: string | null,
+  sinyal?: AbortSignal,
+): Promise<HasilPantau> {
   if (!POLA_UUID.test(token)) throw new TokenTidakDikenal();
 
   const tanggapan = await fetch(`${URL_SUPABASE}/rest/v1/rpc/pantau_utang`, {
@@ -63,7 +77,7 @@ export async function ambilPantau(token: string, sinyal?: AbortSignal): Promise<
       Authorization: `Bearer ${KUNCI}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_token: token }),
+    body: JSON.stringify({ p_token: token, p_pin: pin }),
     signal: sinyal,
   });
 
@@ -71,10 +85,15 @@ export async function ambilPantau(token: string, sinyal?: AbortSignal): Promise<
     throw new Error('Tidak bisa menghubungi server. Coba lagi saat sinyal membaik.');
   }
 
-  const isi: unknown = await tanggapan.json();
-  // Fungsi mengembalikan null untuk token tak dikenal DAN untuk pelanggan
-  // yang sudah dihapus — sengaja tidak dibedakan, supaya penebak token tidak
-  // pernah tahu tebakannya "hampir benar".
+  const isi = (await tanggapan.json()) as (Record<string, unknown> & { status?: string }) | null;
+  // null untuk token tak dikenal DAN pelanggan yang sudah dihapus — sengaja
+  // tidak dibedakan, supaya penebak token tidak tahu tebakannya "hampir benar".
   if (isi === null) throw new TokenTidakDikenal();
-  return isi as DataPantau;
+
+  if (isi.status === 'ok') {
+    const { status: _status, ...data } = isi;
+    void _status;
+    return { status: 'ok', data: data as unknown as DataPantau };
+  }
+  return isi as unknown as HasilPantau;
 }
