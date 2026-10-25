@@ -1,11 +1,9 @@
 import { db } from '@/data/db';
-import { ambilSupabase } from '@/lib/supabase';
+import { kirim } from '@/lib/api';
 import { perkecilGambar } from '@/lib/gambar';
 import { jadwalkanSync } from '@/data/sync/mesin';
 
-const BUCKET = 'foto-pelanggan';
-
-/** Path di Storage: segmen pertama adalah warung_id, itu dasar policy-nya. */
+/** Path foto di R2: segmen pertama adalah warung_id. Server yang menentukannya; ini hanya catatan di baris pelanggan. */
 export const jalurFoto = (warungId: string, pelangganId: string) =>
   `${warungId}/${pelangganId}.jpg`;
 
@@ -13,7 +11,7 @@ export const jalurFoto = (warungId: string, pelangganId: string) =>
  * Menyimpan foto ke perangkat lebih dulu, unggah menyusul.
  *
  * Foto yang diambil tanpa sinyal tetap tersimpan dan tetap tampil; mesin
- * sync yang mengangkatnya ke Storage begitu jaringan tersedia.
+ * sync yang mengangkatnya ke R2 begitu jaringan tersedia.
  */
 export async function simpanFotoLokal(
   warungId: string,
@@ -41,14 +39,11 @@ export async function unggahFotoTertunda(): Promise<number> {
   let terunggah = 0;
 
   for (const foto of menunggu) {
-    const { error } = await (await ambilSupabase()).storage
-      .from(BUCKET)
-      .upload(jalurFoto(foto.warung_id, foto.pelanggan_id), foto.blob, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
-    if (error) throw error;
-
+    await kirim(`/foto/${foto.pelanggan_id}`, {
+      method: 'PUT',
+      badan: foto.blob,
+      tipe: 'image/jpeg',
+    });
     await db.foto.update(foto.pelanggan_id, { terunggah: 1 });
     terunggah += 1;
   }
@@ -57,10 +52,10 @@ export async function unggahFotoTertunda(): Promise<number> {
 }
 
 /**
- * Mengambil foto yang sudah ada di Storage tapi belum ada di perangkat ini —
- * misalnya setelah pemilik warung berganti HP. Bucket-nya privat, jadi
- * berkasnya diunduh lewat URL bertanda tangan lalu disimpan sebagai blob
- * supaya ke depannya tetap tampil walau offline.
+ * Mengambil foto yang sudah ada di R2 tapi belum ada di perangkat ini —
+ * misalnya setelah pemilik warung berganti HP. Fotonya
+ * privat, jadi diunduh lewat API dengan token masuk lalu disimpan sebagai
+ * blob supaya ke depannya tetap tampil walau offline.
  */
 export async function unduhFotoHilang(warungId: string): Promise<number> {
   const pelanggan = await db.pelanggan
@@ -73,13 +68,12 @@ export async function unduhFotoHilang(warungId: string): Promise<number> {
   for (const p of pelanggan) {
     if (await db.foto.get(p.id)) continue;
 
-    const { data, error } = await (await ambilSupabase()).storage
-      .from(BUCKET)
-      .createSignedUrl(p.foto_path as string, 60);
-    if (error || !data) continue;
-
-    const respons = await fetch(data.signedUrl);
-    if (!respons.ok) continue;
+    let respons: Response;
+    try {
+      respons = await kirim(`/foto/${p.id}`);
+    } catch {
+      continue;
+    }
 
     await db.foto.put({
       pelanggan_id: p.id,

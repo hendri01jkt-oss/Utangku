@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MailCheck } from 'lucide-react';
-import { alamatAplikasi } from '@/lib/alamat';
-import { ambilSupabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
+import { useSesi } from './useSesi';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -15,7 +14,6 @@ export function HalamanDaftar() {
   const [sandi, setSandi] = useState('');
   const [galat, setGalat] = useState<string | null>(null);
   const [sedangKirim, setSedangKirim] = useState(false);
-  const [perluKonfirmasi, setPerluKonfirmasi] = useState(false);
   const navigate = useNavigate();
 
   async function kirim(e: FormEvent) {
@@ -29,55 +27,20 @@ export function HalamanDaftar() {
 
     setSedangKirim(true);
     try {
-      const { data, error } = await (await ambilSupabase()).auth.signUp({
-        email: email.trim(),
-        password: sandi,
-        options: {
-          // Dibaca trigger on_auth_user_created untuk mengisi profiles.nama_lengkap.
-          data: { full_name: nama.trim() },
-          emailRedirectTo: alamatAplikasi(),
+      const { token, user } = await api<{ token: string; user: { id: string; email: string } }>(
+        '/auth/daftar',
+        {
+          publik: true,
+          json: { email: email.trim(), password: sandi, nama_lengkap: nama.trim() },
         },
-      });
-      if (error) throw error;
-
-      // Bila konfirmasi email diaktifkan di project, signUp tidak
-      // mengembalikan sesi — pengguna harus membuka tautan di emailnya dulu.
-      if (!data.session) {
-        setPerluKonfirmasi(true);
-        return;
-      }
+      );
+      await useSesi.getState().mulaiSesi(token, user);
       navigate('/onboarding', { replace: true });
     } catch (err) {
       setGalat(pesanGalat(err));
     } finally {
       setSedangKirim(false);
     }
-  }
-
-  if (perluKonfirmasi) {
-    return (
-      <LayoutAuth
-        judul="Cek email Anda"
-        keterangan="Satu langkah lagi sebelum warung Anda siap."
-        bawah={
-          <Link to="/masuk" className="text-emas-700 underline underline-offset-4">
-            Kembali ke halaman masuk
-          </Link>
-        }
-      >
-        <div className="flex flex-col items-center gap-3 py-2 text-center">
-          <MailCheck size={40} className="text-emas-700" aria-hidden />
-          <p className="text-sm text-teks-redup">
-            Kami mengirim tautan konfirmasi ke{' '}
-            <span className="text-teks-utama">{email.trim()}</span>. Buka tautan
-            itu, lalu masuk untuk melanjutkan.
-          </p>
-          <p className="text-xs text-teks-samar">
-            Tidak ada emailnya? Periksa folder spam.
-          </p>
-        </div>
-      </LayoutAuth>
-    );
   }
 
   return (

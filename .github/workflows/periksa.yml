@@ -1,0 +1,41 @@
+name: Periksa kode
+
+# Deploy TIDAK lagi lewat GitHub Pages. UtangKu berjalan sebagai satu Worker
+# Cloudflare (aplikasi + API + D1 + R2) dan Cloudflare membangun serta
+# memasangnya sendiri setiap ada push ke main (Workers Builds). Workflow ini
+# hanya memastikan kodenya lolos pemeriksaan tipe, lint, dan build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: periksa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  periksa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Periksa tipe dan lint
+        run: |
+          npm run typecheck
+          npm run lint
+
+      - name: Build
+        run: npm run build

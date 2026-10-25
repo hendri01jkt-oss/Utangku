@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Store } from 'lucide-react';
-import { ambilSupabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
+import { tulisSalinanServer } from '@/data/sync/salinanServer';
+import type { Warung } from '@/fitur/auth/useSesi';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from '@/fitur/auth/LayoutAuth';
 import { pesanGalat } from '@/fitur/auth/pesanGalat';
@@ -31,15 +33,18 @@ export function HalamanOnboarding() {
       // Satu RPC transaksional: warung + keanggotaan pemilik + baris
       // langganan dibuat sekaligus, sehingga tidak mungkin ada akun yang
       // berhasil dibuat tapi setengah jadi.
-      const { data, error } = await (await ambilSupabase()).rpc('buat_warung', {
-        p_nama_warung: nama.trim(),
-        p_no_wa: noWa.trim() || undefined,
-        p_alamat: alamat.trim() || undefined,
-        p_tempo_default_hari: Number(tempo) || 0,
+      const { warung } = await api<{ warung: Warung | null }>('/warung', {
+        method: 'POST',
+        json: {
+          nama_warung: nama.trim(),
+          no_wa: noWa.trim() || null,
+          alamat: alamat.trim() || null,
+          tempo_default_hari: Number(tempo) || 0,
+        },
       });
-      if (error) throw error;
-      if (!data) throw new Error('Warung gagal dibuat. Coba lagi.');
-      setWarung(data);
+      if (!warung) throw new Error('Warung gagal dibuat. Coba lagi.');
+      await tulisSalinanServer('warung', [warung]);
+      setWarung(warung);
     } catch (err) {
       setGalat(pesanGalat(err));
     } finally {

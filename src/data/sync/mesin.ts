@@ -1,5 +1,5 @@
 import { db, type EntriOutbox, type NamaEntitas } from '@/data/db';
-import { ambilSupabase } from '@/lib/supabase';
+import { api, GalatApi } from '@/lib/api';
 import { unduhFotoHilang, unggahFotoTertunda } from '@/data/repo/foto';
 import { tulisSalinanServer } from './salinanServer';
 import { useSync } from './useSync';
@@ -55,6 +55,9 @@ const tulisKursor = (entitas: NamaEntitas, nilai: string) =>
 function gagalKarenaJaringan(status: number | undefined, pesan: string): boolean {
   if (!navigator.onLine) return true;
   if (status === undefined || status === 0) return true;
+  // 401: token kedaluwarsa. Bukan salah muatan; entri jangan ditandai gagal
+  // permanen, cukup menunggu pengguna masuk lagi.
+  if (status === 401) return true;
   // 5xx: server sedang bermasalah, bukan muatan kita yang salah.
   if (status >= 500) return true;
   return /failed to fetch|networkerror|load failed|timeout/i.test(pesan);
@@ -65,120 +68,27 @@ interface HasilDorong {
   terhentiJaringan: boolean;
 }
 
-/**
- * Kolom yang boleh diisi saat baris LAHIR, tapi tidak pernah boleh berubah
- * sesudahnya.
- *
- * Identitas baris, warung pemiliknya, waktu pembuatan, dan siapa yang
- * membuatnya bukan sesuatu yang boleh berpindah lewat sinkronisasi. Database
- * menegakkan hal yang sama: hak UPDATE pada kolom-kolom ini memang tidak
- * diberikan ke peran authenticated.
- *
- * Daftarnya PER ENTITAS, bukan satu daftar global. Dulu global, dan itu
- * ternyata perangkap: kolom `jenis` ditambahkan di Tahap 15 dengan hak
- * INSERT saja — sengaja, supaya sebuah utang tidak bisa diam-diam berubah
- * jadi penjualan tunai — tapi tidak ada tempat yang wajar untuk
- * mencantumkannya, sehingga ia ikut terkirim pada setiap UPDATE dan
- * Postgres menolak SELURUH pernyataan dengan 42501. Akibatnya setiap
- * penyuntingan utang yang sudah tersinkron berhenti bekerja.
- *
- * Aturannya sekarang bisa dibaca sebagai satu tabel yang sejajar dengan
- * daftar `grant update (...)` di migrasi. Setiap kolom baru yang hanya
- * boleh disisipkan HARUS ditambahkan di sini juga.
- */
-const KOLOM_TETAP_UMUM = ['id', 'warung_id', 'created_at', 'dibuat_oleh'] as const;
-
-const KOLOM_TETAP: Record<NamaEntitas, ReadonlySet<string>> = {
-  warung: new Set(KOLOM_TETAP_UMUM),
-  pelanggan: new Set(KOLOM_TETAP_UMUM),
-  // jenis dan nomor_struk: hak UPDATE-nya sengaja tidak diberikan
-  // (migrasi 0013 dan 0015).
-  transaksi_utang: new Set([...KOLOM_TETAP_UMUM, 'jenis', 'nomor_struk']),
-  // transaksi_id: sebuah item maupun cicilan tidak boleh berpindah ke
-  // transaksi lain lewat sinkronisasi — itu memindahkan uang tanpa jejak.
-  transaksi_item: new Set([...KOLOM_TETAP_UMUM, 'transaksi_id']),
-  pembayaran: new Set([...KOLOM_TETAP_UMUM, 'transaksi_id']),
-};
-
-/**
- * Entitas yang TIDAK PERNAH dibuat lewat sinkronisasi, hanya diperbarui.
- *
- * Baris warung lahir dari RPC `buat_warung()` saat onboarding, dan policy
- * INSERT-nya mensyaratkan `pemilik_id = auth.uid()`. Sementara `pemilik_id`
- * justru sengaja tidak pernah ikut dikirim — kepemilikan warung tidak boleh
- * berpindah lewat sinkronisasi biasa. Kedua aturan itu benar sendiri-
- * sendiri, tapi berarti klien secara struktural tidak akan pernah bisa
- * meng-INSERT warung: yang didapat selalu "new row violates row-level
- * security policy for table warung".
- *
- * Dan itu tidak bisa dipulihkan dengan mencoba INSERT dulu lalu jatuh ke
- * UPDATE, karena Postgres memeriksa WITH CHECK SEBELUM pelanggaran kunci
- * unik muncul — 23505 yang jadi pemicu jalur cadangan tidak pernah sempat
- * terjadi.
- */
-const ENTITAS_TANPA_SISIP = new Set<NamaEntitas>(['warung']);
-
 interface HasilKirim {
-  error: { message: string; code?: string } | null;
+  error: { message: string } | null;
   status?: number;
 }
 
-/** Memperbarui baris yang sudah ada, tanpa menyentuh kolom identitas. */
-async function ubahDiServer(entri: EntriOutbox): Promise<HasilKirim> {
-  const supabase = await ambilSupabase();
-  const tetap = KOLOM_TETAP[entri.entitas];
-  const perubahan = Object.fromEntries(
-    Object.entries(entri.muatan).filter(([kunci]) => !tetap.has(kunci)),
-  );
-
-  const { error, status, data } = await supabase
-    .from(entri.entitas)
-    .update(perubahan as never)
-    .eq('id', entri.id)
-    .select('id');
-
-  if (error) return { error, status };
-
-  // UPDATE yang tidak mengenai baris apa pun TIDAK dianggap berhasil. Kalau
-  // dibiarkan, entrinya dihapus dari antrean dan perubahan pengguna lenyap
-  // tanpa jejak — persis kegagalan yang paling sulit disadari.
-  if (!data || data.length === 0) {
-    return {
-      error: { message: 'Baris tidak ditemukan di server saat hendak diperbarui.' },
-      status: 404,
-    };
-  }
-
-  return { error: null, status };
-}
-
 /**
- * Mengirim satu entri: INSERT untuk baris baru, UPDATE untuk yang sudah ada.
+ * Mengirim satu entri ke server.
  *
- * Dulu ini satu panggilan `upsert`, dan itu ternyata TIDAK PERNAH berhasil
- * untuk transaksi_utang. PostgREST menerjemahkan upsert menjadi
- * `INSERT ... ON CONFLICT DO UPDATE SET <semua kolom muatan>`, dan Postgres
- * memeriksa hak UPDATE untuk setiap kolom di klausa itu — tanpa peduli
- * apakah konfliknya benar-benar terjadi. Karena `id`, `warung_id`, dan
- * `dibuat_oleh` sengaja dibuat tak-bisa-diubah, seluruh pernyataan ditolak
- * dengan "permission denied for table transaksi_utang", bahkan untuk baris
- * yang baru pertama kali dikirim.
- *
- * Memberi hak UPDATE pada kolom-kolom itu memang akan membuat upsert lolos,
- * tapi harganya terlalu mahal: sebuah utang jadi bisa dipindahkan ke warung
- * lain atau berganti identitas lewat sinkronisasi. Jadi yang menyesuaikan
- * adalah klien, bukan jaminan di database.
+ * Satu panggilan PUT untuk INSERT maupun UPDATE: server sendiri yang
+ * menentukan baris itu baru atau sudah ada, mengabaikan kolom yang tidak
+ * boleh berubah (identitas, warung, pembuat), dan menolak baris milik
+ * warung lain. Klien tidak perlu lagi menebak.
  */
 async function kirimEntri(entri: EntriOutbox): Promise<HasilKirim> {
-  if (ENTITAS_TANPA_SISIP.has(entri.entitas)) return ubahDiServer(entri);
-
-  const supabase = await ambilSupabase();
-  const sisip = await supabase.from(entri.entitas).insert(entri.muatan as never);
-  // 23505 = unique_violation, artinya barisnya sudah ada di server dan yang
-  // dimaksud entri ini adalah perubahan, bukan pembuatan.
-  if (!sisip.error || sisip.error.code !== '23505') return sisip;
-
-  return ubahDiServer(entri);
+  try {
+    await api(`/sinkron/${entri.entitas}`, { method: 'PUT', json: { muatan: entri.muatan } });
+    return { error: null };
+  } catch (galat) {
+    if (galat instanceof GalatApi) return { error: { message: galat.message }, status: galat.status };
+    throw galat;
+  }
 }
 
 /** Menyalurkan outbox berurutan. */
@@ -213,32 +123,12 @@ async function dorong(): Promise<HasilDorong> {
   return { terkirim, terhentiJaringan: false };
 }
 
-/**
- * Satu halaman perubahan untuk satu tabel.
- *
- * Tabel warung menyimpan identitasnya di kolom `id`, sedangkan tabel data
- * lain memakai `warung_id` — jadi penyaringnya dipisah, bukan dipaksakan
- * jadi satu ekspresi.
- */
-async function ambilHalaman(entitas: NamaEntitas, warungId: string, kursor: string) {
-  const supabase = await ambilSupabase();
-  if (entitas === 'warung') {
-    return supabase
-      .from('warung')
-      .select('*')
-      .eq('id', warungId)
-      .gte('updated_at', kursor)
-      .order('updated_at', { ascending: true })
-      .limit(BATAS_TARIK);
-  }
-
-  return supabase
-    .from(entitas)
-    .select('*')
-    .eq('warung_id', warungId)
-    .gte('updated_at', kursor)
-    .order('updated_at', { ascending: true })
-    .limit(BATAS_TARIK);
+/** Satu halaman perubahan untuk satu tabel; server menyaring per warung. */
+async function ambilHalaman(entitas: NamaEntitas, kursor: string) {
+  const { data } = await api<{ data: { id: string; updated_at: string }[] }>(
+    `/sinkron/${entitas}?sejak=${encodeURIComponent(kursor)}&batas=${BATAS_TARIK}`,
+  );
+  return data;
 }
 
 /**
@@ -248,17 +138,15 @@ async function ambilHalaman(entitas: NamaEntitas, warungId: string, kursor: stri
  * dengan penanda tidak terlewat. Konsekuensinya baris batas ikut terambil
  * lagi, dan itu tidak apa-apa karena penulisannya idempoten.
  */
-async function tarik(warungId: string): Promise<number> {
+async function tarik(): Promise<number> {
   let masuk = 0;
 
   for (const entitas of ENTITAS) {
     let kursor = await bacaKursor(entitas);
 
     for (;;) {
-      const { data, error } = await ambilHalaman(entitas, warungId, kursor);
-
-      if (error) throw error;
-      if (!data || data.length === 0) break;
+      const data = await ambilHalaman(entitas, kursor);
+      if (data.length === 0) break;
 
       // Baris yang masih menunggu dikirim tidak ditimpa data server; aturan
       // itu dipegang satu tempat supaya tidak ada penulis yang lupa.
@@ -333,7 +221,7 @@ export async function sinkronSekarang(_alasan: string): Promise<void> {
       return;
     }
 
-    await tarik(warungAktif);
+    await tarik();
 
     // Foto yang ada di Storage tapi belum ada di perangkat ini (mis. setelah
     // ganti HP). Gagal di sini tidak boleh menggagalkan sinkronisasi data —
@@ -352,7 +240,8 @@ export async function sinkronSekarang(_alasan: string): Promise<void> {
     tandaiSelesai();
   } catch (galat) {
     const pesan = galat instanceof Error ? galat.message : String(galat);
-    if (gagalKarenaJaringan(undefined, pesan)) {
+    const status = galat instanceof GalatApi ? galat.status : undefined;
+    if (gagalKarenaJaringan(status, pesan)) {
       setStatus(statusSaatGagalJaringan(), pesan);
       jadwalkanBackoff();
     } else {

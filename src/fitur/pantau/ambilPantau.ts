@@ -1,17 +1,12 @@
 import type { Enums } from '@/data/database.types';
 
 /*
- * Halaman pantau memanggil PostgREST dengan fetch biasa, BUKAN lewat
- * supabase-js.
+ * Halaman pantau memanggil API dengan fetch biasa, tanpa token masuk.
  *
  * Yang membukanya adalah pelanggan, bukan pemilik warung: mereka tidak
  * memasang aplikasinya, kemungkinan besar sinyalnya seadanya, dan datang
- * hanya untuk melihat satu angka. Memuat supabase-js untuk itu berarti
- * ~52 kB terkompresi hanya demi satu permintaan POST — beserta lapisan auth
- * dan realtime yang sama sekali tidak dipakai di sini.
+ * hanya untuk melihat satu angka. Modul yang dimuat sengaja sekecil mungkin.
  */
-const URL_SUPABASE = import.meta.env.VITE_SUPABASE_URL;
-const KUNCI = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export interface ItemPantau {
   nama_item: string;
@@ -70,13 +65,9 @@ export async function ambilPantau(
 ): Promise<HasilPantau> {
   if (!POLA_UUID.test(token)) throw new TokenTidakDikenal();
 
-  const tanggapan = await fetch(`${URL_SUPABASE}/rest/v1/rpc/pantau_utang`, {
+  const tanggapan = await fetch('/api/pantau', {
     method: 'POST',
-    headers: {
-      apikey: KUNCI,
-      Authorization: `Bearer ${KUNCI}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ p_token: token, p_pin: pin }),
     signal: sinyal,
   });

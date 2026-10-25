@@ -60,14 +60,16 @@ export default defineConfig({
         // dipasang tidak butuh jaringan sama sekali.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: `${base}index.html`,
+        // Alamat API tidak boleh dijawab dengan index.html.
+        navigateFallbackDenylist: [/^\/api\//],
         // Chunk ekspor jauh lebih besar dari sisanya dan jarang dipakai.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [
           {
-            // Permintaan ke Supabase TIDAK pernah di-cache service worker.
+            // Permintaan ke API TIDAK pernah di-cache service worker.
             // Kesegaran datanya diurus mesin sync lewat Dexie, dan respons
             // basah dari cache justru akan menabrak penanda sinkronisasi.
-            urlPattern: ({ url }) => url.hostname.endsWith('.supabase.co'),
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkOnly',
           },
         ],
@@ -88,7 +90,7 @@ export default defineConfig({
          *
          * Selain memperkecil unduhan awal, ini membuat cache browser jauh
          * lebih berguna: memperbaiki satu tombol tidak lagi membatalkan
-         * cache React dan Supabase sekaligus — hal yang terasa betul di
+         * cache React dan pustaka lain sekaligus — hal yang terasa betul di
          * koneksi lambat.
          */
         manualChunks(id: string) {
@@ -96,7 +98,6 @@ export default defineConfig({
           if (/[\\/]node_modules[\\/](react|react-dom|scheduler|react-router)/.test(id)) {
             return 'react';
           }
-          if (id.includes('@supabase')) return 'supabase';
           /*
            * Dexie dan zustand SENGAJA tidak lagi dikelompokkan sendiri.
            *

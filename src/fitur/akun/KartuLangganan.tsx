@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Check, CreditCard, Crown } from 'lucide-react';
 import { useSesi } from '@/fitur/auth/useSesi';
-import { ambilSupabase } from '@/lib/supabase';
+import { api, GalatApi } from '@/lib/api';
 
 const HARGA_TAMPIL = 'Rp35.000';
 const HARI = 24 * 3600 * 1000;
@@ -49,16 +49,11 @@ export function KartuLangganan() {
   useEffect(() => {
     if (!warungId) return;
     let batal = false;
-    ambilSupabase()
-      .then((sb) =>
-        sb
-          .from('subscriptions')
-          .select('tier, tanggal_expired, trial_sampai')
-          .eq('warung_id', warungId)
-          .maybeSingle(),
-      )
-      .then(({ data }) => {
-        if (!batal && data) setKeadaan(tentukan(data));
+    api<{
+      langganan: { tier: string; tanggal_expired: string | null; trial_sampai: string } | null;
+    }>('/langganan')
+      .then(({ langganan }) => {
+        if (!batal && langganan) setKeadaan(tentukan(langganan));
       })
       .catch(() => {
         // Offline: kartu cukup tidak tampil, tidak perlu menakut-nakuti.
@@ -74,19 +69,23 @@ export function KartuLangganan() {
     setSedang(true);
     setGalat(null);
     try {
-      const sb = await ambilSupabase();
-      const { data, error } = await sb.functions.invoke('buat-tagihan');
-      if (error || !data?.redirect_url) {
-        setGalat(
-          (error as { context?: { status?: number } } | null)?.context?.status === 503
-            ? 'Pembayaran belum dibuka. Sabar ya, sebentar lagi.'
-            : 'Gagal membuka halaman bayar. Pastikan ada sinyal lalu coba lagi.',
-        );
+      const data = await api<{ redirect_url?: string }>('/langganan/tagihan', {
+        method: 'POST',
+        json: {},
+      });
+      if (!data.redirect_url) {
+        setGalat('Gagal membuka halaman bayar. Pastikan ada sinyal lalu coba lagi.');
         return;
       }
-      window.location.href = data.redirect_url as string;
-    } catch {
-      setGalat('Tidak ada sinyal. Sambungkan ke internet lalu coba lagi.');
+      window.location.href = data.redirect_url;
+    } catch (err) {
+      setGalat(
+        err instanceof GalatApi && err.status === 503
+          ? 'Pembayaran belum dibuka. Sabar ya, sebentar lagi.'
+          : err instanceof GalatApi && err.status > 0
+            ? err.message
+            : 'Tidak ada sinyal. Sambungkan ke internet lalu coba lagi.',
+      );
     } finally {
       setSedang(false);
     }

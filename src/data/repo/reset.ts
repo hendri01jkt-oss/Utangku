@@ -1,7 +1,5 @@
 import { db } from '@/data/db';
-import { ambilSupabase } from '@/lib/supabase';
-
-const BUCKET = 'foto-pelanggan';
+import { api } from '@/lib/api';
 
 /**
  * Menghapus SEMUA data warung: pelanggan, utang, rincian item, pembayaran,
@@ -16,22 +14,9 @@ const BUCKET = 'foto-pelanggan';
  * baru saja dihapus tidak boleh sampai ke server dan menghidupkannya lagi.
  */
 export async function resetDataWarung(warungId: string): Promise<void> {
-  const supabase = await ambilSupabase();
-
-  const { error } = await supabase.rpc('reset_data_warung');
-  if (error) throw error;
-
-  // Foto bukan bagian dari tabel; hapus sebisanya. Gagal di sini tidak
-  // membatalkan reset karena datanya sudah terhapus dan fotonya tak lagi
-  // menunjuk ke pelanggan mana pun.
-  try {
-    const { data: berkas } = await supabase.storage.from(BUCKET).list(warungId, { limit: 1000 });
-    if (berkas && berkas.length > 0) {
-      await supabase.storage.from(BUCKET).remove(berkas.map((b) => `${warungId}/${b.name}`));
-    }
-  } catch {
-    // diabaikan, lihat catatan di atas
-  }
+  // Server menghapus data (dan foto, sebisanya) dalam satu panggilan.
+  void warungId;
+  await api('/reset-data', { method: 'POST', json: {} });
 
   await db.transaction(
     'rw',

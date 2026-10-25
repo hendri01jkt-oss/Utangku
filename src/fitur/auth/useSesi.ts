@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import type { Session } from '@supabase/supabase-js';
-import { ambilSupabase } from '@/lib/supabase';
+import { api, bacaToken, GalatApi, PERISTIWA_SESI_HABIS, simpanToken } from '@/lib/api';
 import { db, kosongkanDataLokal } from '@/data/db';
 import { tulisSalinanServer } from '@/data/sync/salinanServer';
 import type { Tables } from '@/data/database.types';
@@ -17,33 +16,41 @@ export type Warung = Tables<'warung'>;
  */
 export type StatusSesi = 'memuat' | 'tamu' | 'perlu_onboarding' | 'siap';
 
+/** Pengguna yang sedang masuk. Bentuk `user.id` dipertahankan agar pemakai lama tetap jalan. */
+export interface Sesi {
+  user: { id: string; email: string };
+}
+
 interface StoreSesi {
   status: StatusSesi;
-  sesi: Session | null;
+  sesi: Sesi | null;
   warung: Warung | null;
   /** Dipanggil sekali saat aplikasi dijalankan. */
   inisialisasi: () => () => void;
+  /** Dipanggil setelah masuk/daftar berhasil: token sudah disimpan, muat sesinya. */
+  mulaiSesi: (token: string, user: { id: string; email: string }) => Promise<void>;
   /** Dipakai onboarding setelah warung berhasil dibuat. */
   setWarung: (warung: Warung) => void;
   keluar: (opsi?: { paksa?: boolean }) => Promise<void>;
 }
 
-/**
- * Mengambil warung milik pengguna dari server. RLS sudah menyaring per
- * keanggotaan, jadi kueri ini tidak perlu (dan tidak boleh) menyaring
- * sendiri di client.
- */
+/** Mengambil warung milik pengguna dari server; server sudah menyaring per keanggotaan. */
 async function ambilWarungDariServer(): Promise<Warung | null> {
-  const supabase = await ambilSupabase();
-  const { data, error } = await supabase
-    .from('warung')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { warung } = await api<{ warung: Warung | null }>('/warung');
+  return warung;
+}
 
-  if (error) throw error;
-  return data;
+/** Membaca `sub` dari token tanpa memeriksa tanda tangan; hanya untuk mode tanpa sinyal. */
+function bacaIdDariToken(token: string): string | null {
+  try {
+    const isi = token.split('.')[1];
+    if (!isi) return null;
+    const json = atob(isi.replace(/-/g, '+').replace(/_/g, '/'));
+    const sub = (JSON.parse(json) as { sub?: unknown }).sub;
+    return typeof sub === 'string' ? sub : null;
+  } catch {
+    return null;
+  }
 }
 
 export const useSesi = create<StoreSesi>((set) => ({
@@ -52,16 +59,14 @@ export const useSesi = create<StoreSesi>((set) => ({
   warung: null,
 
   inisialisasi: () => {
-    const terapkan = async (sesi: Session | null) => {
+    const terapkan = async (sesi: Sesi | null) => {
       if (!sesi) {
         set({ status: 'tamu', sesi: null, warung: null });
         return;
       }
 
       // Tampilkan dari salinan lokal DULU, tanpa menunggu jaringan sedetik
-      // pun. Saat offline, kueri PostgREST butuh sekitar tujuh detik untuk
-      // menyerah — dan selama itu pemilik warung hanya melihat layar
-      // "Memuat…". Aplikasi yang menjanjikan jalan tanpa sinyal tidak boleh
+      // pun. Aplikasi yang menjanjikan jalan tanpa sinyal tidak boleh
       // menahan tampilannya di belakang panggilan jaringan.
       const tersimpan = await db.warung.toCollection().first();
       if (tersimpan) set({ sesi, warung: tersimpan, status: 'siap' });
@@ -70,15 +75,10 @@ export const useSesi = create<StoreSesi>((set) => ({
         const segar = await ambilWarungDariServer();
         if (segar) {
           /*
-           * Salinan server TIDAK ditulis begitu saja.
-           *
-           * Jalur ini pernah menjadi lubang yang sesungguhnya: ia menimpa
-           * baris warung setiap kali aplikasi dibuka, tanpa memeriksa
-           * antrean. Akibatnya perubahan nama warung yang belum sempat
-           * terkirim tampak batal sendiri — pemiliknya mengetik nama baru,
-           * lalu menemukannya kembali ke nama lama tanpa penjelasan apa pun.
-           * Sekarang aturannya sama dengan mesin sync: selama masih ada
-           * kiriman tertunda, versi lokal yang menang.
+           * Salinan server TIDAK ditulis begitu saja: selama masih ada
+           * kiriman tertunda, versi lokal yang menang (aturan yang sama
+           * dengan mesin sync). Kalau tidak, nama warung yang baru diubah
+           * tampak batal sendiri.
            */
           const ditulis = await tulisSalinanServer('warung', [segar]);
           const tampil = ditulis === 0 ? ((await db.warung.get(segar.id)) ?? segar) : segar;
@@ -86,46 +86,82 @@ export const useSesi = create<StoreSesi>((set) => ({
           return;
         }
         // Server bilang tidak ada warung. Itu hanya dipercaya kalau memang
-        // belum ada salinan lokal; kalau ada, salinan lokal dipertahankan
-        // supaya gangguan sesaat tidak melempar pemilik ke onboarding.
+        // belum ada salinan lokal.
         if (!tersimpan) set({ sesi, warung: null, status: 'perlu_onboarding' });
       } catch {
-        // Jaringan mati bukan alasan melempar pengguna keluar — sesinya
-        // tetap sah. Kalau belum pernah ada salinan lokal (login pertama
-        // tanpa sinyal), onboarding yang akan mencoba lagi.
+        // Jaringan mati bukan alasan melempar pengguna keluar.
         if (!tersimpan) set({ sesi, warung: null, status: 'perlu_onboarding' });
       }
     };
 
-    // Klien Supabase dimuat belakangan, jadi pemasangan pendengar juga
-    // menyusul. Bendera `batal` menjaga agar komponen yang sudah dilepas
-    // tidak terlanjur memasang pendengar yang tidak pernah dicabut.
     let batal = false;
-    let lepas: (() => void) | null = null;
 
     void (async () => {
-      const supabase = await ambilSupabase();
-      if (batal) return;
-
-      const { data } = await supabase.auth.getSession();
-      if (batal) return;
-      void terapkan(data.session);
-
-      const { data: langganan } = supabase.auth.onAuthStateChange((peristiwa, sesi) => {
-        // Penyegaran token tidak mengubah apa pun yang perlu dimuat ulang.
-        if (peristiwa === 'TOKEN_REFRESHED') {
-          set({ sesi });
+      const token = bacaToken();
+      if (!token) {
+        if (!batal) void terapkan(null);
+        return;
+      }
+      try {
+        // Sekaligus memperpanjang masa berlaku token (sesi bergulir).
+        const { token: baru, user } = await api<{
+          token: string;
+          user: { id: string; email: string };
+        }>('/auth/saya');
+        simpanToken(baru);
+        if (!batal) void terapkan({ user });
+      } catch (galat) {
+        if (batal) return;
+        if (galat instanceof GalatApi && galat.status === 401) {
+          // Token ditolak: sesi benar-benar berakhir.
+          simpanToken(null);
+          void terapkan(null);
           return;
         }
-        void terapkan(sesi);
-      });
-      lepas = () => langganan.subscription.unsubscribe();
+        // Tanpa sinyal: token tersimpan dianggap masih sah; pakai data lokal.
+        const lokal = await db.warung.toCollection().first();
+        const id = bacaIdDariToken(token);
+        if (lokal && id) {
+          set({ sesi: { user: { id, email: '' } }, warung: lokal, status: 'siap' });
+        } else {
+          set({ status: 'tamu', sesi: null, warung: null });
+        }
+      }
     })();
+
+    // Server menolak token di tengah jalan (mis. sinkronisasi): kembali ke
+    // halaman masuk TANPA mengosongkan data lokal — kiriman tertunda aman.
+    const saatSesiHabis = () => {
+      simpanToken(null);
+      set({ status: 'tamu', sesi: null });
+    };
+    window.addEventListener(PERISTIWA_SESI_HABIS, saatSesiHabis);
 
     return () => {
       batal = true;
-      lepas?.();
+      window.removeEventListener(PERISTIWA_SESI_HABIS, saatSesiHabis);
     };
+  },
+
+  mulaiSesi: async (token, user) => {
+    simpanToken(token);
+    const tersimpan = await db.warung.toCollection().first();
+    set({ sesi: { user }, warung: tersimpan ?? null, status: tersimpan ? 'siap' : 'memuat' });
+    try {
+      const segar = await ambilWarungDariServer();
+      if (segar) {
+        await tulisSalinanServer('warung', [segar]);
+        set({ sesi: { user }, warung: segar, status: 'siap' });
+      } else {
+        set({ sesi: { user }, warung: null, status: 'perlu_onboarding' });
+      }
+    } catch {
+      set({
+        sesi: { user },
+        warung: tersimpan ?? null,
+        status: tersimpan ? 'siap' : 'perlu_onboarding',
+      });
+    }
   },
 
   setWarung: (warung) => set({ warung, status: 'siap' }),
@@ -147,7 +183,7 @@ export const useSesi = create<StoreSesi>((set) => ({
       );
     }
 
-    await (await ambilSupabase()).auth.signOut();
+    simpanToken(null);
     // Data warung sebelumnya harus hilang dari perangkat: satu HP bisa
     // dipakai bergantian, dan catatan utang orang lain tidak boleh tertinggal
     // di IndexedDB.

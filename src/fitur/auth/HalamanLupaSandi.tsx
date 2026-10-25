@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { alamatAplikasi } from '@/lib/alamat';
-import { ambilSupabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -17,10 +16,7 @@ export function HalamanLupaSandi() {
     setGalat(null);
     setSedangKirim(true);
     try {
-      const { error } = await (await ambilSupabase()).auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: alamatAplikasi('reset-sandi'),
-      });
-      if (error) throw error;
+      await api('/auth/lupa', { publik: true, json: { email: email.trim() } });
       setTerkirim(true);
     } catch (err) {
       setGalat(pesanGalat(err));

@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ambilSupabase } from '@/lib/supabase';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { api } from '@/lib/api';
+import { useSesi } from './useSesi';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, KotakInfo, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -8,32 +9,20 @@ import { pesanGalat } from './pesanGalat';
 const PANJANG_SANDI_MINIMAL = 8;
 
 /**
- * Halaman tujuan tautan reset dari email.
+ * Halaman tujuan tautan reset dari email: /reset-sandi?token=...
  *
- * Klien Supabase dikonfigurasi dengan detectSessionInUrl, jadi kode PKCE di
- * URL sudah ditukar menjadi sesi pemulihan sebelum komponen ini dirender.
- * Yang tersisa hanya memastikan sesi itu benar-benar ada — kalau tidak,
- * tautannya kedaluwarsa atau sudah dipakai.
+ * Tokennya satu kali pakai dan berlaku 1 jam; server yang memeriksanya saat
+ * kata sandi baru dikirim. Di sini hanya dipastikan bentuknya benar.
  */
 export function HalamanResetSandi() {
   const [sandi, setSandi] = useState('');
   const [galat, setGalat] = useState<string | null>(null);
   const [sedangKirim, setSedangKirim] = useState(false);
   const [berhasil, setBerhasil] = useState(false);
-  const [tautanSah, setTautanSah] = useState<boolean | null>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let batal = false;
-    void (async () => {
-      const supabase = await ambilSupabase();
-      const { data } = await supabase.auth.getSession();
-      if (!batal) setTautanSah(Boolean(data.session));
-    })();
-    return () => {
-      batal = true;
-    };
-  }, []);
+  const [parameter] = useSearchParams();
+  const token = parameter.get('token') ?? '';
+  const tautanSah = /^[0-9a-f]{64}$/.test(token);
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
@@ -46,8 +35,11 @@ export function HalamanResetSandi() {
 
     setSedangKirim(true);
     try {
-      const { error } = await (await ambilSupabase()).auth.updateUser({ password: sandi });
-      if (error) throw error;
+      const hasil = await api<{ token: string; user: { id: string; email: string } }>(
+        '/auth/reset',
+        { publik: true, json: { token, sandi_baru: sandi } },
+      );
+      await useSesi.getState().mulaiSesi(hasil.token, hasil.user);
       setBerhasil(true);
       setTimeout(() => navigate('/', { replace: true }), 1500);
     } catch (err) {
@@ -57,7 +49,7 @@ export function HalamanResetSandi() {
     }
   }
 
-  if (tautanSah === false) {
+  if (!tautanSah) {
     return (
       <LayoutAuth
         judul="Tautan tidak berlaku"

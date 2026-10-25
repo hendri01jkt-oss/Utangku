@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ambilSupabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
+import { useSesi } from './useSesi';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
@@ -18,11 +19,11 @@ export function HalamanMasuk() {
     setGalat(null);
     setSedangKirim(true);
     try {
-      const { error } = await (await ambilSupabase()).auth.signInWithPassword({
-        email: email.trim(),
-        password: sandi,
-      });
-      if (error) throw error;
+      const { token, user } = await api<{ token: string; user: { id: string; email: string } }>(
+        '/auth/masuk',
+        { publik: true, json: { email: email.trim(), password: sandi } },
+      );
+      await useSesi.getState().mulaiSesi(token, user);
       // Ke mana pengguna diarahkan ditentukan penjaga rute berdasarkan
       // apakah warungnya sudah ada; di sini cukup kembali ke akar.
       const tujuan = (lokasi.state as { dari?: string } | null)?.dari ?? '/';
