@@ -10,6 +10,7 @@ export interface Env {
   DB: any;
   FOTO: any;
   JWT_SECRET: string;
+  GOOGLE_CLIENT_ID?: string;
   MIDTRANS_SERVER_KEY?: string;
   MIDTRANS_IS_PRODUCTION?: string;
   HARGA_LANGGANAN?: string;

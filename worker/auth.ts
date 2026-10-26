@@ -6,6 +6,7 @@ import {
   GalatApi,
   hashSandi,
   json,
+  keBase64,
   periksaToken,
   samaPersis,
   sekarangIso,
@@ -254,4 +255,57 @@ export async function resetSandi(req: Request, env: Env): Promise<Response> {
     .bind(baris.user_id)
     .first();
   return jawabMasuk(env, { id: pengguna.id as string, email: pengguna.email as string });
+}
+
+// ── Masuk dengan Google ───────────────────────────────────────────────────
+
+/** Client ID itu publik; halaman masuk memintanya supaya tidak perlu variabel saat build. */
+export async function googleConfig(_req: Request, env: Env): Promise<Response> {
+  return json({ client_id: env.GOOGLE_CLIENT_ID || null });
+}
+
+/**
+ * Menerima ID token dari tombol Google, memeriksanya langsung ke Google, lalu
+ * masuk (atau membuat akun baru) berdasarkan email yang sudah diverifikasi
+ * Google. Akun dengan email yang sama dengan akun kata sandi dipakai bersama.
+ */
+export async function masukGoogle(req: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_CLIENT_ID) throw new GalatApi(503, 'Masuk dengan Google belum aktif.');
+  const badan = await bacaJson(req);
+  const kredensial = typeof badan.credential === 'string' ? badan.credential : '';
+  if (!kredensial || kredensial.length > 4096) throw new GalatApi(401, 'Masuk dengan Google gagal.');
+
+  const tanggapan = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(kredensial)}`,
+  );
+  if (!tanggapan.ok) throw new GalatApi(401, 'Masuk dengan Google gagal. Coba lagi.');
+  const info = (await tanggapan.json()) as Record<string, string>;
+
+  const penerbitSah = info.iss === 'accounts.google.com' || info.iss === 'https://accounts.google.com';
+  // aud WAJIB cocok: token Google untuk aplikasi lain tidak boleh dipakai di sini.
+  if (info.aud !== env.GOOGLE_CLIENT_ID || !penerbitSah || info.email_verified !== 'true') {
+    throw new GalatApi(401, 'Masuk dengan Google gagal. Coba lagi.');
+  }
+  if (Number(info.exp) < Date.now() / 1000) throw new GalatApi(401, 'Masuk dengan Google gagal. Coba lagi.');
+  const email = sahkanEmail(info.email);
+
+  const ada = await env.DB.prepare('SELECT id, email FROM users WHERE email = ?').bind(email).first();
+  if (ada) return jawabMasuk(env, { id: ada.id as string, email: ada.email as string });
+
+  // Akun baru lewat Google: kata sandinya acak dan tidak diketahui siapa pun,
+  // jadi hanya bisa masuk lewat Google (atau Lupa Kata Sandi).
+  const id = crypto.randomUUID();
+  const acak = keBase64(crypto.getRandomValues(new Uint8Array(32)));
+  const garam = keBase64(crypto.getRandomValues(new Uint8Array(16)));
+  const waktu = sekarangIso();
+  const nama = typeof info.name === 'string' ? info.name.trim().slice(0, 120) : '';
+  await env.DB.batch([
+    env.DB.prepare(
+      'INSERT INTO users (id, email, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?)',
+    ).bind(id, email, acak, garam, waktu),
+    env.DB.prepare(
+      'INSERT INTO profiles (id, nama_lengkap, created_at, updated_at) VALUES (?, ?, ?, ?)',
+    ).bind(id, nama || null, waktu, waktu),
+  ]);
+  return jawabMasuk(env, { id, email });
 }

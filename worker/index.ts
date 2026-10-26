@@ -1,4 +1,4 @@
-import { daftar, lupaSandi, masuk, resetSandi, saya } from './auth';
+import { daftar, googleConfig, lupaSandi, masuk, masukGoogle, resetSandi, saya } from './auth';
 import { ambilLangganan, buatTagihan, webhookMidtrans } from './langganan';
 import { pantau } from './pantau';
 import {
@@ -34,6 +34,8 @@ async function tangani(req: Request, env: Env): Promise<Response> {
 
   if (metode === 'POST' && jalur === '/api/auth/daftar') return daftar(req, env);
   if (metode === 'POST' && jalur === '/api/auth/masuk') return masuk(req, env);
+  if (metode === 'GET' && jalur === '/api/auth/google-config') return googleConfig(req, env);
+  if (metode === 'POST' && jalur === '/api/auth/google') return masukGoogle(req, env);
   if (metode === 'GET' && jalur === '/api/auth/saya') return saya(req, env);
   if (metode === 'POST' && jalur === '/api/auth/lupa') return lupaSandi(req, env);
   if (metode === 'POST' && jalur === '/api/auth/reset') return resetSandi(req, env);

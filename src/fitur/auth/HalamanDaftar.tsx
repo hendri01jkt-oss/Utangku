@@ -5,6 +5,7 @@ import { useSesi } from './useSesi';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
+import { TombolGoogle } from './TombolGoogle';
 
 const PANJANG_SANDI_MINIMAL = 8;
 
@@ -90,6 +91,9 @@ export function HalamanDaftar() {
           {sedangKirim ? 'Sedang mendaftar…' : 'Daftar'}
         </Tombol>
       </form>
+      <div className="mt-4">
+        <TombolGoogle onGalat={setGalat} />
+      </div>
     </LayoutAuth>
   );
 }

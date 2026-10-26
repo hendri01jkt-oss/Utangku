@@ -5,6 +5,7 @@ import { useSesi } from './useSesi';
 import { Input, Tombol } from '@/komponen/ui';
 import { KotakGalat, LayoutAuth } from './LayoutAuth';
 import { pesanGalat } from './pesanGalat';
+import { TombolGoogle } from './TombolGoogle';
 
 export function HalamanMasuk() {
   const [email, setEmail] = useState('');
@@ -85,6 +86,9 @@ export function HalamanMasuk() {
           Lupa kata sandi?
         </Link>
       </form>
+      <div className="mt-4">
+        <TombolGoogle onGalat={setGalat} />
+      </div>
     </LayoutAuth>
   );
 }
