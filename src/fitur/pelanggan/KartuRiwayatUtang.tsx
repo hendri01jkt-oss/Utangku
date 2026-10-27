@@ -22,7 +22,16 @@ function statusTampil(t: BarisTransaksi): Status {
 }
 
 /** Kartu riwayat utang yang bisa dibuka, tampilannya sama dengan halaman pantau pelanggan. */
-export function KartuRiwayatUtang({ t }: { t: BarisTransaksi }) {
+export function KartuRiwayatUtang({
+  t,
+  namaPelanggan,
+  className,
+}: {
+  t: BarisTransaksi;
+  /** Diisi di laporan, tempat satu daftar memuat banyak pelanggan. */
+  namaPelanggan?: string;
+  className?: string;
+}) {
   const [buka, setBuka] = useState(false);
   const item = useLiveQuery(() => (buka ? itemTransaksi(t.id) : []), [buka, t.id]) ?? [];
   const sisa = sisaUtang(t);
@@ -42,7 +51,7 @@ export function KartuRiwayatUtang({ t }: { t: BarisTransaksi }) {
   }
 
   return (
-    <Kartu padat className="p-0">
+    <Kartu padat className={`p-0 ${className ?? ''}`}>
       <button
         type="button"
         onClick={() => setBuka((b) => !b)}
@@ -51,10 +60,22 @@ export function KartuRiwayatUtang({ t }: { t: BarisTransaksi }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-teks-utama">
-              {t.nomor_struk?.trim() || t.keterangan?.trim() || 'Tanpa nomor'}
-            </p>
-            <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+            {namaPelanggan ? (
+              <>
+                <p className="text-sm font-semibold text-teks-utama">{namaPelanggan}</p>
+                <p className="mt-0.5 text-xs text-teks-samar">
+                  {t.nomor_struk?.trim() || 'Tanpa nomor'}
+                </p>
+                <p className="text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-teks-utama">
+                  {t.nomor_struk?.trim() || t.keterangan?.trim() || 'Tanpa nomor'}
+                </p>
+                <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+              </>
+            )}
           </div>
           <p className="shrink-0 text-sm font-semibold tabular-nums text-teks-utama">
             {formatRupiah(t.nominal)}

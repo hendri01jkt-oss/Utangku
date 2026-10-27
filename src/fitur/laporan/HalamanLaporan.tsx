@@ -4,7 +4,9 @@ import { ArrowDownLeft, ArrowUpRight, CalendarRange, FileSpreadsheet, FileText, 
 import { Input, Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat } from '@/fitur/auth/LayoutAuth';
 import { useSesi } from '@/fitur/auth/useSesi';
+import { db } from '@/data/db';
 import { tanggalHariIni } from '@/data/repo/transaksi';
+import { KartuRiwayatUtang } from '@/fitur/pelanggan/KartuRiwayatUtang';
 import { formatRupiah } from '@/lib/uang';
 import { cn } from '@/lib/cn';
 import {
@@ -460,14 +462,10 @@ function TigaSeksi({
         jumlah={utangBaru.length}
         kosong={`Belum ada yang berutang ${kapan}.`}
       >
-        {utangBaru.map((t, i) => (
-          <BarisNominal
-            key={`${t.tanggal}-${i}`}
-            nama={t.namaPelanggan}
-            sub={[tampilkanTanggal ? formatTanggal(t.tanggal) : null, t.keterangan]}
-            nominal={t.nominal}
-            varian={varian}
-          />
+        {utangBaru.map((t) => (
+          <li key={t.id}>
+            <KartuLaporanUtang id={t.id} nama={t.namaPelanggan} datar={varian === 'datar'} />
+          </li>
         ))}
       </Seksi>
 
@@ -609,3 +607,12 @@ const BarisDatar = ({ children }: { children: ReactNode }) => (
     {children}
   </div>
 );
+
+/** Satu utang di laporan: kartu yang bisa dibuka, sama seperti riwayat di halaman pelanggan. */
+function KartuLaporanUtang({ id, nama, datar }: { id: string; nama: string; datar: boolean }) {
+  const t = useLiveQuery(async () => await db.transaksi_utang.get(id), [id]);
+  if (!t) return null;
+  return (
+    <KartuRiwayatUtang t={t} namaPelanggan={nama} className={datar ? 'permukaan-datar' : ''} />
+  );
+}

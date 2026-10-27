@@ -7,6 +7,7 @@ export interface Periode {
 }
 
 export interface BarisLaporanUtang {
+  id: string;
   tanggal: string;
   namaPelanggan: string;
   keterangan: string;
@@ -104,6 +105,7 @@ export async function susunLaporan(warungId: string, periode: Periode): Promise<
     .filter((t) => t.jenis === 'utang' && dalamPeriode(t.tanggal))
     .sort((a, b) => a.tanggal.localeCompare(b.tanggal))
     .map((t) => ({
+      id: t.id,
       tanggal: t.tanggal,
       namaPelanggan: namaDari(t.pelanggan_id),
       keterangan: t.keterangan ?? '',
