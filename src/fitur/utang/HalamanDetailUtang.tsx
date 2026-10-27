@@ -71,20 +71,22 @@ export function HalamanDetailUtang() {
     async () => (utang?.pelanggan_id ? await db.pelanggan.get(utang.pelanggan_id) : undefined),
     [utang?.pelanggan_id],
   );
+  const warungId = utang?.warung_id;
   const warung = useLiveQuery(
-    async () => (utang?.warung_id ? await db.warung.get(utang.warung_id) : undefined),
-    [utang?.warung_id],
+    async () => (warungId ? await db.warung.get(warungId) : undefined),
+    [warungId],
   );
+  const pelangganId = utang?.pelanggan_id;
   const sisaSemua =
     useLiveQuery(async () => {
-      if (!utang?.pelanggan_id) return 0;
+      if (!pelangganId) return 0;
       const semua = await db.transaksi_utang
         .where('pelanggan_id')
-        .equals(utang.pelanggan_id)
+        .equals(pelangganId)
         .filter((t) => t.deleted_at === null && t.jenis === 'utang')
         .toArray();
       return semua.reduce((j, t) => j + sisaUtang(t), 0);
-    }, [utang?.pelanggan_id]) ?? 0;
+    }, [pelangganId]) ?? 0;
   const pembayaran = useLiveQuery(async () => await riwayatPembayaran(id), [id], []);
   const item = useLiveQuery(async () => await itemTransaksi(id), [id], []);
 
