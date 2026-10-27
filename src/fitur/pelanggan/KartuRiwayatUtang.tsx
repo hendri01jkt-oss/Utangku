@@ -8,6 +8,7 @@ import { sisaUtang } from '@/data/repo/transaksi';
 import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
 import { useSesi } from '@/fitur/auth/useSesi';
 import { unduhCatatan } from '@/fitur/struk/unduhCatatan';
+import { jamDari } from '@/lib/jam';
 import { formatRupiah } from '@/lib/uang';
 
 const formatTanggal = (iso: string) =>
@@ -70,14 +71,18 @@ export function KartuRiwayatUtang({
                 <p className="mt-0.5 text-xs text-teks-samar">
                   {t.nomor_struk?.trim() || 'Tanpa nomor'}
                 </p>
-                <p className="text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+                <p className="text-xs text-teks-samar">{formatTanggal(t.tanggal)}
+                  {jamDari(t.created_at) ? ` · ${jamDari(t.created_at)}` : ''}
+                </p>
               </>
             ) : (
               <>
                 <p className="text-sm font-medium text-teks-utama">
                   {t.nomor_struk?.trim() || t.keterangan?.trim() || 'Tanpa nomor'}
                 </p>
-                <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+                <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}
+                  {jamDari(t.created_at) ? ` · ${jamDari(t.created_at)}` : ''}
+                </p>
               </>
             )}
           </div>

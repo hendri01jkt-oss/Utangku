@@ -17,6 +17,8 @@ export interface ItemPantau {
 
 export interface TransaksiPantau {
   nomor_struk?: string | null;
+  /** Cap waktu pencatatan (ISO), untuk menampilkan jam. */
+  dicatat?: string | null;
   /** Rincian belanjaan; kosong untuk utang yang dicatat tanpa rincian. */
   item?: ItemPantau[];
   tanggal: string;
@@ -29,6 +31,7 @@ export interface TransaksiPantau {
 
 export interface PembayaranPantau {
   tanggal: string;
+  created_at?: string | null;
   nominal: number;
   metode: Enums<'metode_bayar'>;
   untuk_keterangan?: string | null;

@@ -69,7 +69,7 @@ export async function pantau(req: Request, env: Env): Promise<Response> {
 
   const [transaksi, item, pembayaran] = await Promise.all([
     env.DB.prepare(
-      `SELECT id, tanggal, keterangan, nominal, total_dibayar, jatuh_tempo, status, nomor_struk
+      `SELECT id, tanggal, keterangan, nominal, total_dibayar, jatuh_tempo, status, nomor_struk, created_at
          FROM transaksi_utang
         WHERE pelanggan_id = ? AND deleted_at IS NULL AND jenis = 'utang'
         ORDER BY tanggal DESC, created_at DESC`,
@@ -87,7 +87,7 @@ export async function pantau(req: Request, env: Env): Promise<Response> {
       .bind(pelanggan.id)
       .all(),
     env.DB.prepare(
-      `SELECT b.tanggal, b.nominal, b.metode, u.keterangan AS untuk_keterangan, u.tanggal AS untuk_tanggal
+      `SELECT b.tanggal, b.created_at, b.nominal, b.metode, u.keterangan AS untuk_keterangan, u.tanggal AS untuk_tanggal
          FROM pembayaran b JOIN transaksi_utang u ON u.id = b.transaksi_id
         WHERE b.pelanggan_id = ? AND b.deleted_at IS NULL
         ORDER BY b.tanggal DESC, b.created_at DESC`,
@@ -116,6 +116,7 @@ export async function pantau(req: Request, env: Env): Promise<Response> {
     jatuh_tempo: t.jatuh_tempo,
     status: t.status,
     nomor_struk: t.nomor_struk,
+    dicatat: t.created_at,
     item: perTransaksi.get(t.id) ?? [],
   }));
   const sisaUtang = (transaksi.results as any[]).reduce(

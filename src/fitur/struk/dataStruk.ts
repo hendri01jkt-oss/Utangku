@@ -1,3 +1,4 @@
+import { jamDari } from '@/lib/jam';
 import { db } from '@/data/db';
 import { sisaUtang } from '@/data/repo/transaksi';
 import { itemTransaksi } from '@/data/repo/item';
@@ -58,7 +59,8 @@ export async function siapkanStruk(transaksiId: string): Promise<StrukSiap | nul
       alamatWarung: warung.alamat,
       noWaWarung: warung.no_wa_warung,
       tanggal: transaksi.tanggal,
-      waktu: jamSekarang(),
+      // Jam saat utang dicatat, bukan saat gambarnya diunduh.
+      waktu: jamDari(transaksi.created_at) || jamSekarang(),
       // Penjualan tunai boleh tanpa pelanggan; struknya tidak perlu menyebut
       // nama palsu untuk pembeli yang lewat.
       namaPelanggan: pelanggan?.nama ?? (transaksi.jenis === 'tunai' ? null : 'Pelanggan'),

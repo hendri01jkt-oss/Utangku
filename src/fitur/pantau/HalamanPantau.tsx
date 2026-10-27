@@ -1,3 +1,4 @@
+import { jamDari } from '@/lib/jam';
 import { useEffect, useState, type FormEvent } from 'react';
 import { ChevronDown, CircleCheck, KeyRound, Lock, MessageCircle, TriangleAlert } from 'lucide-react';
 import { Kartu, StatusBadge, type Status } from '@/komponen/ui';
@@ -350,7 +351,9 @@ function KartuUtang({ t }: { t: TransaksiPantau }) {
             <p className="text-sm font-medium text-teks-utama">
               {t.nomor_struk?.trim() || t.keterangan?.trim() || 'Tanpa nomor'}
             </p>
-            <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
+            <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}
+              {jamDari(t.dicatat) ? ` · ${jamDari(t.dicatat)}` : ''}
+            </p>
           </div>
           <p className="shrink-0 text-sm font-semibold tabular-nums text-teks-utama">
             {formatRupiah(t.nominal)}
@@ -434,7 +437,9 @@ function KartuBayar({ b }: { b: PembayaranPantau }) {
       >
         <div className="flex min-w-0 items-center gap-2">
           <CircleCheck size={15} className="shrink-0 text-sukses" aria-hidden />
-          <span className="text-sm text-teks-utama">{formatTanggal(b.tanggal)}</span>
+          <span className="text-sm text-teks-utama">{formatTanggal(b.tanggal)}
+            {jamDari(b.created_at) ? ` · ${jamDari(b.created_at)}` : ''}
+          </span>
         </div>
         <span className="flex shrink-0 items-center gap-1">
           <span className="text-sm font-semibold tabular-nums text-sukses">
