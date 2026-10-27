@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChevronDown } from 'lucide-react';
-import { Kartu, StatusBadge, type Status } from '@/komponen/ui';
+import { ChevronDown, Download, Wallet } from 'lucide-react';
+import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
 import type { BarisTransaksi } from '@/data/db';
 import { itemTransaksi } from '@/data/repo/item';
 import { sisaUtang } from '@/data/repo/transaksi';
+import { unduhCatatan } from '@/fitur/struk/unduhCatatan';
 import { formatRupiah } from '@/lib/uang';
 
 const formatTanggal = (iso: string) =>
@@ -26,6 +26,20 @@ export function KartuRiwayatUtang({ t }: { t: BarisTransaksi }) {
   const [buka, setBuka] = useState(false);
   const item = useLiveQuery(() => (buka ? itemTransaksi(t.id) : []), [buka, t.id]) ?? [];
   const sisa = sisaUtang(t);
+  const [sedangUnduh, setSedangUnduh] = useState(false);
+  const [galatUnduh, setGalatUnduh] = useState<string | null>(null);
+
+  async function unduh() {
+    setSedangUnduh(true);
+    setGalatUnduh(null);
+    try {
+      await unduhCatatan(t.id);
+    } catch (err) {
+      setGalatUnduh(err instanceof Error ? err.message : 'Gagal mengunduh. Coba lagi.');
+    } finally {
+      setSedangUnduh(false);
+    }
+  }
 
   return (
     <Kartu padat className="p-0">
@@ -102,12 +116,30 @@ export function KartuRiwayatUtang({ t }: { t: BarisTransaksi }) {
             ) : null}
           </dl>
 
-          <Link
-            to={`/utang/${t.id}`}
-            className="mt-3 block rounded-[var(--radius-kontrol)] border border-garis py-2 text-center text-sm font-medium text-teks-utama"
-          >
-            Buka detail · bayar / ubah / download
-          </Link>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {sisa > 0 ? (
+              <TombolTautan
+                to={`/utang/${t.id}/bayar`}
+                varian="utama"
+                ikon={<Wallet size={16} />}
+              >
+                Bayar
+              </TombolTautan>
+            ) : (
+              <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
+                Lunas
+              </Tombol>
+            )}
+            <Tombol
+              varian="sekunder"
+              ikon={<Download size={16} />}
+              disabled={sedangUnduh}
+              onClick={() => void unduh()}
+            >
+              {sedangUnduh ? 'Menyiapkan…' : 'Download'}
+            </Tombol>
+          </div>
+          {galatUnduh ? <p className="mt-2 text-xs text-bahaya">{galatUnduh}</p> : null}
         </div>
       ) : null}
     </Kartu>
