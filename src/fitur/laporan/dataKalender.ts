@@ -168,6 +168,7 @@ export async function susunKalender(
       isi.totalPenjualanTunai += nominal;
     } else {
       isi.utangBaru.push({
+        id: t.id,
         tanggal: t.tanggal,
         namaPelanggan: namaDari(t.pelanggan_id),
         keterangan: t.keterangan ?? '',
