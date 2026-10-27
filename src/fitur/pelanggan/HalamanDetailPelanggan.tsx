@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Pencil, Plus, Wallet } from 'lucide-react';
+import { ArrowLeft, CheckCheck, Pencil, Plus, Wallet } from 'lucide-react';
 import { Kartu, Tombol, TombolTautan } from '@/komponen/ui';
 import { db } from '@/data/db';
 import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
@@ -9,6 +10,7 @@ import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
 import { KartuLinkPantau } from './KartuLinkPantau';
 import { KartuRiwayatUtang } from './KartuRiwayatUtang';
+import { SheetLunasiSemua } from '@/fitur/pembayaran/SheetLunasiSemua';
 import { SheetPilihUtang } from '@/fitur/pembayaran/SheetPilihUtang';
 import { TombolTagihWa } from '@/fitur/tagihan/TombolTagihWa';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -27,6 +29,7 @@ export function HalamanDetailPelanggan() {
   const lokasi = useLocation();
   const pilihUtangTerbuka = lokasi.pathname.endsWith('/bayar');
   const warung = useSesi((s) => s.warung);
+  const [lunasiTerbuka, setLunasiTerbuka] = useState(false);
 
   const pelanggan = useLiveQuery(async () => await db.pelanggan.get(id), [id]);
   const utang = useLiveQuery(async () => await daftarUtangPelanggan(id), [id], []);
@@ -49,6 +52,7 @@ export function HalamanDetailPelanggan() {
 
   const totalSisa = utang.reduce((jumlah, t) => jumlah + sisaUtang(t), 0);
   const belumLunas = utang.filter((t) => t.status !== 'lunas');
+  const totalBelumLunas = belumLunas.reduce((j, t) => j + sisaUtang(t), 0);
 
   return (
     <div className="flex flex-col gap-3">
@@ -106,6 +110,17 @@ export function HalamanDetailPelanggan() {
             utangBelumLunas={belumLunas}
             penuh
           />
+          {belumLunas.length > 1 ? (
+            <Tombol
+              varian="utama"
+              ukuran="besar"
+              penuh
+              ikon={<CheckCheck size={17} />}
+              onClick={() => setLunasiTerbuka(true)}
+            >
+              Lunasi semua · {formatRupiah(totalBelumLunas)}
+            </Tombol>
+          ) : null}
           <div className="grid grid-cols-2 gap-2">
             <TombolTautan
               to={`/utang/baru?pelanggan=${id}`}
@@ -222,6 +237,9 @@ export function HalamanDetailPelanggan() {
           </ul>
         )}
       </section>
+      {lunasiTerbuka ? (
+        <SheetLunasiSemua utang={belumLunas} onTutup={() => setLunasiTerbuka(false)} />
+      ) : null}
       {pilihUtangTerbuka ? (
         <SheetPilihUtang
           utang={belumLunas}
