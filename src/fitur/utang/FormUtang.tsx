@@ -152,7 +152,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
         await gantiItemTransaksi(id, daftarItem);
         navigate(`/pelanggan/${pelanggan.id}`, { replace: true });
       } else {
-        const baru = await catatUtang({
+        await catatUtang({
           warung_id: warung.id,
           pelanggan_id: pelanggan.id,
           nominal: nilaiAkhir,
