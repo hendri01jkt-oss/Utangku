@@ -117,7 +117,7 @@ export function barisStruk(data: DataStruk, lebar: number): BarisStruk[] {
   const tunai = data.jenis === 'tunai';
 
   if (data.nomorStruk) {
-    for (const b of duaKolom('No. Struk', data.nomorStruk, lebar)) baris.push(teks(b));
+    for (const b of duaKolom('No. Utang', data.nomorStruk, lebar)) baris.push(teks(b));
   }
   for (const b of duaKolom('Tanggal', `${data.tanggal} ${data.waktu}`, lebar)) baris.push(teks(b));
   // Pembeli tanpa nama tidak diberi baris kosong "Pelanggan: -": pada kertas
@@ -172,7 +172,7 @@ export function barisStruk(data: DataStruk, lebar: number): BarisStruk[] {
     baris.push(teks(`WA ${data.noWaWarung.trim()}`, 'tengah'));
   }
   if (!tunai) baris.push(teks('Terima kasih', 'tengah'));
-  baris.push(teks('Simpan struk ini sebagai bukti', 'tengah'));
+  baris.push(teks('Simpan catatan ini sebagai bukti', 'tengah'));
 
   return baris;
 }

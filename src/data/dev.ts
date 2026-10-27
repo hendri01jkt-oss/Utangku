@@ -10,7 +10,6 @@ import * as kalender from '@/fitur/laporan/dataKalender';
 import * as ringkasan from '@/fitur/beranda/ringkasanWarung';
 import * as ekspor from '@/fitur/laporan/ekspor';
 import * as struk from '@/fitur/struk/barisStruk';
-import * as escpos from '@/fitur/struk/escpos';
 import * as gambarStruk from '@/fitur/struk/gambarStruk';
 import * as dataStruk from '@/fitur/struk/dataStruk';
 
@@ -38,7 +37,6 @@ export function pasangSeamDev() {
       ...ringkasan,
       ...ekspor,
       ...struk,
-      ...escpos,
       ...gambarStruk,
       ...dataStruk,
       sinkronSekarang,

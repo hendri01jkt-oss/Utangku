@@ -139,5 +139,5 @@ export function namaBerkasStruk(data: DataStruk): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
-  return `struk-${data.tanggal}-${nama || 'pelanggan'}.png`;
+  return `utang-${data.tanggal}-${nama || 'pelanggan'}.png`;
 }

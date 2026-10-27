@@ -104,7 +104,7 @@ export function KartuLangganan() {
   const manfaat = [
     'Catat utang tanpa batas, tetap jalan tanpa sinyal',
     'Link pantau untuk pelanggan & tagih via WhatsApp',
-    'Laporan PDF dan Excel, struk siap cetak',
+    'Laporan PDF dan Excel, catatan utang bisa diunduh',
   ];
 
   return (

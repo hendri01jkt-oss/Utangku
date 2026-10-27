@@ -9,8 +9,6 @@ import { useKeluar } from '@/fitur/auth/useKeluar';
 import { KartuSinkron } from './KartuSinkron';
 import { ResetData } from './ResetData';
 import { KartuLangganan } from './KartuLangganan';
-import { lebarKertasSah, UKURAN_KERTAS, type LebarKertas } from '@/fitur/struk/barisStruk';
-import { cn } from '@/lib/cn';
 
 const variabel = [
   { kunci: '{nama}', arti: 'nama pelanggan' },
@@ -29,7 +27,6 @@ export function HalamanAkun() {
   const [noWa, setNoWa] = useState('');
   const [tempo, setTempo] = useState('0');
   const [template, setTemplate] = useState('');
-  const [lebarStruk, setLebarStruk] = useState<LebarKertas>(58);
   const [galat, setGalat] = useState<string | null>(null);
   const [tersimpan, setTersimpan] = useState(false);
   const [sedangSimpan, setSedangSimpan] = useState(false);
@@ -42,7 +39,6 @@ export function HalamanAkun() {
     setNoWa(warung.no_wa_warung ?? '');
     setTempo(String(warung.tempo_default_hari));
     setTemplate(templateAktif(warung.template_pesan_tagihan));
-    setLebarStruk(lebarKertasSah(warung.lebar_struk));
   }, [warung]);
 
   async function simpan(e: FormEvent) {
@@ -63,7 +59,6 @@ export function HalamanAkun() {
         no_wa_warung: noWa.trim() || null,
         tempo_default_hari: Number(tempo) || 0,
         template_pesan_tagihan: template.trim() || TEMPLATE_BAWAAN,
-        lebar_struk: lebarStruk,
       });
       // Header dan pesan tagihan ikut memakai data ini, jadi sesi diperbarui
       // sekarang juga tanpa menunggu penarikan data berikutnya.
@@ -118,38 +113,6 @@ export function HalamanAkun() {
             onChange={(e) => setTempo(e.target.value)}
             bantuan="Isi 0 kalau warung Anda tidak memberi tempo."
           />
-
-          <fieldset className="flex flex-col gap-1.5">
-            <legend className="text-sm text-teks-redup">Lebar kertas struk</legend>
-            <div className="flex gap-2">
-              {([58, 80] as const).map((mm) => (
-                <label
-                  key={mm}
-                  className={cn(
-                    'flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-kontrol)] border px-3 py-2.5 text-sm transition-colors',
-                    lebarStruk === mm
-                      ? 'border-emas-600 bg-[var(--tint-emas)] font-semibold text-teks-utama'
-                      : 'border-garis bg-putih text-teks-redup hover:bg-permukaan-2',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="lebar-struk"
-                    value={mm}
-                    checked={lebarStruk === mm}
-                    onChange={() => setLebarStruk(mm)}
-                    className="sr-only"
-                  />
-                  {mm} mm
-                </label>
-              ))}
-            </div>
-            <p className="text-xs text-teks-samar">
-              58 mm adalah ukuran paling umum untuk warung. Gambar struk dibuat
-              selebar {UKURAN_KERTAS[lebarStruk].titik} titik supaya tidak
-              diskalakan ulang saat dicetak.
-            </p>
-          </fieldset>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="template" className="text-sm text-teks-redup">
