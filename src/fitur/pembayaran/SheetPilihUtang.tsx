@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
-import { BottomSheet, StatusBadge } from '@/komponen/ui';
+import { CheckCheck, ChevronRight } from 'lucide-react';
+import { BottomSheet, StatusBadge, Tombol } from '@/komponen/ui';
+import { lunasiSemua } from '@/data/repo/pembayaran';
+import { useSesi } from '@/fitur/auth/useSesi';
+import type { Enums } from '@/data/database.types';
 import { sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
 import { formatRupiah } from '@/lib/uang';
 import type { BarisTransaksi } from '@/data/db';
@@ -28,9 +32,66 @@ export function SheetPilihUtang({
 }) {
   const navigate = useNavigate();
   const hariIni = tanggalHariIni();
+  const sesi = useSesi((x) => x.sesi);
+  const [metode, setMetode] = useState<Enums<'metode_bayar'>>('tunai');
+  const [sedang, setSedang] = useState(false);
+  const [galat, setGalat] = useState<string | null>(null);
+  const totalSisa = utang.reduce((j, t) => j + sisaUtang(t), 0);
+
+  async function lunasi() {
+    if (
+      !window.confirm(
+        `Lunasi ${utang.length} utang sekaligus sebesar ${formatRupiah(totalSisa)}?`,
+      )
+    ) {
+      return;
+    }
+    setSedang(true);
+    setGalat(null);
+    try {
+      await lunasiSemua(utang, { metode, dibuatOleh: sesi?.user.id ?? null });
+      onTutup();
+    } catch (err) {
+      setGalat(err instanceof Error ? err.message : 'Gagal mencatat pelunasan.');
+    } finally {
+      setSedang(false);
+    }
+  }
 
   return (
     <BottomSheet judul="Bayar utang yang mana?" onTutup={onTutup}>
+      <div className="mb-3 flex flex-col gap-2 rounded-[var(--radius-kontrol)] border border-emas-500/40 bg-[#fffaf0] p-3">
+        <p className="text-sm font-semibold">Bayar semua sekaligus</p>
+        <p className="angka text-xl font-bold text-emas-700">{formatRupiah(totalSisa)}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {(['tunai', 'transfer', 'qris'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMetode(m)}
+              aria-pressed={metode === m}
+              className={`rounded-full border px-3 py-1 text-xs capitalize ${
+                metode === m
+                  ? 'border-emas-600 bg-emas-500/20 font-semibold text-teks-utama'
+                  : 'border-garis text-teks-redup'
+              }`}
+            >
+              {m === 'qris' ? 'QRIS' : m}
+            </button>
+          ))}
+        </div>
+        {galat ? <p className="text-xs text-bahaya">{galat}</p> : null}
+        <Tombol
+          varian="utama"
+          penuh
+          ikon={<CheckCheck size={16} />}
+          disabled={sedang}
+          onClick={() => void lunasi()}
+        >
+          {sedang ? 'Mencatat…' : `Lunasi semua (${utang.length} utang)`}
+        </Tombol>
+      </div>
+      <p className="mb-2 text-xs text-teks-samar">Atau bayar salah satu saja:</p>
       <ul className="flex flex-col gap-2 pb-1">
         {utang.map((t) => (
           <li key={t.id}>

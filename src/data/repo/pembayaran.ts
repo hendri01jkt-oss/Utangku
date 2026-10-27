@@ -1,7 +1,7 @@
-import { db, type BarisPembayaran } from '@/data/db';
+import { db, type BarisPembayaran, type BarisTransaksi } from '@/data/db';
 import { antreKeOutbox, idBaru, sekarang } from './dasar';
 import { jadwalkanSync } from '@/data/sync/mesin';
-import { tanggalHariIni } from './transaksi';
+import { sisaUtang, tanggalHariIni } from './transaksi';
 import type { Enums } from '@/data/database.types';
 
 export interface DataPembayaranBaru {
@@ -89,6 +89,34 @@ export async function catatPembayaran(data: DataPembayaranBaru) {
 
   await tulisPembayaran(baris);
   return baris;
+}
+
+/**
+ * Melunasi beberapa utang sekaligus: satu pembayaran sebesar sisa untuk
+ * masing-masing utang, dari yang paling lama. Tiap utang tetap punya
+ * riwayat cicilannya sendiri, jadi laporan dan pembatalan per utang tidak
+ * berubah — pemilik hanya tidak perlu mengetuk satu per satu.
+ */
+export async function lunasiSemua(
+  utang: BarisTransaksi[],
+  opsi: { metode: Enums<'metode_bayar'>; dibuatOleh: string | null },
+) {
+  const urut = [...utang].sort(
+    (a, b) => a.tanggal.localeCompare(b.tanggal) || a.created_at.localeCompare(b.created_at),
+  );
+  for (const t of urut) {
+    const sisa = sisaUtang(t);
+    if (sisa <= 0 || !t.pelanggan_id) continue;
+    await catatPembayaran({
+      warung_id: t.warung_id,
+      transaksi_id: t.id,
+      pelanggan_id: t.pelanggan_id,
+      nominal: sisa,
+      metode: opsi.metode,
+      catatan: 'Lunas sekaligus',
+      dibuat_oleh: opsi.dibuatOleh,
+    });
+  }
 }
 
 /**
