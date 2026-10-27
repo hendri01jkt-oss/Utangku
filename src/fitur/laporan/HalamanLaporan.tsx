@@ -11,7 +11,6 @@ import { formatRupiah } from '@/lib/uang';
 import { cn } from '@/lib/cn';
 import {
   susunLaporan,
-  type BarisLaporanBayar,
   type Laporan,
   type BarisLaporanTunai,
   type BarisLaporanUtang,
@@ -367,7 +366,6 @@ function DaftarBulan({
       <TigaSeksi
         utangBaru={laporan?.utangBaru ?? []}
         penjualanTunai={laporan?.penjualanTunai ?? []}
-        pembayaran={laporan?.pembayaran ?? []}
         cakupan="bulan"
       />
     </section>
@@ -420,7 +418,6 @@ function PanelHari({
       <TigaSeksi
         utangBaru={isi?.utangBaru ?? []}
         penjualanTunai={isi?.penjualanTunai ?? []}
-        pembayaran={isi?.pembayaran ?? []}
         cakupan="hari"
       />
     </Kartu>
@@ -435,12 +432,10 @@ function PanelHari({
 function TigaSeksi({
   utangBaru,
   penjualanTunai,
-  pembayaran,
   cakupan,
 }: {
   utangBaru: BarisLaporanUtang[];
   penjualanTunai: BarisLaporanTunai[];
-  pembayaran: BarisLaporanBayar[];
   cakupan: Cakupan;
 }) {
   // Di rincian harian, tanggalnya sudah tertulis besar di judul.
@@ -489,25 +484,6 @@ function TigaSeksi({
         ))}
       </Seksi>
       ) : null}
-
-      <Seksi
-        judul="Yang membayar"
-        varian={varian}
-        jumlah={pembayaran.length}
-        kosong={`Belum ada yang membayar ${kapan}.`}
-      >
-        {pembayaran.map((b, i) => (
-          <BarisNominal
-            key={`${b.tanggal}-${i}`}
-            nama={b.namaPelanggan}
-            sub={[tampilkanTanggal ? formatTanggal(b.tanggal) : null, b.metode]}
-            nominal={b.nominal}
-            warna="text-sukses"
-            kapitalSub
-            varian={varian}
-          />
-        ))}
-      </Seksi>
     </>
   );
 }
