@@ -5,7 +5,6 @@ import { ArrowLeft, CheckCheck, Pencil, Plus, Wallet } from 'lucide-react';
 import { Kartu, Tombol, TombolTautan } from '@/komponen/ui';
 import { db } from '@/data/db';
 import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
-import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
 import { KartuLinkPantau } from './KartuLinkPantau';
@@ -33,7 +32,6 @@ export function HalamanDetailPelanggan() {
 
   const pelanggan = useLiveQuery(async () => await db.pelanggan.get(id), [id]);
   const utang = useLiveQuery(async () => await daftarUtangPelanggan(id), [id], []);
-  const pembayaran = useLiveQuery(async () => await riwayatPembayaranPelanggan(id), [id], []);
   const tunai = useLiveQuery(async () => await daftarTunaiPelanggan(id), [id], []);
 
   if (pelanggan === undefined) {
@@ -225,31 +223,6 @@ export function HalamanDetailPelanggan() {
           </ul>
         </section>
       ) : null}
-
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold text-teks-redup">Riwayat pembayaran</h2>
-        {pembayaran.length === 0 ? (
-          <Kartu>
-            <p className="text-sm text-teks-samar">Belum ada pembayaran.</p>
-          </Kartu>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {pembayaran.map((b) => (
-              <li key={b.id}>
-                <Kartu padat className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm">{formatTanggal(b.tanggal)}</p>
-                    <p className="text-xs capitalize text-teks-samar">{b.metode}</p>
-                  </div>
-                  <p className="angka text-sm font-semibold text-sukses">
-                    {formatRupiah(b.nominal)}
-                  </p>
-                </Kartu>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
       {lunasiTerbuka ? (
         <SheetLunasiSemua utang={belumLunas} onTutup={() => setLunasiTerbuka(false)} />
       ) : null}
