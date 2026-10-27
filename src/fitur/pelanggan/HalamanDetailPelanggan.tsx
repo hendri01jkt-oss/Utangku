@@ -161,7 +161,20 @@ export function HalamanDetailPelanggan() {
       </Kartu>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold text-teks-redup">Riwayat utang</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-teks-redup">Riwayat utang</h2>
+          {belumLunas.length > 1 ? (
+            <button
+              type="button"
+              onClick={() => setLunasiTerbuka(true)}
+              className="flex items-center gap-1.5 rounded-full border border-[#a8872f] px-3 py-1.5 text-xs font-semibold text-[#0f1b3d] shadow-sm active:scale-[0.98]"
+              style={{ background: 'linear-gradient(180deg,#f6e6a8 0%,#d9b957 100%)' }}
+            >
+              <CheckCheck size={14} aria-hidden />
+              Lunasi semua · {formatRupiah(totalBelumLunas)}
+            </button>
+          ) : null}
+        </div>
         {utang.length === 0 ? (
           <Kartu>
             <p className="text-sm text-teks-samar">Belum ada utang tercatat.</p>
