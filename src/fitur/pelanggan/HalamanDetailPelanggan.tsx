@@ -31,6 +31,7 @@ export function HalamanDetailPelanggan() {
   const pilihUtangTerbuka = lokasi.pathname.endsWith('/bayar');
   const warung = useSesi((s) => s.warung);
   const [lunasiTerbuka, setLunasiTerbuka] = useState(false);
+  const [tab, setTab] = useState<'riwayat' | 'kalender' | 'link'>('riwayat');
   const [bayarUtang, setBayarUtang] = useState<BarisTransaksi | null>(null);
   const sesi = useSesi((x) => x.sesi);
 
@@ -77,41 +78,44 @@ export function HalamanDetailPelanggan() {
         </Link>
       </div>
 
-      <Kartu className="flex flex-col gap-3">
-        {/* Nama sudah ada di judul halaman; tidak diulang di sini. */}
-        <div className="flex items-center gap-2.5">
-          <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={36} />
-          <p className="text-sm text-teks-redup">
-            {pelanggan.no_wa ? pelanggan.no_wa : 'Nomor WA belum diisi'}
+      {/* Ringkasan: satu kartu navy-emas, senada dengan catatan utang. */}
+      <section className="overflow-hidden rounded-[var(--radius-kartu)] border border-garis bg-putih shadow-sm">
+        <div
+          className="border-b-4 border-emas-500 px-4 py-4 text-white"
+          style={{ background: 'linear-gradient(160deg,#16275a 0%,#0f1b3d 60%,#0a1330 100%)' }}
+        >
+          <div className="flex items-center gap-3">
+            <FotoPelanggan pelangganId={pelanggan.id} nama={pelanggan.nama} ukuran={44} />
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold tracking-widest text-[#f6e6a8]">PELANGGAN</p>
+              <p className="truncate text-sm text-white/75">
+                {pelanggan.no_wa ? pelanggan.no_wa : 'Nomor WA belum diisi'}
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-white/70">Sisa utang</p>
+          <p
+            className="angka text-4xl font-bold tracking-tight"
+            style={{
+              background: 'linear-gradient(180deg,#fff3c4,#e0be5a)',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            {formatRupiah(totalSisa)}
+          </p>
+          <p className="mt-0.5 text-xs text-white/70">
+            {belumLunas.length > 0
+              ? `${belumLunas.length} transaksi belum lunas`
+              : 'Semua utang sudah lunas'}
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-3 rounded-[var(--radius-kontrol)] bg-permukaan-2 px-3 py-2">
-          <div className="min-w-0">
-            <p className="text-xs text-teks-samar">Sisa utang</p>
-            <p className="text-xs text-teks-samar">
-              {belumLunas.length > 0
-                ? `${belumLunas.length} transaksi belum lunas`
-                : 'Semua utang sudah lunas'}
-            </p>
-          </div>
-          <p className="angka text-xl font-semibold text-emas-700">{formatRupiah(totalSisa)}</p>
-        </div>
+        <div className="flex flex-col gap-2.5 p-4">
+          {pelanggan.catatan ? (
+            <p className="text-sm text-teks-redup">{pelanggan.catatan}</p>
+          ) : null}
 
-        {pelanggan.catatan ? (
-          <p className="text-sm text-teks-redup">{pelanggan.catatan}</p>
-        ) : null}
-
-        <div className="flex flex-col gap-2">
-          <TombolTagihWa
-            idPelanggan={pelanggan.id}
-            namaPelanggan={pelanggan.nama}
-            noWa={pelanggan.no_wa}
-            namaWarung={warung?.nama_warung ?? 'Warung'}
-            template={warung?.template_pesan_tagihan ?? null}
-            utangBelumLunas={belumLunas}
-            penuh
-          />
           {belumLunas.length > 1 ? (
             <Tombol
               varian="utama"
@@ -122,8 +126,29 @@ export function HalamanDetailPelanggan() {
             >
               Lunasi semua · {formatRupiah(totalBelumLunas)}
             </Tombol>
-          ) : null}
+          ) : (
+            <Tombol
+              varian="utama"
+              ukuran="besar"
+              penuh
+              ikon={<Wallet size={17} />}
+              disabled={belumLunas.length === 0}
+              onClick={() => belumLunas[0] && setBayarUtang(belumLunas[0])}
+            >
+              Terima Uang
+            </Tombol>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
+            <TombolTagihWa
+              idPelanggan={pelanggan.id}
+              namaPelanggan={pelanggan.nama}
+              noWa={pelanggan.no_wa}
+              namaWarung={warung?.nama_warung ?? 'Warung'}
+              template={warung?.template_pesan_tagihan ?? null}
+              utangBelumLunas={belumLunas}
+              penuh
+            />
             <TombolTautan
               to={`/utang/baru?pelanggan=${id}`}
               varian="sekunder"
@@ -131,54 +156,69 @@ export function HalamanDetailPelanggan() {
             >
               Catat Utang
             </TombolTautan>
-            {belumLunas.length === 0 ? (
-              <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
-                Terima Uang
-              </Tombol>
-            ) : (
-              <Tombol
-                // Satu utang belum lunas: langsung ke panel bayarnya, tidak
-                // perlu memilih. Lebih dari satu: pemiliknya yang memilih.
-                varian="sekunder"
-                ikon={<Wallet size={16} />}
-                onClick={() =>
-                  belumLunas.length === 1 && belumLunas[0]
-                    ? setBayarUtang(belumLunas[0])
-                    : navigate(`/pelanggan/${id}/bayar`)
-                }
-              >
-                Terima Uang
-              </Tombol>
-            )}
           </div>
-        </div>
 
-        <KartuLinkPantau
-          pelangganId={pelanggan.id}
-          namaPelanggan={pelanggan.nama}
-          token={pelanggan.token_pantau}
-          pin={pelanggan.pin_pantau}
-          terakhirDilihat={pelanggan.terakhir_dilihat_pelanggan}
-        />
-      </Kartu>
-
-      <KalenderPelanggan warungId={pelanggan.warung_id} pelangganId={pelanggan.id} />
-
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-teks-redup">Riwayat utang</h2>
           {belumLunas.length > 1 ? (
             <button
               type="button"
-              onClick={() => setLunasiTerbuka(true)}
-              className="flex items-center gap-1.5 rounded-full border border-[#a8872f] px-3 py-1.5 text-xs font-semibold text-[#0f1b3d] shadow-sm active:scale-[0.98]"
-              style={{ background: 'linear-gradient(180deg,#f6e6a8 0%,#d9b957 100%)' }}
+              onClick={() => navigate(`/pelanggan/${id}/bayar`)}
+              className="self-center text-xs text-teks-samar underline underline-offset-4"
             >
-              <CheckCheck size={14} aria-hidden />
-              Lunasi semua · {formatRupiah(totalBelumLunas)}
+              Bayar sebagian saja (pilih utang)
             </button>
           ) : null}
         </div>
+      </section>
+
+      {/* Tab: satu hal tampil sekali, supaya halaman tidak menumpuk. */}
+      <div
+        role="tablist"
+        aria-label="Isi halaman pelanggan"
+        className="grid grid-cols-3 gap-1 rounded-full bg-permukaan-2 p-1"
+      >
+        {(
+          [
+            ['riwayat', 'Riwayat'],
+            ['kalender', 'Kalender'],
+            ['link', 'Link pantau'],
+          ] as const
+        ).map(([kunci, label]) => (
+          <button
+            key={kunci}
+            type="button"
+            role="tab"
+            aria-selected={tab === kunci}
+            onClick={() => setTab(kunci)}
+            className={`rounded-full py-2 text-sm transition-colors ${
+              tab === kunci
+                ? 'bg-navy-900 font-semibold text-putih shadow-sm'
+                : 'text-teks-redup'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'kalender' ? (
+        <KalenderPelanggan warungId={pelanggan.warung_id} pelangganId={pelanggan.id} />
+      ) : null}
+
+      {tab === 'link' ? (
+        <Kartu>
+          <KartuLinkPantau
+            pelangganId={pelanggan.id}
+            namaPelanggan={pelanggan.nama}
+            token={pelanggan.token_pantau}
+            pin={pelanggan.pin_pantau}
+            terakhirDilihat={pelanggan.terakhir_dilihat_pelanggan}
+          />
+        </Kartu>
+      ) : null}
+
+      {tab === 'riwayat' ? (
+        <>
+      <section className="flex flex-col gap-2">
         {utang.length === 0 ? (
           <Kartu>
             <p className="text-sm text-teks-samar">Belum ada utang tercatat.</p>
@@ -228,6 +268,8 @@ export function HalamanDetailPelanggan() {
             ))}
           </ul>
         </section>
+      ) : null}
+        </>
       ) : null}
       {bayarUtang ? (
         <FormPembayaran

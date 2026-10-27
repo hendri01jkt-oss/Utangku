@@ -43,7 +43,6 @@ export function KalenderPelanggan({
 
   return (
     <section aria-label="Kalender pelanggan" className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold text-teks-redup">Kalender</h2>
       <NavigasiBulan
         bulan={bulan}
         onGeser={(langkah) => {
