@@ -147,131 +147,169 @@ export function HalamanDetailUtang() {
         </Link>
       ) : null}
 
-      <Kartu className="flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs text-teks-samar">
-              {utang.jenis === 'tunai' ? 'Penjualan tunai' : 'Sisa utang'}
-            </p>
-            <p
-              className={`angka mt-1 text-3xl font-semibold ${
-                utang.jenis === 'tunai' ? 'text-sukses' : 'text-emas-700'
-              }`}
+      <section className="overflow-hidden rounded-[var(--radius-kartu)] border border-garis bg-putih shadow-sm">
+        {/* Kepala navy-emas, senada dengan gambar hasil Download. */}
+        <div
+          className="border-b-4 border-emas-500 px-4 py-4 text-white"
+          style={{ background: 'linear-gradient(160deg,#16275a 0%,#0f1b3d 60%,#0a1330 100%)' }}
+        >
+          <p className="text-[11px] font-semibold tracking-widest text-[#f6e6a8]">
+            {utang.jenis === 'tunai' ? 'CATATAN PENJUALAN' : 'CATATAN UTANG'}
+          </p>
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-white/70">
+                {utang.jenis === 'tunai' ? 'Penjualan tunai' : 'Sisa utang'}
+              </p>
+              <p
+                className="angka mt-0.5 text-3xl font-bold tracking-tight"
+                style={{
+                  background: 'linear-gradient(180deg,#fff3c4,#e0be5a)',
+                  WebkitBackgroundClip: 'text',
+                  color: 'transparent',
+                }}
+              >
+                {formatRupiah(utang.jenis === 'tunai' ? nominal : sisa)}
+              </p>
+            </div>
+            <StatusBadge status={statusTampil(utang)} />
+          </div>
+
+          {/* Progres cicilan tidak punya arti untuk penjualan tunai: uangnya
+              sudah diterima penuh saat dicatat. */}
+          <div className={`mt-4 flex flex-col gap-1.5 ${utang.jenis === 'tunai' ? 'hidden' : ''}`}>
+            <div
+              className="h-2 overflow-hidden rounded-full bg-white/15"
+              role="progressbar"
+              aria-valuenow={persen}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Progres pembayaran"
             >
-              {formatRupiah(utang.jenis === 'tunai' ? nominal : sisa)}
-            </p>
-          </div>
-          <StatusBadge status={statusTampil(utang)} />
-        </div>
-
-        {/* Progres cicilan tidak punya arti untuk penjualan tunai: uangnya
-            sudah diterima penuh saat dicatat. */}
-        <div className={`flex flex-col gap-1.5 ${utang.jenis === 'tunai' ? 'hidden' : ''}`}>
-          <div
-            className="h-2 overflow-hidden rounded-full bg-permukaan-2"
-            role="progressbar"
-            aria-valuenow={persen}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Progres pembayaran"
-          >
-            <div className="h-full rounded-full bg-sukses" style={{ width: `${persen}%` }} />
-          </div>
-          <div className="flex justify-between text-xs text-teks-samar">
-            <span className="angka">
-              Dibayar {formatRupiah(dibayar)} ({persen}%)
-            </span>
-            <span className="angka">dari {formatRupiah(nominal)}</span>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${persen}%`, background: 'linear-gradient(90deg,#f6e6a8,#c9a84c)' }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-white/70">
+              <span className="angka">
+                Dibayar {formatRupiah(dibayar)} ({persen}%)
+              </span>
+              <span className="angka">dari {formatRupiah(nominal)}</span>
+            </div>
           </div>
         </div>
 
-        <dl className="flex flex-col gap-2 border-t border-garis pt-3 text-sm">
-          {utang.nomor_struk ? (
+        <div className="flex flex-col gap-4 p-4">
+          <dl className="flex flex-col gap-2 text-sm">
+            {utang.nomor_struk ? (
+              <div className="flex justify-between gap-3">
+                <dt className="text-teks-samar">No. Utang</dt>
+                <dd className="font-semibold tabular-nums">{utang.nomor_struk}</dd>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-3">
-              <dt className="text-teks-samar">No. Utang</dt>
-              <dd className="tabular-nums">{utang.nomor_struk}</dd>
+              <dt className="text-teks-samar">Tanggal</dt>
+              <dd className="font-medium">{formatTanggal(utang.tanggal)}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-teks-samar">Batas bayar</dt>
+              <dd className={`text-right ${utang.jatuh_tempo ? 'font-medium' : 'text-teks-samar'}`}>
+                {utang.jatuh_tempo ? (
+                  <>
+                    {formatTanggal(utang.jatuh_tempo)}
+                    <span className="block text-xs font-normal text-teks-samar">
+                      {keteranganTempo(utang.jatuh_tempo)}
+                    </span>
+                  </>
+                ) : (
+                  'Tanpa tempo'
+                )}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="shrink-0 text-teks-samar">Keterangan</dt>
+              <dd className="text-right font-medium">{utang.keterangan ?? '—'}</dd>
+            </div>
+          </dl>
+
+          {/*
+            Isi belanjaan ditampilkan sebagai daftar, bukan sebagai satu teks
+            gabungan seperti di kolom Keterangan di atas. Keduanya memang
+            menyebut isi yang sama — teks gabungan itulah yang dibaca permukaan
+            lama seperti pesan tagihan WhatsApp dan ekspor laporan.
+          */}
+          {item.length > 0 ? (
+            <div className="border-t border-garis pt-3">
+              <p className="mb-2 text-[11px] font-semibold tracking-widest text-teks-samar">
+                ISI BELANJAAN
+              </p>
+              <ul className="flex flex-col divide-y divide-garis text-sm">
+                {item.map((i) => (
+                  <li key={i.id} className="flex items-baseline justify-between gap-3 py-2">
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold">{i.nama_item}</span>
+                      <span className="angka block text-xs text-teks-samar">
+                        {i.qty} x {formatRupiah(i.harga_satuan)}
+                      </span>
+                    </span>
+                    <span className="angka shrink-0 font-semibold">
+                      {formatRupiah(i.subtotal)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : null}
-          <div className="flex justify-between gap-3">
-            <dt className="text-teks-samar">Tanggal</dt>
-            <dd>{formatTanggal(utang.tanggal)}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-teks-samar">Batas bayar</dt>
-            <dd className={utang.jatuh_tempo ? '' : 'text-teks-samar'}>
-              {utang.jatuh_tempo ? (
-                <>
-                  {formatTanggal(utang.jatuh_tempo)}
-                  <span className="block text-xs text-teks-samar">
-                    {keteranganTempo(utang.jatuh_tempo)}
-                  </span>
-                </>
-              ) : (
-                'Tanpa tempo'
-              )}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="shrink-0 text-teks-samar">Keterangan</dt>
-            <dd className="text-right">{utang.keterangan ?? '—'}</dd>
-          </div>
-        </dl>
 
-        {/*
-          Isi belanjaan ditampilkan sebagai daftar, bukan sebagai satu teks
-          gabungan seperti di kolom Keterangan di atas. Keduanya memang
-          menyebut isi yang sama — teks gabungan itulah yang dibaca permukaan
-          lama seperti pesan tagihan WhatsApp dan ekspor laporan.
-        */}
-        {item.length > 0 ? (
-          <div className="border-t border-garis pt-3">
-            <p className="mb-2 text-xs text-teks-samar">Isi belanjaan</p>
-            <ul className="flex flex-col gap-1.5 text-sm">
-              {item.map((i) => (
-                <li key={i.id} className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0">
-                    <span className="block truncate">{i.nama_item}</span>
-                    <span className="angka block text-xs text-teks-samar">
-                      {i.qty} x {formatRupiah(i.harga_satuan)}
-                    </span>
-                  </span>
-                  <span className="angka shrink-0 font-medium">
-                    {formatRupiah(i.subtotal)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+          {utang.jenis !== 'tunai' ? (
+            <div className="rounded-xl border border-emas-500/40 bg-[#fffaf0] p-3 text-sm">
+              <div className="flex justify-between gap-3">
+                <span className="text-teks-redup">Total utang</span>
+                <span className="angka font-semibold">{formatRupiah(nominal)}</span>
+              </div>
+              <div className="mt-1 flex justify-between gap-3">
+                <span className="text-teks-redup">Sudah dibayar</span>
+                <span className="angka font-semibold text-sukses">{formatRupiah(dibayar)}</span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-emas-500/30 pt-2">
+                <span className="text-xs font-semibold tracking-widest text-teks-redup">
+                  SISA UTANG
+                </span>
+                <span className="angka text-xl font-bold text-emas-700">{formatRupiah(sisa)}</span>
+              </div>
+            </div>
+          ) : null}
 
-        {sisa > 0 ? (
-          <TombolTautan
-            to={`/utang/${id}/bayar`}
-            varian="utama"
-            ukuran="besar"
+          {sisa > 0 ? (
+            <TombolTautan
+              to={`/utang/${id}/bayar`}
+              varian="utama"
+              ukuran="besar"
+              penuh
+              ikon={<Wallet size={17} />}
+            >
+              Terima Uang
+            </TombolTautan>
+          ) : (
+            <p className="rounded-[var(--radius-kontrol)] bg-[var(--tint-sukses)] px-3 py-2.5 text-center text-sm text-sukses">
+              {utang.jenis === 'tunai'
+                ? 'Penjualan tunai — uang sudah diterima.'
+                : 'Utang ini sudah lunas.'}
+            </p>
+          )}
+          <Tombol
+            varian="sekunder"
             penuh
-            ikon={<Wallet size={17} />}
+            ikon={<Download size={16} />}
+            disabled={sedangUnduh}
+            onClick={() => void unduh()}
           >
-            Terima Uang
-          </TombolTautan>
-        ) : (
-          <p className="rounded-[var(--radius-kontrol)] bg-[var(--tint-sukses)] px-3 py-2.5 text-center text-sm text-sukses">
-            {utang.jenis === 'tunai'
-              ? 'Penjualan tunai — uang sudah diterima.'
-              : 'Utang ini sudah lunas.'}
-          </p>
-        )}
-        <Tombol
-          varian="sekunder"
-          penuh
-          ikon={<Download size={16} />}
-          disabled={sedangUnduh}
-          onClick={() => void unduh()}
-        >
-          {sedangUnduh ? 'Menyiapkan…' : 'Download'}
-        </Tombol>
-        {galatUnduh ? <p className="text-xs text-bahaya">{galatUnduh}</p> : null}
-      </Kartu>
+            {sedangUnduh ? 'Menyiapkan…' : 'Download'}
+          </Tombol>
+          {galatUnduh ? <p className="text-xs text-bahaya">{galatUnduh}</p> : null}
+        </div>
+      </section>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-teks-redup">Riwayat cicilan</h2>
