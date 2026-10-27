@@ -79,7 +79,7 @@ export function KalenderPelanggan({
                 <ul className="flex flex-col gap-1.5">
                   {isi.pembayaran.map((b, i) => (
                     <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="capitalize text-teks-redup">Dibayar · {b.metode}</span>
+                      <span className="text-teks-redup">Dibayar</span>
                       <span className="angka font-semibold text-sukses">
                         {formatRupiah(b.nominal)}
                       </span>

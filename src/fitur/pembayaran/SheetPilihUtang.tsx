@@ -33,7 +33,7 @@ export function SheetPilihUtang({
 }) {
   const hariIni = tanggalHariIni();
   const sesi = useSesi((x) => x.sesi);
-  const [metode, setMetode] = useState<Enums<'metode_bayar'>>('tunai');
+  const metode: Enums<'metode_bayar'> = 'tunai';
   const [sedang, setSedang] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
   const totalSisa = utang.reduce((j, t) => j + sisaUtang(t), 0);
@@ -63,23 +63,6 @@ export function SheetPilihUtang({
       <div className="mb-3 flex flex-col gap-2 rounded-[var(--radius-kontrol)] border border-emas-500/40 bg-[#fffaf0] p-3">
         <p className="text-sm font-semibold">Bayar semua sekaligus</p>
         <p className="angka text-xl font-bold text-emas-700">{formatRupiah(totalSisa)}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {(['tunai', 'transfer', 'qris'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMetode(m)}
-              aria-pressed={metode === m}
-              className={`rounded-full border px-3 py-1 text-xs capitalize ${
-                metode === m
-                  ? 'border-emas-600 bg-emas-500/20 font-semibold text-teks-utama'
-                  : 'border-garis text-teks-redup'
-              }`}
-            >
-              {m === 'qris' ? 'QRIS' : m}
-            </button>
-          ))}
-        </div>
         {galat ? <p className="text-xs text-bahaya">{galat}</p> : null}
         <Tombol
           varian="utama"

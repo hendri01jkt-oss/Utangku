@@ -8,12 +8,6 @@ import { formatRupiah } from '@/lib/uang';
 import type { BarisTransaksi } from '@/data/db';
 import type { Enums } from '@/data/database.types';
 
-const METODE: { nilai: Enums<'metode_bayar'>; label: string }[] = [
-  { nilai: 'tunai', label: 'Tunai' },
-  { nilai: 'transfer', label: 'Transfer' },
-  { nilai: 'qris', label: 'QRIS' },
-];
-
 /** Satu ketukan untuk melunasi seluruh utang pelanggan yang belum lunas. */
 export function SheetLunasiSemua({
   utang,
@@ -23,7 +17,7 @@ export function SheetLunasiSemua({
   onTutup: () => void;
 }) {
   const sesi = useSesi((x) => x.sesi);
-  const [metode, setMetode] = useState<Enums<'metode_bayar'>>('tunai');
+  const metode: Enums<'metode_bayar'> = 'tunai';
   const [sedang, setSedang] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
   const total = utang.reduce((j, t) => j + sisaUtang(t), 0);
@@ -57,23 +51,6 @@ export function SheetLunasiSemua({
             </li>
           ))}
         </ul>
-        <div className="flex gap-1.5">
-          {METODE.map((m) => (
-            <button
-              key={m.nilai}
-              type="button"
-              onClick={() => setMetode(m.nilai)}
-              aria-pressed={metode === m.nilai}
-              className={`flex-1 rounded-full border px-3 py-1.5 text-sm ${
-                metode === m.nilai
-                  ? 'border-emas-600 bg-emas-500/20 font-semibold text-teks-utama'
-                  : 'border-garis text-teks-redup'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
         {galat ? <p className="text-xs text-bahaya">{galat}</p> : null}
         <Tombol
           varian="utama"

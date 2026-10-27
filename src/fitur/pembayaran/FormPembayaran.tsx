@@ -6,14 +6,6 @@ import { sisaUtang, tanggalHariIni } from '@/data/repo/transaksi';
 import { formatRupiah } from '@/lib/uang';
 import type { BarisTransaksi } from '@/data/db';
 import type { Enums } from '@/data/database.types';
-import { cn } from '@/lib/cn';
-
-const metodeTersedia: { nilai: Enums<'metode_bayar'>; label: string }[] = [
-  { nilai: 'tunai', label: 'Tunai' },
-  { nilai: 'transfer', label: 'Transfer' },
-  { nilai: 'qris', label: 'QRIS' },
-  { nilai: 'lainnya', label: 'Lainnya' },
-];
 
 export function FormPembayaran({
   utang,
@@ -28,7 +20,7 @@ export function FormPembayaran({
 }) {
   const sisa = sisaUtang(utang);
   const [nominal, setNominal] = useState(0);
-  const [metode, setMetode] = useState<Enums<'metode_bayar'>>('tunai');
+  const metode: Enums<'metode_bayar'> = 'tunai';
   const [tanggal, setTanggal] = useState(tanggalHariIni());
   const [catatan, setCatatan] = useState('');
   const [galat, setGalat] = useState<string | null>(null);
@@ -107,28 +99,6 @@ export function FormPembayaran({
             tetap akan tercatat lunas — pastikan kembaliannya sudah diberikan.
           </p>
         ) : null}
-
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm text-teks-redup">Metode</span>
-          <div className="flex flex-wrap gap-2">
-            {metodeTersedia.map((m) => (
-              <button
-                key={m.nilai}
-                type="button"
-                onClick={() => setMetode(m.nilai)}
-                aria-pressed={metode === m.nilai}
-                className={cn(
-                  'min-h-9 rounded-full border px-3.5 text-sm transition-colors',
-                  metode === m.nilai
-                    ? 'border-emas-600 bg-emas-500 font-medium text-navy-900'
-                    : 'border-garis bg-putih text-teks-redup hover:bg-permukaan-2',
-                )}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <Input
           label="Tanggal"

@@ -28,13 +28,6 @@ function statusTampil(t: TransaksiPantau): Status {
 const sisa = (t: TransaksiPantau) =>
   Math.max(Math.round(t.nominal) - Math.round(t.total_dibayar), 0);
 
-const LABEL_METODE: Record<string, string> = {
-  tunai: 'Tunai',
-  transfer: 'Transfer',
-  qris: 'QRIS',
-  lainnya: 'Lainnya',
-};
-
 type Keadaan =
   | { jenis: 'memuat' }
   | { jenis: 'siap'; data: DataPantau }
@@ -442,7 +435,6 @@ function KartuBayar({ b }: { b: PembayaranPantau }) {
         <div className="flex min-w-0 items-center gap-2">
           <CircleCheck size={15} className="shrink-0 text-sukses" aria-hidden />
           <span className="text-sm text-teks-utama">{formatTanggal(b.tanggal)}</span>
-          <span className="text-xs text-teks-samar">{LABEL_METODE[b.metode] ?? b.metode}</span>
         </div>
         <span className="flex shrink-0 items-center gap-1">
           <span className="text-sm font-semibold tabular-nums text-sukses">
@@ -466,10 +458,6 @@ function KartuBayar({ b }: { b: PembayaranPantau }) {
               {untuk || 'Tanpa keterangan'}
               {b.untuk_tanggal ? ` (${formatTanggal(b.untuk_tanggal)})` : ''}
             </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-teks-samar">Metode</dt>
-            <dd className="text-teks-utama">{LABEL_METODE[b.metode] ?? b.metode}</dd>
           </div>
         </dl>
       ) : null}
