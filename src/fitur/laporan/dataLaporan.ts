@@ -24,6 +24,7 @@ export interface BarisLaporanTunai {
 }
 
 export interface BarisLaporanBayar {
+  transaksiId: string;
   tanggal: string;
   namaPelanggan: string;
   metode: string;
@@ -136,6 +137,7 @@ export async function susunLaporan(warungId: string, periode: Periode): Promise<
     .filter((b) => dalamPeriode(b.tanggal))
     .sort((a, b) => a.tanggal.localeCompare(b.tanggal))
     .map((b) => ({
+      transaksiId: b.transaksi_id,
       tanggal: b.tanggal,
       namaPelanggan: namaDari(b.pelanggan_id),
       metode: b.metode,

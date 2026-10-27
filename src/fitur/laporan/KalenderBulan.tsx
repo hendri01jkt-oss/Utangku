@@ -17,6 +17,8 @@ interface Props {
   terpilih: string | null;
   hariIni: string;
   onPilih: (tanggal: string) => void;
+  /** Kalender satu pelanggan: merah = masih ada yang belum lunas, hijau = lunas atau ada pembayaran. */
+  mode?: 'warung' | 'pelanggan';
 }
 
 const JENIS = [
@@ -73,7 +75,14 @@ export function NavigasiBulan({
  * di layar 360 px, tiga titik sudah batas yang masih terbaca, dan jumlah
  * persisnya toh dibaca di rincian harian di bawahnya.
  */
-export function KalenderBulan({ bulan, ringkasan, terpilih, hariIni, onPilih }: Props) {
+export function KalenderBulan({
+  bulan,
+  ringkasan,
+  terpilih,
+  hariIni,
+  onPilih,
+  mode = 'warung',
+}: Props) {
   // Hanya bergantung pada bulan, jadi tidak ikut dihitung ulang saat data
   // berubah atau saat pengguna mengetuk-ngetuk tanggal.
   const sel = useMemo(() => selKalender(bulan), [bulan]);
@@ -98,6 +107,7 @@ export function KalenderBulan({ bulan, ringkasan, terpilih, hariIni, onPilih }: 
               dipilih={tanggal === terpilih}
               hariIni={tanggal === hariIni}
               onPilih={onPilih}
+              mode={mode}
             />
           ),
         )}
@@ -107,7 +117,11 @@ export function KalenderBulan({ bulan, ringkasan, terpilih, hariIni, onPilih }: 
         {JENIS.filter((j) => j.kunci !== 'tunai').map((j) => (
           <span key={j.kunci} className="flex items-center gap-1.5">
             <i className={cn('size-[7px] rounded-full', j.warna)} aria-hidden="true" />
-            {j.label}
+            {mode === 'pelanggan'
+              ? j.kunci === 'utang'
+                ? 'Belum lunas'
+                : 'Lunas / bayar'
+              : j.label}
           </span>
         ))}
       </div>
@@ -121,16 +135,32 @@ function SelTanggal({
   dipilih,
   hariIni,
   onPilih,
+  mode,
 }: {
+  mode: 'warung' | 'pelanggan';
   tanggal: string;
   isi: IsiHari | undefined;
   dipilih: boolean;
   hariIni: boolean;
   onPilih: (tanggal: string) => void;
 }) {
+  const adaBelumLunas = !!isi && isi.utangBaru.some((u) => u.status !== 'lunas');
+  const semuaLunas = !!isi && isi.utangBaru.length > 0 && !adaBelumLunas;
   const titik = [
-    isi && isi.utangBaru.length > 0 ? 'utang' : null,
-    isi && isi.pembayaran.length > 0 ? 'bayar' : null,
+    mode === 'pelanggan'
+      ? adaBelumLunas
+        ? 'utang'
+        : null
+      : isi && isi.utangBaru.length > 0
+        ? 'utang'
+        : null,
+    mode === 'pelanggan'
+      ? semuaLunas || (isi && isi.pembayaran.length > 0)
+        ? 'bayar'
+        : null
+      : isi && isi.pembayaran.length > 0
+        ? 'bayar'
+        : null,
     isi && isi.penjualanTunai.length > 0 ? 'tunai' : null,
   ].filter((t): t is 'utang' | 'bayar' | 'tunai' => t !== null);
 

@@ -41,6 +41,18 @@ export function KalenderPelanggan({
     [],
   );
 
+  const idBayar = isi?.pembayaran.map((b) => b.transaksiId) ?? [];
+  const nomorBayar =
+    useLiveQuery(
+      async () => {
+        const baris = await db.transaksi_utang.bulkGet(idBayar);
+        return new Map(
+          baris.filter((b): b is NonNullable<typeof b> => !!b).map((b) => [b.id, b.nomor_struk]),
+        );
+      },
+      [idBayar.join(',')],
+    ) ?? new Map<string, string | null>();
+
   return (
     <section aria-label="Kalender pelanggan" className="flex flex-col gap-2">
       <NavigasiBulan
@@ -55,6 +67,7 @@ export function KalenderPelanggan({
         ringkasan={ringkasan}
         terpilih={terpilih}
         hariIni={hariIni}
+        mode="pelanggan"
         onPilih={(t) => setTerpilih((lama) => (lama === t ? null : t))}
       />
 
@@ -78,7 +91,9 @@ export function KalenderPelanggan({
                 <ul className="flex flex-col gap-1.5">
                   {isi.pembayaran.map((b, i) => (
                     <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="text-teks-redup">Dibayar</span>
+                      <span className="text-teks-redup">
+                        Dibayar{nomorBayar.get(b.transaksiId) ? ` · ${nomorBayar.get(b.transaksiId)}` : ''}
+                      </span>
                       <span className="angka font-semibold text-sukses">
                         {formatRupiah(b.nominal)}
                       </span>

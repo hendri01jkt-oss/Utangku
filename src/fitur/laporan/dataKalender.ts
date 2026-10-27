@@ -186,6 +186,7 @@ export async function susunKalender(
     const isi = isiHari(b.tanggal);
     const nominal = Math.round(b.nominal);
     isi.pembayaran.push({
+      transaksiId: b.transaksi_id,
       tanggal: b.tanggal,
       namaPelanggan: namaDari(b.pelanggan_id),
       metode: b.metode,
