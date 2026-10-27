@@ -105,6 +105,8 @@ const hariKosong = (): IsiHari => ({
 export async function susunKalender(
   warungId: string,
   bulan: Bulan,
+  /** Diisi untuk kalender satu pelanggan; kosong = seluruh warung. */
+  pelangganId?: string,
 ): Promise<RingkasanBulan> {
   const { mulai, sampai } = periodeBulan(bulan);
 
@@ -112,12 +114,12 @@ export async function susunKalender(
     db.transaksi_utang
       .where('[warung_id+tanggal]')
       .between([warungId, mulai], [warungId, sampai], true, true)
-      .filter((t) => t.deleted_at === null)
+      .filter((t) => t.deleted_at === null && (!pelangganId || t.pelanggan_id === pelangganId))
       .toArray(),
     db.pembayaran
       .where('[warung_id+tanggal]')
       .between([warungId, mulai], [warungId, sampai], true, true)
-      .filter((b) => b.deleted_at === null)
+      .filter((b) => b.deleted_at === null && (!pelangganId || b.pelanggan_id === pelangganId))
       .toArray(),
     /*
      * Pelanggan dibaca seluruhnya, bukan per bulan: jumlahnya dibatasi

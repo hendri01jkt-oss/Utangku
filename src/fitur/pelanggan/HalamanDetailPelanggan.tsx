@@ -8,6 +8,7 @@ import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/re
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
 import { KartuLinkPantau } from './KartuLinkPantau';
+import { KalenderPelanggan } from './KalenderPelanggan';
 import { KartuRiwayatUtang } from './KartuRiwayatUtang';
 import { SheetLunasiSemua } from '@/fitur/pembayaran/SheetLunasiSemua';
 import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
@@ -160,6 +161,8 @@ export function HalamanDetailPelanggan() {
           terakhirDilihat={pelanggan.terakhir_dilihat_pelanggan}
         />
       </Kartu>
+
+      <KalenderPelanggan warungId={pelanggan.warung_id} pelangganId={pelanggan.id} />
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
