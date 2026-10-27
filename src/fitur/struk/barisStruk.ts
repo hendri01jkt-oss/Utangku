@@ -41,6 +41,11 @@ export interface DataStruk {
   jenis: 'utang' | 'tunai';
   /** Mis. UK-261018-007; null untuk catatan yang belum bernomor. */
   nomorStruk: string | null;
+  /** Sudah dibayar pada transaksi ini. */
+  dibayar?: number;
+  /** YYYY-MM-DD, batas bayar bila ada. */
+  batasBayar?: string | null;
+  status?: 'belum_lunas' | 'sebagian' | 'lunas';
   /** Kosong bila pemiliknya memilih keterangan teks bebas. */
   item: readonly ItemStruk[];
 }

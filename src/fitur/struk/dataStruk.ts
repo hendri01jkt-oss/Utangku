@@ -67,6 +67,9 @@ export async function siapkanStruk(transaksiId: string): Promise<StrukSiap | nul
       sisaUtangPelanggan: sisaTotal,
       jenis: transaksi.jenis,
       nomorStruk: transaksi.nomor_struk,
+      dibayar: transaksi.total_dibayar,
+      batasBayar: transaksi.jatuh_tempo,
+      status: transaksi.status,
       item,
     },
   };

@@ -10,7 +10,7 @@ export async function unduhCatatan(transaksiId: string): Promise<void> {
   const siap = await siapkanStruk(transaksiId);
   if (!siap) throw new Error('Data utang tidak ditemukan di perangkat ini.');
 
-  const blob = await gambarStruk(siap.data, siap.lebar);
+  const blob = await gambarStruk(siap.data);
   const alamat = URL.createObjectURL(blob);
   const tautan = document.createElement('a');
   tautan.href = alamat;
