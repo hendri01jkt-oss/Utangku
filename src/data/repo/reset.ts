@@ -16,20 +16,28 @@ import { api } from '@/lib/api';
 export async function resetDataWarung(warungId: string): Promise<void> {
   // Server menghapus data (dan foto, sebisanya) dalam satu panggilan.
   void warungId;
-  await api('/reset-data', { method: 'POST', json: {} });
 
-  await db.transaction(
-    'rw',
-    [db.pelanggan, db.transaksi_utang, db.transaksi_item, db.pembayaran, db.outbox, db.foto],
-    async () => {
-      await Promise.all([
-        db.pelanggan.clear(),
-        db.transaksi_utang.clear(),
-        db.transaksi_item.clear(),
-        db.pembayaran.clear(),
-        db.outbox.clear(),
-        db.foto.clear(),
-      ]);
-    },
-  );
+  // Tanpa batas waktu, jaringan yang macet membuat tombol "Menghapus…" menggantung selamanya.
+  const pengendali = new AbortController();
+  const batas = setTimeout(() => pengendali.abort(), 30_000);
+  try {
+    await api('/reset-data', { method: 'POST', json: {}, sinyal: pengendali.signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('Server tidak menjawab dalam 30 detik. Belum ada yang terhapus.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(batas);
+  }
+
+  // Dikosongkan satu per satu (bukan satu transaksi besar): satu tabel yang
+  // tersangkut tidak lagi menahan seluruhnya, dan outbox dikosongkan LEBIH
+  // DULU supaya perubahan lama tidak sempat terkirim ulang.
+  await db.outbox.clear();
+  await db.pembayaran.clear();
+  await db.transaksi_item.clear();
+  await db.transaksi_utang.clear();
+  await db.pelanggan.clear();
+  await db.foto.clear();
 }

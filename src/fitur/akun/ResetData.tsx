@@ -52,11 +52,11 @@ export function ResetData() {
       setKetikan('');
     } catch (err) {
       setGalat(
-        err instanceof Error && /fetch|network|failed/i.test(err.message)
-          ? 'Tidak ada sinyal. Sambungkan ke internet lalu coba lagi. Belum ada yang terhapus.'
-          : 'Gagal menghapus. Belum ada yang terhapus. Coba lagi.',
+        err instanceof Error && err.message
+          ? err.message
+          : 'Gagal menghapus. Coba lagi.',
       );
-    } finally {
+        } finally {
       setSedang(false);
     }
   }
