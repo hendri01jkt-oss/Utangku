@@ -55,6 +55,8 @@ export function HalamanDetailPelanggan() {
 
   const totalSisa = utang.reduce((jumlah, t) => jumlah + sisaUtang(t), 0);
   const belumLunas = utang.filter((t) => t.status !== 'lunas');
+  const totalUtangSemua = utang.reduce((j, t) => j + Math.round(t.nominal), 0);
+  const totalDibayar = utang.reduce((j, t) => j + Math.round(t.total_dibayar), 0);
   const totalBelumLunas = belumLunas.reduce((j, t) => j + sisaUtang(t), 0);
 
   return (
@@ -109,6 +111,19 @@ export function HalamanDetailPelanggan() {
               ? `${belumLunas.length} transaksi belum lunas`
               : 'Semua utang sudah lunas'}
           </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/15 pt-3">
+            <div>
+              <p className="text-[11px] text-white/60">Total utang</p>
+              <p className="angka text-base font-semibold">{formatRupiah(totalUtangSemua)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-white/60">Sudah dibayar</p>
+              <p className="angka text-base font-semibold text-[#9be3b4]">
+                {formatRupiah(totalDibayar)}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2.5 p-4">
