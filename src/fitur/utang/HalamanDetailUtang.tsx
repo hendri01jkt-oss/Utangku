@@ -107,7 +107,6 @@ export function HalamanDetailUtang() {
   const nominal = Math.round(utang.nominal);
   const dibayar = Math.round(utang.total_dibayar);
   const sisa = sisaUtang(utang);
-  const persen = nominal > 0 ? Math.min(100, Math.round((dibayar / nominal) * 100)) : 0;
 
   /**
    * Membatalkan satu cicilan. Ini soft delete, bukan pengubahan nominal —
