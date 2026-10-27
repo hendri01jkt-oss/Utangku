@@ -355,7 +355,7 @@ function KartuUtang({ t }: { t: TransaksiPantau }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-medium text-teks-utama">
-              {t.keterangan?.trim() || 'Tanpa keterangan'}
+              {t.nomor_struk?.trim() || t.keterangan?.trim() || 'Tanpa nomor'}
             </p>
             <p className="mt-0.5 text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
           </div>
