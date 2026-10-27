@@ -1,13 +1,14 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Pencil, Plus, Wallet } from 'lucide-react';
-import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
-import { db, type BarisTransaksi } from '@/data/db';
+import { Kartu, Tombol, TombolTautan } from '@/komponen/ui';
+import { db } from '@/data/db';
 import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
 import { riwayatPembayaranPelanggan } from '@/data/repo/pembayaran';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
 import { KartuLinkPantau } from './KartuLinkPantau';
+import { KartuRiwayatUtang } from './KartuRiwayatUtang';
 import { SheetPilihUtang } from '@/fitur/pembayaran/SheetPilihUtang';
 import { TombolTagihWa } from '@/fitur/tagihan/TombolTagihWa';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -19,14 +20,6 @@ const formatTanggal = (iso: string) =>
     month: 'short',
     year: 'numeric',
   });
-
-const hariIni = () => new Date().toISOString().slice(0, 10);
-
-/** Lewat tempo lebih mendesak daripada sekadar belum lunas, jadi didahulukan. */
-function statusTampil(t: BarisTransaksi): Status {
-  if (t.status !== 'lunas' && t.jatuh_tempo && t.jatuh_tempo < hariIni()) return 'lewat_tempo';
-  return t.status;
-}
 
 export function HalamanDetailPelanggan() {
   const { id = '' } = useParams<{ id: string }>();
@@ -162,29 +155,7 @@ export function HalamanDetailPelanggan() {
           <ul className="flex flex-col gap-2">
             {utang.map((t) => (
               <li key={t.id}>
-                <Link to={`/utang/${t.id}`} className="block">
-                  <Kartu
-                    padat
-                    dapatDitekan
-                    className="sorot-kartu flex items-center justify-between gap-3"
-                  >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {t.keterangan ?? 'Tanpa keterangan'}
-                    </p>
-                    <p className="text-xs text-teks-samar">{formatTanggal(t.tanggal)}</p>
-                    <StatusBadge status={statusTampil(t)} className="mt-1.5" />
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="angka text-sm font-semibold">{formatRupiah(t.nominal)}</p>
-                    {sisaUtang(t) > 0 ? (
-                      <p className="angka text-xs text-emas-700">
-                        sisa {formatRupiah(sisaUtang(t))}
-                      </p>
-                    ) : null}
-                  </div>
-                  </Kartu>
-                </Link>
+                <KartuRiwayatUtang t={t} />
               </li>
             ))}
           </ul>
