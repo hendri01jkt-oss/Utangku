@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ChevronDown, Download, Wallet } from 'lucide-react';
-import { Kartu, StatusBadge, Tombol, TombolTautan, type Status } from '@/komponen/ui';
+import { Kartu, StatusBadge, Tombol, type Status } from '@/komponen/ui';
 import type { BarisTransaksi } from '@/data/db';
 import { itemTransaksi } from '@/data/repo/item';
 import { sisaUtang } from '@/data/repo/transaksi';
+import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
+import { useSesi } from '@/fitur/auth/useSesi';
 import { unduhCatatan } from '@/fitur/struk/unduhCatatan';
 import { formatRupiah } from '@/lib/uang';
 
@@ -35,6 +37,8 @@ export function KartuRiwayatUtang({
   const [buka, setBuka] = useState(false);
   const item = useLiveQuery(() => (buka ? itemTransaksi(t.id) : []), [buka, t.id]) ?? [];
   const sisa = sisaUtang(t);
+  const [bayar, setBayar] = useState(false);
+  const sesi = useSesi((x) => x.sesi);
   const [sedangUnduh, setSedangUnduh] = useState(false);
   const [galatUnduh, setGalatUnduh] = useState<string | null>(null);
 
@@ -139,13 +143,9 @@ export function KartuRiwayatUtang({
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             {sisa > 0 ? (
-              <TombolTautan
-                to={`/utang/${t.id}/bayar`}
-                varian="utama"
-                ikon={<Wallet size={16} />}
-              >
+              <Tombol varian="utama" ikon={<Wallet size={16} />} onClick={() => setBayar(true)}>
                 Bayar
-              </TombolTautan>
+              </Tombol>
             ) : (
               <Tombol varian="sekunder" ikon={<Wallet size={16} />} disabled>
                 Lunas
@@ -162,6 +162,14 @@ export function KartuRiwayatUtang({
           </div>
           {galatUnduh ? <p className="mt-2 text-xs text-bahaya">{galatUnduh}</p> : null}
         </div>
+      ) : null}
+      {bayar ? (
+        <FormPembayaran
+          utang={t}
+          dibuatOleh={sesi?.user.id ?? null}
+          onTutup={() => setBayar(false)}
+          onSelesai={() => setBayar(false)}
+        />
       ) : null}
     </Kartu>
   );

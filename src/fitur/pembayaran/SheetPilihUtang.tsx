@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CheckCheck, ChevronRight } from 'lucide-react';
 import { BottomSheet, StatusBadge, Tombol } from '@/komponen/ui';
 import { lunasiSemua } from '@/data/repo/pembayaran';
@@ -26,11 +25,12 @@ const formatTanggal = (iso: string) =>
 export function SheetPilihUtang({
   utang,
   onTutup,
+  onPilih,
 }: {
   utang: BarisTransaksi[];
   onTutup: () => void;
+  onPilih: (t: BarisTransaksi) => void;
 }) {
-  const navigate = useNavigate();
   const hariIni = tanggalHariIni();
   const sesi = useSesi((x) => x.sesi);
   const [metode, setMetode] = useState<Enums<'metode_bayar'>>('tunai');
@@ -97,7 +97,7 @@ export function SheetPilihUtang({
           <li key={t.id}>
             <button
               type="button"
-              onClick={() => navigate(`/utang/${t.id}/bayar`, { replace: true })}
+              onClick={() => onPilih(t)}
               className="flex w-full items-center gap-3 rounded-[var(--radius-kontrol)] border border-garis p-3 text-left transition-colors hover:bg-permukaan-2"
             >
               <span className="min-w-0 flex-1">

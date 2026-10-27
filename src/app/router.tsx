@@ -5,6 +5,7 @@
  * menyenangkan aturan lint akan membuat peta rutenya lebih sulit dibaca.
  */
 /* eslint-disable react/only-export-components */
+import { AlihkanUtang } from '@/fitur/utang/AlihkanUtang';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import { HalamanTidakDitemukan } from './HalamanTidakDitemukan';
@@ -46,9 +47,6 @@ const FormPelanggan = lazy(() =>
 );
 const FormUtang = lazy(() =>
   import('@/fitur/utang/FormUtang').then((m) => ({ default: m.FormUtang })),
-);
-const HalamanDetailUtang = lazy(() =>
-  import('@/fitur/utang/HalamanDetailUtang').then((m) => ({ default: m.HalamanDetailUtang })),
 );
 const HalamanTagihan = lazy(() =>
   import('@/fitur/tagihan/HalamanTagihan').then((m) => ({ default: m.HalamanTagihan })),
@@ -97,8 +95,8 @@ const rute: RouteObject[] = [
           { path: 'pelanggan/:id/bayar', element: tunggu(<HalamanDetailPelanggan />) },
           { path: 'pelanggan/:id/ubah', element: tunggu(<FormPelanggan mode="ubah" />) },
           { path: 'utang/baru', element: tunggu(<FormUtang mode="baru" />) },
-          { path: 'utang/:id', element: tunggu(<HalamanDetailUtang />) },
-          { path: 'utang/:id/bayar', element: tunggu(<HalamanDetailUtang />) },
+          { path: 'utang/:id', element: <AlihkanUtang /> },
+          { path: 'utang/:id/bayar', element: <AlihkanUtang /> },
           { path: 'utang/:id/ubah', element: tunggu(<FormUtang mode="ubah" />) },
           { path: 'tagihan', element: tunggu(<HalamanTagihan />) },
           { path: 'laporan', element: tunggu(<HalamanLaporan />) },

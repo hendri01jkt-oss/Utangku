@@ -3,13 +3,14 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, CheckCheck, Pencil, Plus, Wallet } from 'lucide-react';
 import { Kartu, Tombol, TombolTautan } from '@/komponen/ui';
-import { db } from '@/data/db';
+import { db, type BarisTransaksi } from '@/data/db';
 import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
 import { formatRupiah } from '@/lib/uang';
 import { FotoPelanggan } from './FotoPelanggan';
 import { KartuLinkPantau } from './KartuLinkPantau';
 import { KartuRiwayatUtang } from './KartuRiwayatUtang';
 import { SheetLunasiSemua } from '@/fitur/pembayaran/SheetLunasiSemua';
+import { FormPembayaran } from '@/fitur/pembayaran/FormPembayaran';
 import { SheetPilihUtang } from '@/fitur/pembayaran/SheetPilihUtang';
 import { TombolTagihWa } from '@/fitur/tagihan/TombolTagihWa';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -29,6 +30,8 @@ export function HalamanDetailPelanggan() {
   const pilihUtangTerbuka = lokasi.pathname.endsWith('/bayar');
   const warung = useSesi((s) => s.warung);
   const [lunasiTerbuka, setLunasiTerbuka] = useState(false);
+  const [bayarUtang, setBayarUtang] = useState<BarisTransaksi | null>(null);
+  const sesi = useSesi((x) => x.sesi);
 
   const pelanggan = useLiveQuery(async () => await db.pelanggan.get(id), [id]);
   const utang = useLiveQuery(async () => await daftarUtangPelanggan(id), [id], []);
@@ -132,19 +135,19 @@ export function HalamanDetailPelanggan() {
                 Terima Uang
               </Tombol>
             ) : (
-              <TombolTautan
+              <Tombol
                 // Satu utang belum lunas: langsung ke panel bayarnya, tidak
                 // perlu memilih. Lebih dari satu: pemiliknya yang memilih.
-                to={
-                  belumLunas.length === 1 && belumLunas[0]
-                    ? `/utang/${belumLunas[0].id}/bayar`
-                    : `/pelanggan/${id}/bayar`
-                }
                 varian="sekunder"
                 ikon={<Wallet size={16} />}
+                onClick={() =>
+                  belumLunas.length === 1 && belumLunas[0]
+                    ? setBayarUtang(belumLunas[0])
+                    : navigate(`/pelanggan/${id}/bayar`)
+                }
               >
                 Terima Uang
-              </TombolTautan>
+              </Tombol>
             )}
           </div>
         </div>
@@ -223,6 +226,14 @@ export function HalamanDetailPelanggan() {
           </ul>
         </section>
       ) : null}
+      {bayarUtang ? (
+        <FormPembayaran
+          utang={bayarUtang}
+          dibuatOleh={sesi?.user.id ?? null}
+          onTutup={() => setBayarUtang(null)}
+          onSelesai={() => setBayarUtang(null)}
+        />
+      ) : null}
       {lunasiTerbuka ? (
         <SheetLunasiSemua utang={belumLunas} onTutup={() => setLunasiTerbuka(false)} />
       ) : null}
@@ -230,6 +241,10 @@ export function HalamanDetailPelanggan() {
         <SheetPilihUtang
           utang={belumLunas}
           onTutup={() => navigate(`/pelanggan/${id}`, { replace: true })}
+          onPilih={(t) => {
+            navigate(`/pelanggan/${id}`, { replace: true });
+            setBayarUtang(t);
+          }}
         />
       ) : null}
     </div>

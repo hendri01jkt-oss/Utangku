@@ -150,7 +150,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
         // menghapus baris item lama supaya tidak menggantung di transaksi
         // yang sekarang memakai keterangan teks bebas.
         await gantiItemTransaksi(id, daftarItem);
-        navigate(`/utang/${id}`, { replace: true });
+        navigate(`/pelanggan/${pelanggan.id}`, { replace: true });
       } else {
         const baru = await catatUtang({
           warung_id: warung.id,
@@ -163,7 +163,7 @@ export function FormUtang({ mode }: { mode: 'baru' | 'ubah' }) {
           dibuat_oleh: sesi?.user.id ?? null,
           item: daftarItem,
         });
-        navigate(`/utang/${baru.id}`, { replace: true });
+        navigate(`/pelanggan/${pelanggan.id}`, { replace: true });
       }
     } catch (err) {
       setGalat(err instanceof Error ? err.message : 'Gagal menyimpan utang.');

@@ -31,7 +31,7 @@ export function KartuBarisTagihan({
     // yang sah, dan menekannya akan ikut menavigasi.
     <Kartu padat dapatDitekan className="flex items-center gap-2">
       <Link
-        to={`/utang/${baris.transaksi.id}`}
+        to={baris.transaksi.pelanggan_id ? `/pelanggan/${baris.transaksi.pelanggan_id}` : '/pelanggan'}
         className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-kontrol)] transition-colors hover:bg-permukaan-2"
       >
         <span className="min-w-0 flex-1">
