@@ -31,6 +31,7 @@ export function HalamanDetailPelanggan() {
   const pilihUtangTerbuka = lokasi.pathname.endsWith('/bayar');
   const warung = useSesi((s) => s.warung);
   const [lunasiTerbuka, setLunasiTerbuka] = useState(false);
+  const [filter, setFilter] = useState<'semua' | 'belum' | 'lunas'>('semua');
   const [tab, setTab] = useState<'riwayat' | 'kalender' | 'link'>('riwayat');
   const [bayarUtang, setBayarUtang] = useState<BarisTransaksi | null>(null);
   const sesi = useSesi((x) => x.sesi);
@@ -55,6 +56,9 @@ export function HalamanDetailPelanggan() {
 
   const totalSisa = utang.reduce((jumlah, t) => jumlah + sisaUtang(t), 0);
   const belumLunas = utang.filter((t) => t.status !== 'lunas');
+  const jumlahLunas = utang.length - belumLunas.length;
+  const utangTampil =
+    filter === 'belum' ? belumLunas : filter === 'lunas' ? utang.filter((t) => t.status === 'lunas') : utang;
   const totalUtangSemua = utang.reduce((j, t) => j + Math.round(t.nominal), 0);
   const totalDibayar = utang.reduce((j, t) => j + Math.round(t.total_dibayar), 0);
   const totalBelumLunas = belumLunas.reduce((j, t) => j + sisaUtang(t), 0);
@@ -234,13 +238,44 @@ export function HalamanDetailPelanggan() {
       {tab === 'riwayat' ? (
         <>
       <section className="flex flex-col gap-2">
+        {utang.length > 0 ? (
+          <div role="group" aria-label="Saring utang" className="flex gap-2">
+            {(
+              [
+                ['semua', 'Semua', utang.length],
+                ['belum', 'Belum lunas', belumLunas.length],
+                ['lunas', 'Lunas', jumlahLunas],
+              ] as const
+            ).map(([kunci, label, jumlah]) => (
+              <button
+                key={kunci}
+                type="button"
+                aria-pressed={filter === kunci}
+                onClick={() => setFilter(kunci)}
+                className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                  filter === kunci
+                    ? 'border-navy-900 bg-navy-900 font-semibold text-putih'
+                    : 'border-garis bg-putih text-teks-redup'
+                }`}
+              >
+                {label} <span className="angka opacity-70">{jumlah}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
         {utang.length === 0 ? (
           <Kartu>
             <p className="text-sm text-teks-samar">Belum ada utang tercatat.</p>
           </Kartu>
+        ) : utangTampil.length === 0 ? (
+          <Kartu>
+            <p className="text-sm text-teks-samar">
+              {filter === 'belum' ? 'Tidak ada utang yang belum lunas.' : 'Belum ada utang yang lunas.'}
+            </p>
+          </Kartu>
         ) : (
           <ul className="flex flex-col gap-2">
-            {utang.map((t) => (
+            {utangTampil.map((t) => (
               <li key={t.id}>
                 <KartuRiwayatUtang t={t} />
               </li>
