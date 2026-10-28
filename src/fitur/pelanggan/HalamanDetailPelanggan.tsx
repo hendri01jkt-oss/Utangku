@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, CheckCheck, Pencil, Plus, Wallet } from 'lucide-react';
+import { ArrowLeft, CheckCheck, MapPin, Pencil, Plus, StickyNote, Wallet } from 'lucide-react';
 import { Kartu, Tombol, TombolTautan } from '@/komponen/ui';
 import { db, type BarisTransaksi } from '@/data/db';
 import { daftarTunaiPelanggan, daftarUtangPelanggan, sisaUtang } from '@/data/repo/transaksi';
@@ -99,6 +99,22 @@ export function HalamanDetailPelanggan() {
               </p>
             </div>
           </div>
+          {pelanggan.alamat || pelanggan.catatan ? (
+            <ul className="mt-3 flex flex-col gap-1.5 text-sm text-white/85">
+              {pelanggan.alamat ? (
+                <li className="flex items-start gap-2">
+                  <MapPin size={15} className="mt-0.5 shrink-0 text-[#f6e6a8]" aria-hidden />
+                  <span>{pelanggan.alamat}</span>
+                </li>
+              ) : null}
+              {pelanggan.catatan ? (
+                <li className="flex items-start gap-2">
+                  <StickyNote size={15} className="mt-0.5 shrink-0 text-[#f6e6a8]" aria-hidden />
+                  <span>{pelanggan.catatan}</span>
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
           <p className="mt-4 text-xs text-white/70">Sisa utang</p>
           <p
             className="angka text-4xl font-bold tracking-tight"
@@ -131,10 +147,6 @@ export function HalamanDetailPelanggan() {
         </div>
 
         <div className="flex flex-col gap-2.5 p-4">
-          {pelanggan.catatan ? (
-            <p className="text-sm text-teks-redup">{pelanggan.catatan}</p>
-          ) : null}
-
           {belumLunas.length > 1 ? (
             <Tombol
               varian="utama"
