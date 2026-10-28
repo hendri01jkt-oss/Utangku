@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, Camera, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, ImagePlus, Trash2 } from 'lucide-react';
 import { Input, Kartu, Tombol } from '@/komponen/ui';
 import { KotakGalat } from '@/fitur/auth/LayoutAuth';
 import { useSesi } from '@/fitur/auth/useSesi';
@@ -29,6 +29,7 @@ export function FormPelanggan({ mode }: { mode: 'baru' | 'ubah' }) {
   const [fotoBaru, setFotoBaru] = useState<Blob | null>(null);
   const [fotoDihapus, setFotoDihapus] = useState(false);
   const berkasRef = useRef<HTMLInputElement>(null);
+  const galeriRef = useRef<HTMLInputElement>(null);
 
   // Isi formulir sekali begitu data pelanggan tersedia dari Dexie.
   const sudahDiisi = useRef(false);
@@ -157,23 +158,45 @@ export function FormPelanggan({ mode }: { mode: 'baru' | 'ubah' }) {
             )}
 
             <div className="flex flex-col gap-1">
-              <Tombol
-                type="button"
-                varian="sekunder"
-                ikon={<Camera size={16} />}
-                onClick={() => berkasRef.current?.click()}
-              >
-                {fotoBaru ? 'Ganti foto' : 'Ambil foto'}
-              </Tombol>
-              <p className="text-xs text-teks-samar">Opsional. Diperkecil otomatis.</p>
+              <div className="flex gap-2">
+                <Tombol
+                  type="button"
+                  varian="sekunder"
+                  ikon={<Camera size={16} />}
+                  onClick={() => berkasRef.current?.click()}
+                >
+                  Kamera
+                </Tombol>
+                <Tombol
+                  type="button"
+                  varian="sekunder"
+                  ikon={<ImagePlus size={16} />}
+                  onClick={() => galeriRef.current?.click()}
+                >
+                  Galeri
+                </Tombol>
+              </div>
+              <p className="text-xs text-teks-samar">
+                {fotoBaru ? 'Foto dipilih. ' : ''}Opsional. Diperkecil otomatis.
+              </p>
             </div>
 
+            {/* Kamera: capture membuat HP langsung membuka kamera. */}
             <input
               ref={berkasRef}
               type="file"
               accept="image/*"
-              // capture membuat HP langsung membuka kamera; galeri tetap bisa dipilih.
               capture="environment"
+              onChange={(e) => void pilihFoto(e)}
+              className="hidden"
+              aria-hidden
+              tabIndex={-1}
+            />
+            {/* Galeri: tanpa capture, HP menampilkan pemilih berkas/galeri. */}
+            <input
+              ref={galeriRef}
+              type="file"
+              accept="image/*"
               onChange={(e) => void pilihFoto(e)}
               className="hidden"
               aria-hidden
